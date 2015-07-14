@@ -31,8 +31,7 @@ public class CameraController : MonoBehaviour {
 		}
 
 		move.Normalize ();
-
-		transform += move * MOVESPEED;
+		transform.position += (move * MOVESPEED);
 
 	}
 }
