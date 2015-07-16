@@ -26,7 +26,7 @@ public class UIController : MonoBehaviour {
 
 		for (int i = 0; i < count; ++i) {
 
-			Vector3 pos = new Vector3(startX + (32*i)+16, -300, 0) / 39.625f; // needs to divide because parent idk
+			Vector3 pos = new Vector3(startX + (32*i)+16, -300, 0) / 40; // needs to divide because parent idk
 			Vector3 scale = new Vector3(1, 1, 1);
 
 			//GameObject go = (GameObject)Instantiate (AbilityNumbers [i], new Vector3(0,0,0), rot);

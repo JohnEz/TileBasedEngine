@@ -68,9 +68,8 @@ public class UnitManager : MonoBehaviour {
 	void spawnUnit(int x, int y, CharacterClass c) {
 		if (characterCount < MAXCHARACTERS) {
 			Vector3 pos = map.TileCoordToWorldCoord (x, y);
-			Quaternion rot = map.transform.rotation;
 
-			GameObject go = (GameObject)Instantiate (classes [(int)c], pos, rot);
+			GameObject go = (GameObject)Instantiate (classes [(int)c], pos, Quaternion.identity);
 
 			playerUnitObjects [characterCount] = go;
 
