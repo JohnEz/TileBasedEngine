@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
+
 
 public enum Behaviour {
 	Dumb,
@@ -81,21 +83,26 @@ public class AIBehaviours : MonoBehaviour {
 		target = myMap.GetNode (tx, ty);
 		shortestPath.Remove (target);
 		myUnit.currentPath = shortestPath;
+		myMap.CullPath ();
 	}
 
 	// run to and attack closest target
 	void Dumb(){
 		// is it already in melee?
-		if (myUnit.currentPath.Count < 2) {
+		if (myUnit.currentPath.Count < 1) {
 			myStrat = AIStrategy.Attack;
 			myUnit.attacking = true;
 		} else if (myUnit.currentPath.Count <= myUnit.movespeed) {
 			myStrat = AIStrategy.MoveAttack;
 			myUnit.moving = true;
 			myUnit.attacking = true;
+			myUnit.remainingMove -= (int)myUnit.currentPath.Last().cost;
 		} else {
 			myStrat = AIStrategy.Dash;
 			myUnit.moving = true;
+			FindFurthestTileInPath();
+			myUnit.remainingMove += myUnit.movespeed - (int)myUnit.currentPath.Last().cost;
+			--myUnit.actionPoints;
 		}
 	}
 
@@ -104,6 +111,15 @@ public class AIBehaviours : MonoBehaviour {
 		//temp
 		//myUnit.remainingMove = 0;
 		//myUnit.actionPoints = 0;
+	}
+
+	void FindFurthestTileInPath() {
+		Node curr = myUnit.currentPath.Last ();
+
+		while (curr.cost > myUnit.remainingMove + myUnit.movespeed) {
+			myUnit.currentPath.Remove(curr);
+			curr = myUnit.currentPath.Last ();
+		}
 	}
 
 }

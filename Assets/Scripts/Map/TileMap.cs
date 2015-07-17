@@ -53,7 +53,6 @@ public class TileMap : MonoBehaviour {
 	public Node GetNode(int x, int y) {
 		return graph [y * currentLevel.maxSizeX + x];
 	}
-	
 
 	// generates nodes for each tile
 	void GeneratePathfindingGraph() {
@@ -119,28 +118,26 @@ public class TileMap : MonoBehaviour {
 	// finds a path using dijkstra's algorithm
 	public void GeneratePathTo(int x, int y) {
 		List<Node> currentPath = null;
+		Unit sUnit = selectedUnit.GetComponent<Unit> ();
 
 		if (!UnitCanEnterTile (x, y)) {
 			return;
 		}
 
-		Dictionary<Node, float> dist = new Dictionary<Node, float> ();
-		Dictionary<Node, Node> prev = new Dictionary<Node, Node> ();
-
 		List<Node> unvisited = new List<Node> ();
 
-		Node source = graph [selectedUnit.GetComponent<Unit> ().tileY * currentLevel.maxSizeX + selectedUnit.GetComponent<Unit> ().tileX];
+		Node source = graph [sUnit.tileY * currentLevel.maxSizeX + sUnit.tileX];
 		Node target = graph [y * currentLevel.maxSizeX + x];
 		
 
-		dist [source] = 0;
-		prev [source] = null;
+		source.cost = 0;
+		source.previous = null;
 
 		// Initialize everything to have inf distance
 		foreach(Node n in graph) {
 			if (n != source) {
-				dist[n] = Mathf.Infinity;
-				prev[n] = null;
+				n.cost = Mathf.Infinity;
+				n.previous = null;
 			}
 			unvisited.Add(n);
 		}
@@ -150,7 +147,7 @@ public class TileMap : MonoBehaviour {
 			//find current lowest cost tile
 			Node u = null;
 			foreach (Node n in unvisited) {
-				if (u == null || (dist[n] < dist[u] && (!n.occupied || n == source))){
+				if (u == null || (n.cost < u.cost && (!n.myUnit || n == source))){
 					u = n;
 				}
 			}
@@ -166,17 +163,18 @@ public class TileMap : MonoBehaviour {
 				if (n != null)
 				{
 					//float alt = dist[u] + u.distanceTo(n);
-					float alt = dist[u] + CostToEnterTile(n.x, n.y);
-					if (alt < dist[n]) {
-						dist[n] = alt;
-						prev[n] = u;
+					float alt = u.cost + CostToEnterTile(n.x, n.y);
+					if (alt < n.cost) {
+						n.cost = alt;
+						n.previous = u;
+						n.directionToParent = new Vector2(u.x - n.x, u.y - n.y);
 					}
 				}
 			}
 		}
 
 		//was there no possible path
-		if (prev [target] == null) {
+		if (target.previous == null) {
 			return;
 		}
 
@@ -186,14 +184,16 @@ public class TileMap : MonoBehaviour {
 
 		//loop through the chain and add to path
 		while (curr != null) {
-			currentPath.Add(curr);
-			curr = prev[curr];
+			if (curr != source){
+				currentPath.Add(curr);
+			}
+			curr = curr.previous;
 		}
 
 		//reverse the path as its backwards
 		currentPath.Reverse();
 
-		selectedUnit.GetComponent<Unit>().currentPath = currentPath;
+		sUnit.currentPath = currentPath;
 	}
 
 	//using dijkstra's algorithm it finds every tile that can be reached
@@ -204,19 +204,19 @@ public class TileMap : MonoBehaviour {
 		List<Node> reachableTiles = new List<Node> ();
 		List<Node> reachableTilesDash = new List<Node> ();
 
-		Dictionary<Node, float> dist = new Dictionary<Node, float> ();
+		//Dictionary<Node, float> dist = new Dictionary<Node, float> ();
 
 		List<Node> unvisited = new List<Node> ();
 
 		Node source = graph [sUnit.tileY * currentLevel.maxSizeX + sUnit.tileX];
 
 		source.previous = null;
-		dist [source] = 0;
+		source.cost = 0;
 
 		// Initialize everything to have inf distance
 		foreach(Node n in graph) {
 			if (n != source) {
-				dist[n] = Mathf.Infinity;
+				n.cost = Mathf.Infinity;
 				n.previous = null;
 			}
 			unvisited.Add(n);
@@ -229,16 +229,16 @@ public class TileMap : MonoBehaviour {
 			//find current lowest cost tile
 			Node u = null;
 			foreach (Node n in unvisited) {
-				if (u == null || (dist[n] < dist[u] && (!n.occupied || n == source))){
+				if (u == null || (n.cost < u.cost && (!n.myUnit || n == source))){
 					u = n;
 				}
 			}
 
 			//if the lowest cost is higher than the max move exit
-			if (dist[u] <= sUnit.remainingMove) {
+			if (u.cost <= sUnit.remainingMove) {
 				reachableTiles.Add(u);
 			}
-			else if (canDash && dist[u] <= sUnit.remainingMove + sUnit.movespeed) {
+			else if (canDash && u.cost <= sUnit.remainingMove + sUnit.movespeed) {
 				reachableTilesDash.Add(u);
 			}
 			else {
@@ -251,16 +251,18 @@ public class TileMap : MonoBehaviour {
 			foreach(Node n in u.neighbours) {
 				if (n != null)
 				{
-					float alt = dist[u] + CostToEnterTile(n.x, n.y);
-					if (alt < dist[n]) {
-						dist[n] = alt;
+					float alt = u.cost + CostToEnterTile(n.x, n.y);
+					if (alt < n.cost) {
+						n.cost = alt;
 						n.previous = u;
+						n.directionToParent = new Vector2(u.x - n.x, u.y - n.y);
 					}
 				}
 			}
 		}
 
 		sUnit.reachableTiles = reachableTiles;
+		sUnit.reachableTiles.RemoveAt (0);
 		sUnit.reachableTilesWithDash = reachableTilesDash;
 
 	}
@@ -275,6 +277,12 @@ public class TileMap : MonoBehaviour {
 			if (sUnit.currentPath.Last ().x == x && sUnit.currentPath.Last ().y == y) {
 				//sUnit.MoveNextTile ();
 				sUnit.moving = true;
+				//set the node's unit
+				graph[sUnit.tileY * currentLevel.maxSizeX + sUnit.tileX].myUnit = null;
+				graph[y * currentLevel.maxSizeX + x].myUnit = sUnit;
+
+				sUnit.RemoveMovement();
+
 				return;
 			}
 		}
@@ -285,7 +293,9 @@ public class TileMap : MonoBehaviour {
 		
 		//loop through the chain and add to path
 		while (curr != null) {
-			currentPath.Add(curr);
+			if (curr != graph[sUnit.tileY * currentLevel.maxSizeX + sUnit.tileX]){
+				currentPath.Add(curr);
+			}
 			curr = curr.previous;
 		}
 		
@@ -293,6 +303,8 @@ public class TileMap : MonoBehaviour {
 		currentPath.Reverse();
 		
 		sUnit.currentPath = currentPath;
+
+		CullPath ();
 	}
 
 	public void HighlightTiles(List<Node> HTiles, Color c)  {
@@ -311,6 +323,36 @@ public class TileMap : MonoBehaviour {
 		foreach (GameObject n in tileObjects) {
 			n.GetComponent<ClickableTile>().UnhighlightTile();
 		}
+	}
+
+	public void CullPath() {
+		Unit sUnit = selectedUnit.GetComponent<Unit> ();
+
+		Vector2 currentDirection = new Vector2(0, 0);
+
+		List<Node> culledList = new List<Node> ();
+
+		//loop through all the current path nodes
+		for (int i = 0; i < sUnit.currentPath.Count; ++i)
+		{
+			// if its the first node set the starting direction
+			if ( i == 0) {
+				currentDirection = sUnit.currentPath[i].directionToParent;
+			}
+			// else if the direction changed add the previous node
+			else if (sUnit.currentPath[i].directionToParent != currentDirection) {
+				culledList.Add(sUnit.currentPath[i].previous);
+				currentDirection = sUnit.currentPath[i].directionToParent;
+			}
+
+			// if its the final node add it
+			if ( i == sUnit.currentPath.Count - 1) {
+				culledList.Add(sUnit.currentPath[i]);
+			}
+
+		}
+
+		sUnit.currentPath = culledList;
 	}
 
 }

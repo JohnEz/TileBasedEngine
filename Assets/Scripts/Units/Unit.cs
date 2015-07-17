@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
 
 [System.Serializable]
 public class Unit : MonoBehaviour {
@@ -55,11 +56,17 @@ public class Unit : MonoBehaviour {
 	public void PlayerUpdate() {
 		if (currentPath != null) {
 			int currNode = 0;
-			
+			Vector3 start = map.TileCoordToWorldCoord(tileX, tileY) +
+				new Vector3(0,0,-1.5f);
+			Vector3 end = map.TileCoordToWorldCoord(currentPath[currNode].x, currentPath[currNode].y) +
+				new Vector3(0,0,-1.5f);
+
+			Debug.DrawLine(start, end, Color.blue);
+
 			while ( currNode < currentPath.Count - 1) {
-				Vector3 start = map.TileCoordToWorldCoord(currentPath[currNode].x, currentPath[currNode].y) +
+				start = map.TileCoordToWorldCoord(currentPath[currNode].x, currentPath[currNode].y) +
 					new Vector3(0,0,-1.5f);
-				Vector3 end = map.TileCoordToWorldCoord(currentPath[currNode+1].x, currentPath[currNode+1].y) +
+				end = map.TileCoordToWorldCoord(currentPath[currNode+1].x, currentPath[currNode+1].y) +
 					new Vector3(0,0,-1.5f);
 				
 				Debug.DrawLine(start, end, Color.blue);
@@ -82,6 +89,7 @@ public class Unit : MonoBehaviour {
 						map.HighlightTiles (reachableTilesWithDash, new Color(0.5f,1,0));
 					}
 					moving = false;
+					transform.position = map.TileCoordToWorldCoord (tileX, tileY);
 				}
 			}
 			
@@ -95,10 +103,11 @@ public class Unit : MonoBehaviour {
 		AIBehaviours myAI = GetComponent<AIBehaviours> ();
 
 		if (moving) {
-			if (Vector3.Distance (transform.position, map.TileCoordToWorldCoord (tileX, tileY)) < 0.1f) {
+			if (Vector3.Distance (transform.position, map.TileCoordToWorldCoord (tileX, tileY)) < 0.01f) {
 				SlideMovement ();
-				if (Vector3.Distance (transform.position, map.TileCoordToWorldCoord (tileX, tileY)) < 0.1f) {
+				if (Vector3.Distance (transform.position, map.TileCoordToWorldCoord (tileX, tileY)) < 0.01f) {
 					moving = false;
+					transform.position = map.TileCoordToWorldCoord (tileX, tileY);
 				}
 
 			}
@@ -120,31 +129,16 @@ public class Unit : MonoBehaviour {
 		if(currentPath==null)
 			return;
 
-		//if the unit cant move any further
-		if(remainingMove <= 0 && actionPoints <= 0)
-			return;
-
-		// if the unit is trying to dash
-		if (remainingMove < 1 && currentPath.Count > 1) {
-			remainingMove = movespeed;
-			--actionPoints;
-		}
-
-		//unit has moved out of the tile so its not occupied (may need to just change this to first tile)
-		map.GetNode (tileX, tileY).occupied = false;
-
-		// remove the old tile
-		currentPath.RemoveAt (0);
-
-		remainingMove -= (int)map.CostToEnterTile(currentPath [0].x, currentPath [0].y);
-		
 		// get the new first node and move
 		tileX = currentPath[0].x;
 		tileY = currentPath[0].y;
 
+		// remove the old tile
+		currentPath.RemoveAt (0);
+
 		//at the target tile
-		if (currentPath.Count == 1) {
-			map.GetNode (tileX, tileY).occupied = true;
+		if (currentPath.Count == 0) {
+			//map.GetNode (tileX, tileY).occupied = true;
 			//clear path finding info
 			currentPath = null;
 		}
@@ -167,7 +161,7 @@ public class Unit : MonoBehaviour {
 				
 			}
 
-			map.GetNode (tileX, tileY).occupied = false;
+			//map.GetNode (tileX, tileY).occupied = false;
 			// remove the old tile
 			currentPath.RemoveAt (0);
 
@@ -180,7 +174,7 @@ public class Unit : MonoBehaviour {
 
 			//at the target tile
 			if (currentPath.Count == 1) {
-				map.GetNode (tileX, tileY).occupied = true;
+				//map.GetNode (tileX, tileY).occupied = true;
 				//clear path finding info
 				currentPath = null;
 			}
@@ -190,6 +184,16 @@ public class Unit : MonoBehaviour {
 			map.FindReachableTiles ();
 			map.HighlightTiles (reachableTiles, Color.blue);
 			map.HighlightTiles (reachableTilesWithDash, new Color(0.5f,1,0));
+		}
+	}
+
+	public void RemoveMovement() {
+		//remove movement cost
+		if (currentPath.Last ().cost > remainingMove) {
+			remainingMove += movespeed - (int)currentPath.Last ().cost;
+			--actionPoints;
+		} else {
+			remainingMove -= (int)currentPath.Last ().cost;
 		}
 	}
 }

@@ -7,7 +7,9 @@ public class Node {
 	public Node previous;
 	public int x;
 	public int y;
-	public bool occupied = false;
+	public Unit myUnit = null;
+	public Vector2 directionToParent;
+	public float cost = Mathf.Infinity;
 	
 	public Node() {
 		neighbours = new Node[4];

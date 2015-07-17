@@ -80,7 +80,7 @@ public class UnitManager : MonoBehaviour {
 			u.map = map;
 			++characterCount;
 
-			map.GetNode(x, y).occupied = true;
+			map.GetNode(x, y).myUnit = u;
 
 			activeUnits.Add(go);
 		}
@@ -105,7 +105,7 @@ public class UnitManager : MonoBehaviour {
 		ai.myManager = this;
 		++enemyCount;
 
-		map.GetNode (x, y).occupied = true;
+		map.GetNode (x, y).myUnit = u;
 
 		//TODO wait until discovered 
 		activeUnits.Add (go);
