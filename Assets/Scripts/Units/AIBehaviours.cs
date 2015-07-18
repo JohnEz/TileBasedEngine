@@ -84,6 +84,8 @@ public class AIBehaviours : MonoBehaviour {
 		shortestPath.Remove (target);
 		myUnit.currentPath = shortestPath;
 		myMap.CullPath ();
+
+
 	}
 
 	// run to and attack closest target
@@ -103,6 +105,11 @@ public class AIBehaviours : MonoBehaviour {
 			FindFurthestTileInPath();
 			myUnit.remainingMove += myUnit.movespeed - (int)myUnit.currentPath.Last().cost;
 			--myUnit.actionPoints;
+		}
+
+		if (myUnit.moving) {
+			myMap.GetNode (myUnit.tileX, myUnit.tileY).myUnit = null;
+			myUnit.currentPath.Last ().myUnit = myUnit;
 		}
 	}
 

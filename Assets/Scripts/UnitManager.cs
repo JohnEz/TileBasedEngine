@@ -5,9 +5,11 @@ using System.Xml;
 using System.IO;
 
 public enum CharacterClass {
-	DemoUnit,
-	Warrior,
+	Acolyte,
+	Elementalist,
+	Highwayman,
 	Ranger,
+	Warrior,
 	MAXCLASSES
 }
 
@@ -53,9 +55,12 @@ public class UnitManager : MonoBehaviour {
 		loadCharacters ();
 
 		//temp
-		spawnUnit (1, 1, CharacterClass.DemoUnit);
-		spawnUnit (2, 2, CharacterClass.Warrior);
-		spawnUnit (2, 3, CharacterClass.Ranger);
+		spawnUnit (1, 1, CharacterClass.Acolyte);
+		spawnUnit (2, 1, CharacterClass.Elementalist);
+		spawnUnit (2, 2, CharacterClass.Ranger);
+		spawnUnit (3, 1, CharacterClass.Highwayman);
+		spawnUnit (3, 2, CharacterClass.Warrior);
+
 
 		spawnEnemy (13, 3, EnemyClass.Goblin);
 
