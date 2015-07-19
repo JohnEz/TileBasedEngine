@@ -12,13 +12,14 @@ public class ClickableTile : MonoBehaviour {
 
 	void OnMouseUp() {
 		if (highlighted) {
-			map.GetPath(tileX, tileY);
+			map.FollowPath();
 		}
 	}
 
 	void OnMouseEnter() {
 		if (highlighted) {
-			GetComponent<Renderer> ().material.color = Color.magenta;
+			GetComponent<Renderer> ().material.color = new Color(0.75f,0.75f,1);
+			map.GetPath(tileX, tileY);
 		}
 	}
 

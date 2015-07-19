@@ -137,13 +137,12 @@ public class UnitManager : MonoBehaviour {
 	}
 
 	public void NextUnitsTurn() {
+		Unit sUnit = currentQueue [turn].GetComponent<Unit> ();
 		map.selectedUnit = currentQueue[turn];
-		currentQueue [turn].GetComponent<Unit> ().StartTurn ();
+		sUnit.StartTurn ();
 		//is it a character or ai
-		if (currentQueue [turn].GetComponent<Unit> ().playable) {
-			map.FindReachableTiles ();
-			map.HighlightTiles (currentQueue [turn].GetComponent<Unit> ().reachableTiles, Color.blue);
-			map.HighlightTiles (currentQueue [turn].GetComponent<Unit> ().reachableTilesWithDash, new Color(0.5f,1,0));
+		if (sUnit.playable) {
+			sUnit.DrawReachableTiles();
 		} else {
 			//run the AIs turn
 			currentQueue [turn].GetComponent<AIBehaviours> ().FSM();
@@ -152,7 +151,7 @@ public class UnitManager : MonoBehaviour {
 
 	public void EndTurn() {
 		map.UnhighlightTiles ();
-		//map.selectedUnit.GetComponent<Unit> ().MoveNextTile ();
+		map.selectedUnit.GetComponent<Unit> ().currentPath = null;
 		++turn;
 
 		if (turn >= currentQueue.Count) {

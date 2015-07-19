@@ -273,9 +273,8 @@ public class TileMap : MonoBehaviour {
 		Unit sUnit = selectedUnit.GetComponent<Unit> ();
 
 		//if the units path is already here they must want to move
-		if (sUnit.currentPath != null) {
+		/*if (sUnit.currentPath != null) {
 			if (sUnit.currentPath.Last ().x == x && sUnit.currentPath.Last ().y == y) {
-				//sUnit.MoveNextTile ();
 				sUnit.moving = true;
 				//set the node's unit
 				graph[sUnit.tileY * currentLevel.maxSizeX + sUnit.tileX].myUnit = null;
@@ -285,7 +284,7 @@ public class TileMap : MonoBehaviour {
 
 				return;
 			}
-		}
+		}*/
 
 
 		List<Node> currentPath = new List<Node> ();
@@ -305,6 +304,17 @@ public class TileMap : MonoBehaviour {
 		sUnit.currentPath = currentPath;
 
 		CullPath ();
+	}
+
+	public void FollowPath() {
+		Unit sUnit = selectedUnit.GetComponent<Unit> ();
+
+		sUnit.moving = true;
+		//set the node's unit
+		graph[sUnit.tileY * currentLevel.maxSizeX + sUnit.tileX].myUnit = null;
+		graph[sUnit.currentPath.Last().y * currentLevel.maxSizeX + sUnit.currentPath.Last().x].myUnit = sUnit;
+		
+		sUnit.RemoveMovement();
 	}
 
 	public void HighlightTiles(List<Node> HTiles, Color c)  {

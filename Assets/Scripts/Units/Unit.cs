@@ -84,9 +84,7 @@ public class Unit : MonoBehaviour {
 				if (Vector3.Distance (transform.position, map.TileCoordToWorldCoord (tileX, tileY)) < 0.1f) {
 					// if the unit can still move
 					if (remainingMove > 0 || actionPoints > 0) {
-						map.FindReachableTiles ();
-						map.HighlightTiles (reachableTiles, Color.blue);
-						map.HighlightTiles (reachableTilesWithDash, new Color(0.5f,1,0));
+						DrawReachableTiles();
 					}
 					moving = false;
 					transform.position = map.TileCoordToWorldCoord (tileX, tileY);
@@ -181,9 +179,7 @@ public class Unit : MonoBehaviour {
 		}
 
 		if (remainingMove > 0 || actionPoints > 0) {
-			map.FindReachableTiles ();
-			map.HighlightTiles (reachableTiles, Color.blue);
-			map.HighlightTiles (reachableTilesWithDash, new Color(0.5f,1,0));
+			DrawReachableTiles();
 		}
 	}
 
@@ -195,5 +191,11 @@ public class Unit : MonoBehaviour {
 		} else {
 			remainingMove -= (int)currentPath.Last ().cost;
 		}
+	}
+
+	public void DrawReachableTiles() {
+		map.FindReachableTiles ();
+		map.HighlightTiles (reachableTiles, Color.blue);
+		map.HighlightTiles (reachableTilesWithDash, new Color(0.5f,1,0));
 	}
 }
