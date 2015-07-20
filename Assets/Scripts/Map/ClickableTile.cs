@@ -5,21 +5,24 @@ public class ClickableTile : MonoBehaviour {
 
 	public int tileX;
 	public int tileY;
-	public TileMap map;	
+	public TileMap map;
+	public UnitManager uManager;
 
-	bool highlighted = false;
+	public bool highlighted = false;
+	public bool targetable = false;
 	Color storedColour = Color.white;
+	Color mOverColour;
 
 	void OnMouseUp() {
 		if (highlighted) {
-			map.FollowPath();
+			uManager.TileClicked(tileX, tileY);
 		}
 	}
 
-	void OnMouseEnter() {
+	void OnMouseOver() {
 		if (highlighted) {
-			GetComponent<Renderer> ().material.color = new Color(0.75f,0.75f,1);
-			map.GetPath(tileX, tileY);
+			GetComponent<Renderer> ().material.color = mOverColour;
+			uManager.TileHover(tileX, tileY);
 		}
 	}
 
@@ -29,13 +32,12 @@ public class ClickableTile : MonoBehaviour {
 		}
 	}
 
-	public void HighlightTile(Color c)
+	public void HighlightTile(Color c, Color m)
 	{
-		if (!highlighted) {
-			highlighted = true;
-			GetComponent<Renderer> ().material.color = c;
-			storedColour = c;
-		}
+		highlighted = true;
+		GetComponent<Renderer> ().material.color = c;
+		storedColour = c;
+		mOverColour = m;
 	}
 
 	public void UnhighlightTile()
@@ -44,6 +46,7 @@ public class ClickableTile : MonoBehaviour {
 			highlighted = false;
 			GetComponent<Renderer> ().material.color = Color.white;
 			storedColour = Color.white;
+			targetable = false;
 		}
 	}
 }

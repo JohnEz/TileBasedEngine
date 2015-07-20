@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 public enum Tile {
 	FLOOR,
@@ -50,8 +51,17 @@ public class TileMap : MonoBehaviour {
 		return tileTypes [(int)currentLevel.tiles [y * currentLevel.maxSizeX + x]].isWalkable;
 	}
 
+	public bool TileBlocksVision(int x, int y)
+	{
+		return tileTypes [(int)currentLevel.tiles [y * currentLevel.maxSizeX + x]].blocksVision;
+	}
+
 	public Node GetNode(int x, int y) {
 		return graph [y * currentLevel.maxSizeX + x];
+	}
+
+	public ClickableTile GetClickableTile(int x, int y) {
+		return tileObjects [y * currentLevel.maxSizeX + x].GetComponent<ClickableTile>();
 	}
 
 	// generates nodes for each tile
@@ -111,6 +121,7 @@ public class TileMap : MonoBehaviour {
 				ct.tileX = x;
 				ct.tileY = y;
 				ct.map = this;
+				ct.uManager = GetComponent<UnitManager>();
 			}
 		}
 	}
@@ -197,14 +208,12 @@ public class TileMap : MonoBehaviour {
 	}
 
 	//using dijkstra's algorithm it finds every tile that can be reached
-	public void FindReachableTiles() {
+	public void FinReachableTilesUnit() {
 		Unit sUnit = selectedUnit.GetComponent<Unit> ();
 		bool canDash = sUnit.actionPoints > 0;
 
 		List<Node> reachableTiles = new List<Node> ();
 		List<Node> reachableTilesDash = new List<Node> ();
-
-		//Dictionary<Node, float> dist = new Dictionary<Node, float> ();
 
 		List<Node> unvisited = new List<Node> ();
 
@@ -267,25 +276,104 @@ public class TileMap : MonoBehaviour {
 
 	}
 
+	public void FindReachableTilesUnit() {
+		Unit sUnit = selectedUnit.GetComponent<Unit> ();
+		bool canDash = sUnit.actionPoints > 0;
+
+		int range = sUnit.remainingMove + (sUnit.movespeed * Convert.ToInt32(canDash));
+		
+		List<Node> reachableTiles = new List<Node> ();
+		List<Node> reachableTilesDash = new List<Node> ();
+
+		foreach (Node n in FindReachableTiles(sUnit.tileX, sUnit.tileY, range, false)) {
+			//if the lowest cost is higher than the max move exit
+			if (n.cost <= sUnit.remainingMove) {
+				reachableTiles.Add(n);
+			}
+			else if (n.cost <= range) {
+				reachableTilesDash.Add(n);
+			}
+			else {
+				break;
+			} 
+		}
+
+		sUnit.reachableTiles = reachableTiles;
+		sUnit.reachableTiles.RemoveAt (0);
+		sUnit.reachableTilesWithDash = reachableTilesDash;
+	}
+
+	//using dijkstra's algorithm it finds every tile that can be reached
+	public List<Node> FindReachableTiles(int x, int y, int range, bool ignoreSlows) {
+		
+		List<Node> unvisited = new List<Node> ();
+		List<Node> reachableTiles = new List<Node> ();
+
+		Node source = graph [y * currentLevel.maxSizeX + x];
+		
+		source.previous = null;
+		source.cost = 0;
+		
+		// Initialize everything to have inf distance
+		foreach(Node n in graph) {
+			if (n != source) {
+				n.cost = Mathf.Infinity;
+				n.previous = null;
+			}
+			unvisited.Add(n);
+		}
+		
+		
+		
+		// look through all unvisited nodes
+		while (unvisited.Count > 0) {
+			//find current lowest cost tile
+			Node u = null;
+			foreach (Node n in unvisited) {
+				if (u == null || (n.cost < u.cost && (!n.myUnit || ignoreSlows || n == source))){
+					u = n;
+				}
+			}
+
+			//if its further than the range
+			if (u.cost > range) {
+				break;
+			}
+
+			reachableTiles.Add(u);
+
+			unvisited.Remove(u);
+			
+			// look through the neibours and set the shortest path
+			foreach(Node n in u.neighbours) {
+				if (n != null)
+				{
+					float alt;
+					if (CostToEnterTile(n.x, n.y) == Mathf.Infinity || !ignoreSlows) {
+						alt = u.cost + CostToEnterTile(n.x, n.y);
+					}
+					else
+					{
+						alt = u.cost + 1;
+					}
+
+					if (alt < n.cost) {
+						n.cost = alt;
+						n.previous = u;
+						n.directionToParent = new Vector2(u.x - n.x, u.y - n.y);
+					}
+				}
+			}
+		}
+
+		return reachableTiles;
+		
+	}
+
 	//gets the target square and ggets the path already generated to it
 	public void GetPath(int x, int y) {
 
 		Unit sUnit = selectedUnit.GetComponent<Unit> ();
-
-		//if the units path is already here they must want to move
-		/*if (sUnit.currentPath != null) {
-			if (sUnit.currentPath.Last ().x == x && sUnit.currentPath.Last ().y == y) {
-				sUnit.moving = true;
-				//set the node's unit
-				graph[sUnit.tileY * currentLevel.maxSizeX + sUnit.tileX].myUnit = null;
-				graph[y * currentLevel.maxSizeX + x].myUnit = sUnit;
-
-				sUnit.RemoveMovement();
-
-				return;
-			}
-		}*/
-
 
 		List<Node> currentPath = new List<Node> ();
 		Node curr = graph[y * currentLevel.maxSizeX + x];
@@ -317,9 +405,9 @@ public class TileMap : MonoBehaviour {
 		sUnit.RemoveMovement();
 	}
 
-	public void HighlightTiles(List<Node> HTiles, Color c)  {
+	public void HighlightTiles(List<Node> HTiles, Color c, Color m)  {
 		foreach (Node n in HTiles) {
-			tileObjects[n.y * currentLevel.maxSizeX + n.x].GetComponent<ClickableTile>().HighlightTile(c);
+			tileObjects[n.y * currentLevel.maxSizeX + n.x].GetComponent<ClickableTile>().HighlightTile(c, m);
 		}
 	}
 
@@ -364,5 +452,150 @@ public class TileMap : MonoBehaviour {
 
 		sUnit.currentPath = culledList;
 	}
+
+	public List<Node> FindSingleRangedTargets(Ability abil) {
+		Unit sUnit = selectedUnit.GetComponent<Unit> ();
+
+		List<Node> reachNodes = FindReachableTiles (sUnit.tileX, sUnit.tileY, abil.range, true);
+		List<Node> targetableNodes = new List<Node> ();
+
+		//remove the tile the unit is stood on
+		reachNodes.RemoveAt(0);
+
+		//check line of site for each tile
+		foreach (Node n in reachNodes) {
+			if (HasLineOfSight(GetNode(sUnit.tileX, sUnit.tileY), n)) {
+				targetableNodes.Add(n);
+			}
+		}
+
+		return targetableNodes;
+	}
+
+	public List<Node> FindSelfTarget() {
+		List<Node> targetableNodes = new List<Node> ();
+
+		targetableNodes.Add (GetNode (selectedUnit.GetComponent<Unit>().tileX, selectedUnit.GetComponent<Unit>().tileY));
+
+		return targetableNodes;
+	}
+
+	public List<Node> FindLineTargets(Ability abil) {
+		Unit sUnit = selectedUnit.GetComponent<Unit>();
+		List<Node> targetableNodes = new List<Node> ();
+		bool[] hitwall = new bool[4];
+
+		//loop for the max range
+		for (int i=1; i < abil.range; ++i) {
+			//make sure the bools are false
+			if (i==1) {
+				hitwall[0] = false;
+				hitwall[1] = false;
+				hitwall[2] = false;
+				hitwall[3] = false;
+			}
+
+			//if this direction has not yet hit a wall
+			if (!hitwall[0]) {
+				//check to see if the next tile is a wall;
+				if (CostToEnterTile(sUnit.tileX+i, sUnit.tileY) > Mathf.Infinity - 1) {
+					hitwall[0] = true;
+				}
+				else {
+					targetableNodes.Add(GetNode(sUnit.tileX+i, sUnit.tileY));
+				}
+
+			}
+
+			//if this direction has not yet hit a wall
+			if (!hitwall[1]) {
+				//check to see if the next tile is a wall;
+				if (CostToEnterTile(sUnit.tileX-i, sUnit.tileY) > Mathf.Infinity - 1) {
+					hitwall[1] = true;
+				}
+				else {
+					targetableNodes.Add(GetNode(sUnit.tileX-i, sUnit.tileY));
+				}
+				
+			}
+
+			//if this direction has not yet hit a wall
+			if (!hitwall[2]) {
+				//check to see if the next tile is a wall;
+				if (CostToEnterTile(sUnit.tileX, sUnit.tileY+i) > Mathf.Infinity - 1) {
+					hitwall[2] = true;
+				}
+				else {
+					targetableNodes.Add(GetNode(sUnit.tileX, sUnit.tileY+i));
+				}
+				
+			}
+
+			//if this direction has not yet hit a wall
+			if (!hitwall[3]) {
+				//check to see if the next tile is a wall;
+				if (CostToEnterTile(sUnit.tileX, sUnit.tileY-i) > Mathf.Infinity - 1) {
+					hitwall[3] = true;
+				}
+				else {
+					targetableNodes.Add(GetNode(sUnit.tileX, sUnit.tileY-i));
+				}
+				
+			}
+
+		}
+
+		return targetableNodes;
+	}
+
+	//TODO YEAH DO THIS WHEN HELL FREEZES OVER
+	public List<Node> FindConeTargets(Ability abil) {
+		List<Node> targetableNodes = new List<Node> ();
+
+		return targetableNodes;
+	}
+
+	public bool HasLineOfSight(Node start, Node end) {
+		int deltaX = Math.Abs (end.x - start.x);
+		int deltaY = Math.Abs (end.y - start.y);
+		int stepX = -1;
+		int stepY = -1;
+		int error = 0;
+		int x = start.x;
+		int y = start.y;
+
+		//find out which way the x and y should be stepping
+		if (start.x < end.x) {
+			stepX = 1;
+		}
+
+		if (start.y < end.y) {
+			stepY = 1;
+		}
+
+		error = deltaX - deltaY;
+
+		//temp
+		int count = 0;
+
+		while (!(x == end.x && y == end.y) && count < deltaX + deltaY) {
+			float twoError = 2* error;
+			if (twoError > (-1*deltaY)) {
+				error -= deltaY;
+				x += stepX;
+			}
+			if (twoError < deltaX) {
+				error += deltaX;
+				y += stepY;
+			}
+
+			if (TileBlocksVision(x, y)) {
+				return false;
+			}
+			count++;
+		}
+		return true;
+	}
+
 
 }

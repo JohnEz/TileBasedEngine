@@ -19,7 +19,7 @@ public class Unit : MonoBehaviour {
 	public int damageReduction = 16;
 	public int init = 5;
 	public int maxAP = 1;
-	public bool teir1 = true;
+	public int teir = 1;
 
 	public int HP;
 	public int Mana;
@@ -31,6 +31,8 @@ public class Unit : MonoBehaviour {
 	public bool playable = true; // if its an npc or playable character
 	public bool moving 		= false;
 	public bool attacking 	= false;
+
+	public Ability[] myAbilities = new Ability[8];
 
 	void Start() {
 		HP = maxHP;
@@ -194,8 +196,8 @@ public class Unit : MonoBehaviour {
 	}
 
 	public void DrawReachableTiles() {
-		map.FindReachableTiles ();
-		map.HighlightTiles (reachableTiles, Color.blue);
-		map.HighlightTiles (reachableTilesWithDash, new Color(0.5f,1,0));
+		map.FindReachableTilesUnit ();
+		map.HighlightTiles (reachableTiles, Color.blue, new Color(0.75f,0.75f,1));
+		map.HighlightTiles (reachableTilesWithDash, new Color(1,1,0), new Color(1,1,0.75f));
 	}
 }

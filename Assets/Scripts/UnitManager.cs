@@ -4,6 +4,11 @@ using System.Collections.Generic;
 using System.Xml;
 using System.IO;
 
+/* This class manages every unit in the game from the playable characters to the enemies
+ * It also manages the turn order and gameplay flow
+ * TODO seperate turn order to gamemanager
+ * */
+
 public enum CharacterClass {
 	Acolyte,
 	Elementalist,
@@ -16,6 +21,20 @@ public enum CharacterClass {
 public enum EnemyClass {
 	Goblin,
 	MAXCLASSES
+}
+
+enum Display {
+	Movement,
+	Ability1,
+	Ability2,
+	Ability3,
+	Ability4,
+	Ability5,
+	Ability6,
+	Ability7,
+	Ability8,
+	Nothing,
+	MAXDISPLAY
 }
 
 public class UnitManager : MonoBehaviour {
@@ -43,11 +62,13 @@ public class UnitManager : MonoBehaviour {
 	public GameObject[] classes;
 	public GameObject[] playerUnitObjects;
 
-
-
+	Display currentDisplaying; //used so things dont get run when they dont need to
 
 	public void Initialise() {
+		map = GetComponent<TileMap>();
+
 		activeUnits = new List<GameObject> ();
+		currentDisplaying = Display.Movement;
 
 		enemies = new GameObject[MAXENEMIES];
 		playerUnitObjects = new GameObject[MAXCHARACTERS];
@@ -142,7 +163,7 @@ public class UnitManager : MonoBehaviour {
 		sUnit.StartTurn ();
 		//is it a character or ai
 		if (sUnit.playable) {
-			sUnit.DrawReachableTiles();
+			ShowMovement();
 		} else {
 			//run the AIs turn
 			currentQueue [turn].GetComponent<AIBehaviours> ().FSM();
@@ -160,6 +181,98 @@ public class UnitManager : MonoBehaviour {
 		}
 
 		NextUnitsTurn ();
+	}
+
+	public void ShowAbility(int a) {
+		Unit sUnit = currentQueue [turn].GetComponent<Unit> ();
+		//check to see if the current character is playable
+		if (sUnit.playable) {
+			// if ability is not already being displayed
+			if (a != (int)currentDisplaying - 1) {
+				ChangeActionDisplay(a+1);
+				List<Node> targetableTiles = new List<Node>();
+
+				//TEMP
+				Ability abil = new Ability();
+				abil.area = AreaType.Single;
+				abil.target = TargetType.Enemy;
+				abil.range = 10;
+
+				switch(abil.area) {
+				case AreaType.Single: targetableTiles = map.FindSingleRangedTargets(abil);
+					map.HighlightTiles(targetableTiles, new Color(1, 0.7f, 0.7f), new Color(1,0.55f,0.55f));
+					ShowSingleTargets(targetableTiles, abil);
+					break;
+				}
+
+			}
+
+
+		}
+	}
+
+	//searches through tiles to find target types
+	void ShowSingleTargets(List<Node> tiles, Ability abil) {
+		//if the ability can hit allies
+		Unit cUnit = null;
+
+		if (abil.target == TargetType.Ally || abil.target == TargetType.All) {
+			for(int i=0; i < MAXCHARACTERS; ++i) {
+				cUnit = playerUnitObjects[i].GetComponent<Unit>();
+				if (map.GetClickableTile(cUnit.tileX, cUnit.tileY).highlighted) {
+					map.GetClickableTile(cUnit.tileX, cUnit.tileY).targetable = true;
+					map.GetClickableTile(cUnit.tileX, cUnit.tileY).HighlightTile(new Color(1, 0.4f, 0.4f), new Color(1,0,0));
+				}
+			}
+		}
+
+		if (abil.target == TargetType.Enemy || abil.target == TargetType.All) {
+			for(int i=0; i < MAXENEMIES; ++i) {
+				if (enemies[i] != null) {
+					cUnit = enemies[i].GetComponent<Unit>();
+					if (map.GetClickableTile(cUnit.tileX, cUnit.tileY).highlighted) {
+						map.GetClickableTile(cUnit.tileX, cUnit.tileY).targetable = true;
+						map.GetClickableTile(cUnit.tileX, cUnit.tileY).HighlightTile(new Color(1, 0.4f, 0.4f), new Color(1,0,0));
+					}
+				}
+			}
+		}
+
+
+
+
+	}
+
+	//function that gets rid of everything to do with previous actions
+	void ChangeActionDisplay(int a) {
+		map.UnhighlightTiles();
+		currentQueue [turn].GetComponent<Unit> ().currentPath = null;
+		currentDisplaying = (Display)(a);
+	}
+
+	public void TileClicked(int x, int y) {
+		Unit u = map.GetNode (x, y).myUnit;
+
+		switch(currentDisplaying) {
+		case Display.Movement: map.FollowPath ();
+			break;
+		}
+	}
+
+	public void TileHover(int x, int y) {
+		switch(currentDisplaying) {
+		case Display.Movement: map.GetPath(x, y);
+			break;
+		}
+
+	}
+
+	public void ShowMovement() {
+		if (!currentQueue [turn].GetComponent<Unit> ().moving) {
+			map.UnhighlightTiles();
+			currentDisplaying = Display.Movement;
+			currentQueue [turn].GetComponent<Unit> ().DrawReachableTiles ();
+		}
 	}
 
 	void loadEnemies() {
