@@ -21,10 +21,17 @@ public class Ability{
 	public int damage = 0;
 	public int healing = 0;
 	public int duration = 0;
-	public int cooldown = 1;
+	public int maxCooldown = 1;
+	int cooldown;
 	public AreaType area = AreaType.Single;
-	public TargetType target = TargetType.Enemy;
+	public TargetType targets = TargetType.Enemy;
 	public int range;
 	//effect - this will be another class and used for buffs / debuffs
+
+	public void UseAbility(Unit target) {
+		target.HP -= damage;
+		target.HP += healing;
+		cooldown = maxCooldown;
+	}
 	
 }

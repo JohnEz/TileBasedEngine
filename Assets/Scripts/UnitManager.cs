@@ -48,6 +48,7 @@ public class UnitManager : MonoBehaviour {
 	//turn order
 	List<GameObject> currentQueue;
 	List<GameObject> activeUnits;
+	List<GameObject> everyUnit;
 	public int turn = 0;
 
 	//different enemy types
@@ -68,6 +69,7 @@ public class UnitManager : MonoBehaviour {
 		map = GetComponent<TileMap>();
 
 		activeUnits = new List<GameObject> ();
+		everyUnit = new List<GameObject> ();
 		currentDisplaying = Display.Movement;
 
 		enemies = new GameObject[MAXENEMIES];
@@ -81,7 +83,6 @@ public class UnitManager : MonoBehaviour {
 		spawnUnit (2, 2, CharacterClass.Ranger);
 		spawnUnit (3, 1, CharacterClass.Highwayman);
 		spawnUnit (3, 2, CharacterClass.Warrior);
-
 
 		spawnEnemy (13, 3, EnemyClass.Goblin);
 
@@ -98,6 +99,7 @@ public class UnitManager : MonoBehaviour {
 			GameObject go = (GameObject)Instantiate (classes [(int)c], pos, Quaternion.identity);
 
 			playerUnitObjects [characterCount] = go;
+			everyUnit.Add(go);
 
 			Unit u = go.GetComponent<Unit>();
 
@@ -120,6 +122,7 @@ public class UnitManager : MonoBehaviour {
 		GameObject go = (GameObject)Instantiate (enemyTypes [(int)e], pos, rot);
 
 		enemies [enemyCount] = go;
+		everyUnit.Add(go);
 
 		Unit u 			= go.GetComponent<Unit> ();
 		AIBehaviours ai = go.GetComponent<AIBehaviours> ();
@@ -155,6 +158,13 @@ public class UnitManager : MonoBehaviour {
 				EndTurn ();
 			}
 		}
+
+		foreach (GameObject go in everyUnit) {
+			if (go.GetComponent<Unit>().HP < 1) {
+				//TODO REMOVE UNIT FROM FUCKING EVERYTHING
+				currentQueue.Remove(go);
+			}
+		}
 	}
 
 	public void NextUnitsTurn() {
@@ -186,7 +196,7 @@ public class UnitManager : MonoBehaviour {
 	public void ShowAbility(int a) {
 		Unit sUnit = currentQueue [turn].GetComponent<Unit> ();
 		//check to see if the current character is playable
-		if (sUnit.playable) {
+		if (sUnit.playable && sUnit.actionPoints > 0) {
 			// if ability is not already being displayed
 			if (a != (int)currentDisplaying - 1) {
 				ChangeActionDisplay(a+1);
@@ -195,8 +205,9 @@ public class UnitManager : MonoBehaviour {
 				//TEMP
 				Ability abil = new Ability();
 				abil.area = AreaType.Single;
-				abil.target = TargetType.Enemy;
-				abil.range = 10;
+				abil.targets = TargetType.Enemy;
+				abil.range = 5;
+				abil.damage = 5;
 
 				switch(abil.area) {
 				case AreaType.Single: targetableTiles = map.FindSingleRangedTargets(abil);
@@ -216,7 +227,7 @@ public class UnitManager : MonoBehaviour {
 		//if the ability can hit allies
 		Unit cUnit = null;
 
-		if (abil.target == TargetType.Ally || abil.target == TargetType.All) {
+		if (abil.targets == TargetType.Ally || abil.targets == TargetType.All) {
 			for(int i=0; i < MAXCHARACTERS; ++i) {
 				cUnit = playerUnitObjects[i].GetComponent<Unit>();
 				if (map.GetClickableTile(cUnit.tileX, cUnit.tileY).highlighted) {
@@ -226,7 +237,7 @@ public class UnitManager : MonoBehaviour {
 			}
 		}
 
-		if (abil.target == TargetType.Enemy || abil.target == TargetType.All) {
+		if (abil.targets == TargetType.Enemy || abil.targets == TargetType.All) {
 			for(int i=0; i < MAXENEMIES; ++i) {
 				if (enemies[i] != null) {
 					cUnit = enemies[i].GetComponent<Unit>();
@@ -256,6 +267,10 @@ public class UnitManager : MonoBehaviour {
 		switch(currentDisplaying) {
 		case Display.Movement: map.FollowPath ();
 			break;
+		case Display.Nothing: 
+			break;
+		default: UseAbility(x, y);
+			break;
 		}
 	}
 
@@ -273,6 +288,25 @@ public class UnitManager : MonoBehaviour {
 			currentDisplaying = Display.Movement;
 			currentQueue [turn].GetComponent<Unit> ().DrawReachableTiles ();
 		}
+	}
+
+	void UseAbility(int x, int y) {
+
+		int a = (int)currentDisplaying;
+
+		//TEMP
+		Ability abil = new Ability();
+		abil.area = AreaType.Single;
+		abil.targets = TargetType.Enemy;
+		abil.range = 5;
+		abil.damage = 500;
+
+		switch (abil.area) {
+		case AreaType.Single: abil.UseAbility(map.GetNode(x, y).myUnit);
+			break;
+		}
+
+		currentQueue [turn].GetComponent<Unit> ().actionPoints = 0;
 	}
 
 	void loadEnemies() {
