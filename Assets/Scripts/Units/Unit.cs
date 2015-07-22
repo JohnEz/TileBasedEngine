@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.UI;
 
 [System.Serializable]
 public class Unit : MonoBehaviour {
@@ -34,6 +35,8 @@ public class Unit : MonoBehaviour {
 
 	public Ability[] myAbilities = new Ability[8];
 
+	public GameObject combatText;
+
 	void Start() {
 		HP = maxHP;
 		Mana = maxMana;
@@ -44,6 +47,12 @@ public class Unit : MonoBehaviour {
 	public void StartTurn() {
 		remainingMove = movespeed;
 		actionPoints = maxAP;
+
+		for(int i=0; i < myAbilities.Length; ++i) {
+			if (myAbilities[i] != null) {
+				myAbilities[i].ReduceCooldown(1);
+			}
+		}
 	}
 
 	void Update() {
@@ -51,7 +60,7 @@ public class Unit : MonoBehaviour {
 		if (playable) {
 			PlayerUpdate();
 		} else {
-			//AIUpdate();
+			AIUpdate();
 		}
 	}
 
@@ -95,6 +104,11 @@ public class Unit : MonoBehaviour {
 			
 			// Smoothly animate towards the correct map tile.
 			transform.position = Vector3.Lerp (transform.position, map.TileCoordToWorldCoord (tileX, tileY), 5f * Time.deltaTime);
+		}
+
+		//TODO Attacking shit
+		if (attacking) {
+			attacking = false;
 		}
 	}
 
@@ -197,7 +211,24 @@ public class Unit : MonoBehaviour {
 
 	public void DrawReachableTiles() {
 		map.FindReachableTilesUnit ();
-		map.HighlightTiles (reachableTiles, Color.blue, new Color(0.75f,0.75f,1));
-		map.HighlightTiles (reachableTilesWithDash, new Color(1,1,0), new Color(1,1,0.75f));
+		map.HighlightTiles (reachableTiles, Color.blue, new Color(0.75f,0.75f,1), 1);
+		map.HighlightTiles (reachableTilesWithDash, new Color(1,1,0), new Color(1,1,0.75f), 1);
+	}
+
+	public void ShowDamage(int dmg, float x, float y) {
+		GameObject temp = Instantiate (combatText) as GameObject;
+		RectTransform tempRect = temp.GetComponent<RectTransform> ();
+		temp.GetComponent<Animator> ().SetTrigger ("Hit");
+		temp.transform.SetParent (transform.FindChild("UnitCanvas"));
+		
+		//tempRect.transform.localPosition = GetComponent<Canvas>().worldCamera.WorldToScreenPoint(new Vector3(x, y, CombatText.transform.localPosition.z));
+		tempRect.transform.localPosition = combatText.transform.localPosition;
+		//tempRect.transform.localPosition = new Vector3 (100, 100, 0);
+		
+		tempRect.transform.localScale = combatText.transform.localScale;
+		tempRect.transform.rotation = combatText.transform.localRotation;
+		
+		temp.GetComponent<Text> ().text = dmg.ToString ();
+		Destroy(temp.gameObject, 2); 
 	}
 }

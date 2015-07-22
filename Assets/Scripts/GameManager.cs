@@ -3,7 +3,8 @@ using System.Collections;
 
 public class GameManager : MonoBehaviour {
 
-	//public TileMap map;
+	public GameObject UI;
+
 
 	// Use this for initialization
 	void Start () {

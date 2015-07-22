@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
 
 public class Node {
 
@@ -10,6 +10,7 @@ public class Node {
 	public Unit myUnit = null;
 	public Vector2 directionToParent;
 	public float cost = Mathf.Infinity;
+	public List<Node> reachableNodes = null;
 	
 	public Node() {
 		neighbours = new Node[4];

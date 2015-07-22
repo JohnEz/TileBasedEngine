@@ -405,9 +405,9 @@ public class TileMap : MonoBehaviour {
 		sUnit.RemoveMovement();
 	}
 
-	public void HighlightTiles(List<Node> HTiles, Color c, Color m)  {
+	public void HighlightTiles(List<Node> HTiles, Color colour, Color hover, int targetable)  {
 		foreach (Node n in HTiles) {
-			tileObjects[n.y * currentLevel.maxSizeX + n.x].GetComponent<ClickableTile>().HighlightTile(c, m);
+			tileObjects[n.y * currentLevel.maxSizeX + n.x].GetComponent<ClickableTile>().HighlightTile(colour, hover, targetable);
 		}
 	}
 

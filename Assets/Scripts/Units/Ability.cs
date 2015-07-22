@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public enum AreaType {
 	Single,
-	SquareAOE,
+	AOE,
 	Line,
 	Cone,
 	Self,
@@ -17,7 +17,9 @@ public enum TargetType {
 	All
 }
 
+[System.Serializable]
 public class Ability{
+	public string Name;
 	public int damage = 0;
 	public int healing = 0;
 	public int duration = 0;
@@ -26,12 +28,32 @@ public class Ability{
 	public AreaType area = AreaType.Single;
 	public TargetType targets = TargetType.Enemy;
 	public int range;
+	public int AOERange = 2;
 	//effect - this will be another class and used for buffs / debuffs
 
 	public void UseAbility(Unit target) {
-		target.HP -= damage;
+		float dmgmod = 1 - ((float)target.damageReduction / 100);
+		int dmg = (int)(damage * dmgmod);
+		target.HP -= dmg;
+		target.ShowDamage (dmg, target.gameObject.transform.localPosition.x, target.gameObject.transform.localPosition.y);
 		target.HP += healing;
 		cooldown = maxCooldown;
+
+
+	}
+
+	public void UseAbility(List<Node> targetSquares) {
+		foreach (Node n in targetSquares) {
+			if (n.myUnit != null) {
+				UseAbility(n.myUnit);
+			}
+		}
+	}
+
+	public void ReduceCooldown(int i) {
+		if (cooldown > 0) {
+			cooldown -= i;
+		}
 	}
 	
 }

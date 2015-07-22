@@ -1,16 +1,17 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
-public class UIController : MonoBehaviour {
+public class UIManager : MonoBehaviour {
 
 	public GameObject[] AbilityNumbers;
+	public GameObject CombatText;
 
 	List<GameObject> currentObjects;
 
 	// Use this for initialization
 	void Start () {
 		currentObjects = new List<GameObject> ();
-		DrawAbilities (8);
 	}
 	
 	// Update is called once per frame
@@ -42,4 +43,5 @@ public class UIController : MonoBehaviour {
 
 
 	}
+
 }

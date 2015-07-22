@@ -83,7 +83,6 @@ public class AIBehaviours : MonoBehaviour {
 		target = myMap.GetNode (tx, ty);
 		shortestPath.Remove (target);
 		myUnit.currentPath = shortestPath;
-		myMap.CullPath ();
 
 
 	}
@@ -108,6 +107,7 @@ public class AIBehaviours : MonoBehaviour {
 		}
 
 		if (myUnit.moving) {
+			myMap.CullPath ();
 			myMap.GetNode (myUnit.tileX, myUnit.tileY).myUnit = null;
 			myUnit.currentPath.Last ().myUnit = myUnit;
 		}

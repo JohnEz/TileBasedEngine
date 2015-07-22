@@ -6,7 +6,7 @@ using System.IO;
 
 /* This class manages every unit in the game from the playable characters to the enemies
  * It also manages the turn order and gameplay flow
- * TODO seperate turn order to gamemanager
+ *  seperate turn order to gamemanager
  * */
 
 public enum CharacterClass {
@@ -43,7 +43,7 @@ public class UnitManager : MonoBehaviour {
 	public TextAsset playersUnitsXml;
 
 	//the map manager
-	public TileMap map;
+	TileMap map;
 
 	//turn order
 	List<GameObject> currentQueue;
@@ -117,9 +117,8 @@ public class UnitManager : MonoBehaviour {
 
 	void spawnEnemy(int x, int y, EnemyClass e) {
 		Vector3 pos = map.TileCoordToWorldCoord (x, y);
-		Quaternion rot = map.transform.rotation;
 
-		GameObject go = (GameObject)Instantiate (enemyTypes [(int)e], pos, rot);
+		GameObject go = (GameObject)Instantiate (enemyTypes [(int)e], pos, Quaternion.identity);
 
 		enemies [enemyCount] = go;
 		everyUnit.Add(go);
@@ -136,7 +135,7 @@ public class UnitManager : MonoBehaviour {
 
 		map.GetNode (x, y).myUnit = u;
 
-		//TODO wait until discovered 
+		// wait until discovered 
 		activeUnits.Add (go);
 	}
 
@@ -149,11 +148,10 @@ public class UnitManager : MonoBehaviour {
 
 		// is it a players turn or ai
 		if (sUnit.playable) {
-			if (sUnit.remainingMove < 1 && sUnit.actionPoints < 1 && !sUnit.moving) {
+			if (sUnit.remainingMove < 1 && sUnit.actionPoints < 1 && !sUnit.moving && !sUnit.attacking) {
 				EndTurn ();
 			}
 		} else {
-			sUnit.AIUpdate();
 			if (sUnit.remainingMove < 1 && sUnit.actionPoints < 1 && !sUnit.moving) {
 				EndTurn ();
 			}
@@ -161,9 +159,17 @@ public class UnitManager : MonoBehaviour {
 
 		foreach (GameObject go in everyUnit) {
 			if (go.GetComponent<Unit>().HP < 1) {
-				//TODO REMOVE UNIT FROM FUCKING EVERYTHING
+				// REMOVE UNIT FROM FUCKING EVERYTHING
 				currentQueue.Remove(go);
 			}
+		}
+	}
+
+	public void EndTurnButton() {
+		Unit sUnit = currentQueue [turn].GetComponent<Unit> ();
+		// if its not an ai turn and the unit isnt currently moving or attacking
+		if (sUnit.playable && !sUnit.moving && !sUnit.attacking) {
+			EndTurn();
 		}
 	}
 
@@ -187,6 +193,7 @@ public class UnitManager : MonoBehaviour {
 
 		if (turn >= currentQueue.Count) {
 			turn = 0;
+			//TODO SORT ACTIVE UNITS BY INIT
 			currentQueue = activeUnits;
 		}
 
@@ -197,28 +204,20 @@ public class UnitManager : MonoBehaviour {
 		Unit sUnit = currentQueue [turn].GetComponent<Unit> ();
 		//check to see if the current character is playable
 		if (sUnit.playable && sUnit.actionPoints > 0) {
-			// if ability is not already being displayed
-			if (a != (int)currentDisplaying - 1) {
+			if ((int)currentDisplaying != a+1) {
 				ChangeActionDisplay(a+1);
 				List<Node> targetableTiles = new List<Node>();
 
-				//TEMP
-				Ability abil = new Ability();
-				abil.area = AreaType.Single;
-				abil.targets = TargetType.Enemy;
-				abil.range = 5;
-				abil.damage = 5;
-
-				switch(abil.area) {
-				case AreaType.Single: targetableTiles = map.FindSingleRangedTargets(abil);
-					map.HighlightTiles(targetableTiles, new Color(1, 0.7f, 0.7f), new Color(1,0.55f,0.55f));
-					ShowSingleTargets(targetableTiles, abil);
+				switch(sUnit.myAbilities[a].area) {
+				case AreaType.Single: targetableTiles = map.FindSingleRangedTargets(sUnit.myAbilities[a]);
+					map.HighlightTiles(targetableTiles, new Color(1, 0.7f, 0.7f), new Color(1,0.55f,0.55f), 0);
+					ShowSingleTargets(targetableTiles, sUnit.myAbilities[a]);
+					break;
+				case AreaType.AOE: targetableTiles = map.FindSingleRangedTargets(sUnit.myAbilities[a]);
+					map.HighlightTiles(targetableTiles, new Color(1, 0.7f, 0.7f), new Color(1,0.55f,0.55f), 1);
 					break;
 				}
-
 			}
-
-
 		}
 	}
 
@@ -231,8 +230,7 @@ public class UnitManager : MonoBehaviour {
 			for(int i=0; i < MAXCHARACTERS; ++i) {
 				cUnit = playerUnitObjects[i].GetComponent<Unit>();
 				if (map.GetClickableTile(cUnit.tileX, cUnit.tileY).highlighted) {
-					map.GetClickableTile(cUnit.tileX, cUnit.tileY).targetable = true;
-					map.GetClickableTile(cUnit.tileX, cUnit.tileY).HighlightTile(new Color(1, 0.4f, 0.4f), new Color(1,0,0));
+					map.GetClickableTile(cUnit.tileX, cUnit.tileY).HighlightTile(new Color(1, 0.4f, 0.4f), new Color(1,0,0), 1);
 				}
 			}
 		}
@@ -242,8 +240,7 @@ public class UnitManager : MonoBehaviour {
 				if (enemies[i] != null) {
 					cUnit = enemies[i].GetComponent<Unit>();
 					if (map.GetClickableTile(cUnit.tileX, cUnit.tileY).highlighted) {
-						map.GetClickableTile(cUnit.tileX, cUnit.tileY).targetable = true;
-						map.GetClickableTile(cUnit.tileX, cUnit.tileY).HighlightTile(new Color(1, 0.4f, 0.4f), new Color(1,0,0));
+						map.GetClickableTile(cUnit.tileX, cUnit.tileY).HighlightTile(new Color(1, 0.4f, 0.4f), new Color(1,0,0), 1);
 					}
 				}
 			}
@@ -262,8 +259,6 @@ public class UnitManager : MonoBehaviour {
 	}
 
 	public void TileClicked(int x, int y) {
-		Unit u = map.GetNode (x, y).myUnit;
-
 		switch(currentDisplaying) {
 		case Display.Movement: map.FollowPath ();
 			break;
@@ -274,39 +269,91 @@ public class UnitManager : MonoBehaviour {
 		}
 	}
 
-	public void TileHover(int x, int y) {
+	public void TileEnter(int x, int y) {
 		switch(currentDisplaying) {
 		case Display.Movement: map.GetPath(x, y);
+			break;
+		case Display.Nothing: break;
+		default: AbilityTileEnter(x, y);
 			break;
 		}
 
 	}
 
+	public void TileExit(int x, int y) {
+		switch(currentDisplaying) {
+		case Display.Movement: break;
+		case Display.Nothing: break;
+		default: AbilityTileExit(x, y);
+			break;
+		}
+	}
+
+	void AbilityTileEnter(int x, int y) {
+
+		Unit sUnit = currentQueue [turn].GetComponent<Unit> ();
+
+		if (sUnit.myAbilities[(int)currentDisplaying-1].area == AreaType.AOE) {
+			if (map.GetClickableTile(x, y).targetable) {
+				List<Node> aoeTiles = map.FindReachableTiles(x, y, sUnit.myAbilities[(int)currentDisplaying-1].AOERange, true);
+				map.HighlightTiles(aoeTiles, new Color(1, 0.4f, 0.4f), new Color(1,0,0), -2);
+				map.GetNode(x, y).reachableNodes = aoeTiles;
+			}
+		}
+	}
+
+	void AbilityTileExit(int x, int y) {
+		Unit sUnit = currentQueue [turn].GetComponent<Unit> ();
+		
+		if (sUnit.myAbilities[(int)currentDisplaying-1].area == AreaType.AOE) {
+			if (map.GetClickableTile(x, y).targetable && map.GetNode(x,y).reachableNodes != null) {
+				foreach (Node n in map.GetNode(x,y).reachableNodes) {
+					ClickableTile ct = map.GetClickableTile(n.x, n.y);
+					if (ct.targetable) {
+						ct.HighlightTile(new Color(1, 0.7f, 0.7f), new Color(1,0.55f,0.55f), -2);
+					}
+					else {
+						ct.UnhighlightTile();
+					}
+				}
+				map.GetNode(x,y).reachableNodes = null;
+
+			}
+		}
+	}
+
 	public void ShowMovement() {
-		if (!currentQueue [turn].GetComponent<Unit> ().moving) {
+		Unit sUnit = currentQueue [turn].GetComponent<Unit> ();
+		if (!sUnit.moving && sUnit.playable) {
 			map.UnhighlightTiles();
 			currentDisplaying = Display.Movement;
-			currentQueue [turn].GetComponent<Unit> ().DrawReachableTiles ();
+			sUnit.DrawReachableTiles ();
 		}
 	}
 
 	void UseAbility(int x, int y) {
+		Unit sUnit = currentQueue [turn].GetComponent<Unit> ();
 
-		int a = (int)currentDisplaying;
+		int a = (int)currentDisplaying - 1;
+
+		sUnit.attacking = true;
 
 		//TEMP
 		Ability abil = new Ability();
-		abil.area = AreaType.Single;
-		abil.targets = TargetType.Enemy;
+		abil.area = AreaType.AOE;
+		abil.targets = TargetType.All;
 		abil.range = 5;
 		abil.damage = 500;
 
-		switch (abil.area) {
-		case AreaType.Single: abil.UseAbility(map.GetNode(x, y).myUnit);
+		switch (sUnit.myAbilities[a].area) {
+		case AreaType.Single: sUnit.myAbilities[a].UseAbility(map.GetNode(x, y).myUnit);
+			break;
+		case AreaType.AOE: sUnit.myAbilities[a].UseAbility(map.GetNode(x,y).reachableNodes);
 			break;
 		}
 
-		currentQueue [turn].GetComponent<Unit> ().actionPoints = 0;
+		sUnit.actionPoints = 0;
+		sUnit.remainingMove = 0;
 	}
 
 	void loadEnemies() {
