@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
 using System;
 
 public class Charge : Ability
@@ -23,22 +24,18 @@ public class Charge : Ability
 
 		int count = 0;
 
-		while (count < targetSquares.Count && targetSquares[count].myUnit == null) {
-			count++;
+		if (targetSquares.Last ().myUnit != null) {
+			count = targetSquares.Count - 2;
+			targetSquares.Last ().myUnit.TakeDamage(dmg);
+			targetSquares.Last ().myUnit.ApplyEffect(new Stun("Charged", duration));
+		} else {
+			count = targetSquares.Count - 1;
 		}
 
-		//if it got to the end
-		if (count == targetSquares.Count) {
-			myCaster.SlideToTile (targetSquares [count - 1].x, targetSquares [count - 1].y);
-		} 
-		//if it hit a target
-		else if (targetSquares[count].myUnit != null) {
-			if (count != 0) {
-				myCaster.SlideToTile (targetSquares [count - 1].x, targetSquares [count - 1].y);
-			}
-			targetSquares[count].myUnit.TakeDamage(dmg);
-			targetSquares[count].myUnit.ApplyEffect(new Stun("Charged", duration));
+		if (targetSquares.Count > 1) {
+			myCaster.SlideToTile (targetSquares [count].x, targetSquares [count].y);
 		}
+
 	}
 
 	public override void UpdateAbility ()

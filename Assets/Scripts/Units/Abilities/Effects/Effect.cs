@@ -6,9 +6,10 @@ public class Effect
 {
 
     int maxDuration = 0;
-    int duration = 0;
+    public int duration = 0;
     public int stackable = 1;
     string name = "NAME THIS EFFECT SILLY";
+	public string description = "description";
 
     public Effect(string n, int dur)
     {

@@ -44,8 +44,8 @@ public class Unit : MonoBehaviour {
 
     //current - the current value of the stats
     public int shield = 0;
-	public int HP;
-	public int Mana;
+	public int hp;
+	public int mana;
 	public int remainingMove;
 	public int actionPoints;
 
@@ -63,11 +63,13 @@ public class Unit : MonoBehaviour {
 	//combat
 	public Ability[] myAbilities = new Ability[6];
     public List<Effect> myEffects = new List<Effect>();
+	public List<Effect> expiredEffects = new List<Effect> ();
 	public GameObject combatText;
+	public int comboPoints = 0;
 
 	void Start() {
-		HP = maxHP;
-		Mana = maxMana;
+		hp = maxHP;
+		mana = maxMana;
 		remainingMove = movespeed;
 		actionPoints = maxAP;
 	}
@@ -85,22 +87,32 @@ public class Unit : MonoBehaviour {
         damageRecievedMod = 1;
         healingRecievedMod = 1;
 
-        //apply the effects
+		//apply the effects
         foreach (Effect eff in myEffects)
         {
             eff.RunEffect(this);
+			if (eff.duration <= 0) {
+				expiredEffects.Add(eff);
+			}
         }
 
+		//remove expired effects
+		foreach (Effect eff in expiredEffects) {
+			myEffects.Remove(eff);
+		}
+		
+		expiredEffects = new List<Effect> ();
+
         // if maxhp is now lower than current hp
-        if (HP > maxHP)
+        if (hp > maxHP)
         {
-            HP = maxHP;
+            hp = maxHP;
         }
 
         // if maxmana is now lower than current mana
-        if (Mana > maxMana)
+        if (mana > maxMana)
         {
-            Mana = maxMana;
+            mana = maxMana;
         }
 
         // reset move and action
@@ -293,9 +305,23 @@ public class Unit : MonoBehaviour {
     public void TakeDamage(int dmg)
     {
         int damage = (int)((dmg * damageRecievedMod) * (1 - armourDamageReduction));
-        HP -= damage;
+        hp -= damage;
         ShowDamage(damage);
     }
+
+	public void TakeHealing(int heal)
+	{
+		int healing = (int)(heal * healingRecievedMod);
+		hp += healing;
+		ShowDamage(healing);
+	}
+
+	public void GainMana(int m) {
+		mana += m;
+		if (mana > maxMana) {
+			mana = maxMana;
+		}
+	}
 
 	public void ShowDamage(int dmg) {
 		GameObject temp = Instantiate (combatText) as GameObject;
@@ -315,4 +341,35 @@ public class Unit : MonoBehaviour {
     {
         myEffects.Add(eff);
     }
+
+	public bool IsStunned() {
+		foreach (Effect eff in myEffects) {
+			if (eff.description.Equals("Stun")) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public bool IsSnared() {
+		foreach (Effect eff in myEffects) {
+			if (eff.description.Equals("Snare")) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public void AddComboPoints(int i) {
+		comboPoints += i;
+		if (comboPoints > 5) {
+			comboPoints = 5;
+		}
+	}
+
+	public int UseComboPoints() {
+		int cp = comboPoints;
+		comboPoints = 0;
+		return cp;
+	}
 }

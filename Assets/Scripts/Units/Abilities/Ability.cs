@@ -25,6 +25,8 @@ public class Ability{
 	public int healing = 0;
 	public int duration = 0;
 	public int maxCooldown = 1;
+	public int manaCost;
+	public int shield = 0;
 	int cooldown;
 	public AreaType area = AreaType.Single;
 	public TargetType targets = TargetType.Enemy;

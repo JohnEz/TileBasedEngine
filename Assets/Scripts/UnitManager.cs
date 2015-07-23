@@ -162,7 +162,7 @@ public class UnitManager : MonoBehaviour {
 		}
 
 		foreach (GameObject go in everyUnit) {
-			if (go.GetComponent<Unit>().HP < 1) {
+			if (go.GetComponent<Unit>().hp < 1) {
 				// REMOVE UNIT FROM FUCKING EVERYTHING
 				currentQueue.Remove(go);
 			}
@@ -415,10 +415,26 @@ public class UnitManager : MonoBehaviour {
     {
         switch (c)
         {
-			case CharacterClass.Warrior: u.myAbilities[0] = new CripplingStrike(u);
+		case CharacterClass.Warrior: u.myAbilities[0] = new CripplingStrike(u);
 			u.myAbilities[1] = new ShieldSlam(u);
 			u.myAbilities[2] = new Charge(u);
             break;
+		case CharacterClass.Acolyte: u.myAbilities[0] = new WordOfHealing(u);
+			u.myAbilities[1] = new RighteousShield(u);
+			u.myAbilities[2] = new DivineSacrifice(u);
+			break;
+		case CharacterClass.Highwayman: u.myAbilities[0] = new Lacerate(u);
+			u.myAbilities[1] = new Lunge(u);
+			u.myAbilities[2] = new PointBlank(u);
+			break;
+		case CharacterClass.Elementalist: u.myAbilities[0] = new Fireball(u);
+			u.myAbilities[1] = new FlashFreeze(u);
+			u.myAbilities[2] = new ArcaneEmpowerment(u);
+			break;
+		case CharacterClass.Ranger: u.myAbilities[0] = new TripleShot(u);
+			u.myAbilities[1] = new CripplingShot(u);
+			u.myAbilities[2] = new ExploitWeakness(u);
+			break;
         }
     }
 

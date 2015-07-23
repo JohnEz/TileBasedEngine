@@ -7,7 +7,7 @@ public class Snare : Effect
     public Snare(string n, int dur)
         : base(n, dur)
     {
-
+		description = "Snare";
     }
 
     public override void RunEffect(Unit u)

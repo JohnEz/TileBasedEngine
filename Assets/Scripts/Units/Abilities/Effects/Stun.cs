@@ -9,7 +9,7 @@ public class Stun : Effect
     public Stun(string n, int dur)
         : base(n, dur)
     {
-
+		description = "Stun";
     }
 
     public override void RunEffect(Unit u)

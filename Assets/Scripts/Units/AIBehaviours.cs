@@ -51,6 +51,10 @@ public class AIBehaviours : MonoBehaviour {
 	//find target depending on behaviour
 	void FindTargetClosest() {
 
+		if (myUnit.remainingMove <= 0 && (myUnit.actionPoints <= 0 || myUnit.movespeed == 0)) {
+			return;
+		}
+
 		List<Node> shortestPath = new List<Node> ();
 		myUnit.currentPath = new List<Node> ();
 		float currentPathLength = Mathf.Infinity;
@@ -89,6 +93,10 @@ public class AIBehaviours : MonoBehaviour {
 
 	// run to and attack closest target
 	void Dumb(){
+		if (myUnit.remainingMove <= 0 && myUnit.actionPoints <= 0) {
+			return;
+		}
+
 		// is it already in melee?
 		if (myUnit.currentPath.Count < 1) {
 			myStrat = AIStrategy.Attack;

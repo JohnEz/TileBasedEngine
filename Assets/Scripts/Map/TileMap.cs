@@ -132,7 +132,7 @@ public class TileMap : MonoBehaviour {
 		Unit sUnit = selectedUnit.GetComponent<Unit> ();
 
 		if (!UnitCanEnterTile (x, y)) {
-			return;
+			//return;
 		}
 
 		List<Node> unvisited = new List<Node> ();
@@ -158,7 +158,7 @@ public class TileMap : MonoBehaviour {
 			//find current lowest cost tile
 			Node u = null;
 			foreach (Node n in unvisited) {
-				if (u == null || (n.cost < u.cost && (!n.myUnit || n == source))){
+				if (u == null || (n.cost < u.cost && (!n.myUnit || n == source || u == target))){
 					u = n;
 				}
 			}
@@ -510,6 +510,10 @@ public class TileMap : MonoBehaviour {
 					}
 					GetNode(sUnit.tileX+i, sUnit.tileY).directionToParent = new Vector2(-1, 0);
 					targetableNodes.Add(GetNode(sUnit.tileX+i, sUnit.tileY));
+
+					if (GetNode(sUnit.tileX+i, sUnit.tileY).myUnit != null) {
+						hitwall[0] = true;
+					}
 				}
 
 			}
@@ -529,6 +533,10 @@ public class TileMap : MonoBehaviour {
 					}
 					GetNode(sUnit.tileX-i, sUnit.tileY).directionToParent = new Vector2(1, 0);
 					targetableNodes.Add(GetNode(sUnit.tileX-i, sUnit.tileY));
+
+					if (GetNode(sUnit.tileX-i, sUnit.tileY).myUnit != null) {
+						hitwall[1] = true;
+					}
 				}
 				
 			}
@@ -548,6 +556,10 @@ public class TileMap : MonoBehaviour {
 					}
 					GetNode(sUnit.tileX, sUnit.tileY+i).directionToParent = new Vector2(0, -1);
 					targetableNodes.Add(GetNode(sUnit.tileX, sUnit.tileY+i));
+
+					if (GetNode(sUnit.tileX, sUnit.tileY+i).myUnit != null) {
+						hitwall[2] = true;
+					}
 				}
 
 			}
@@ -568,6 +580,10 @@ public class TileMap : MonoBehaviour {
 
 					GetNode(sUnit.tileX, sUnit.tileY-i).directionToParent = new Vector2(0, 1);
 					targetableNodes.Add(GetNode(sUnit.tileX, sUnit.tileY-i));
+
+					if (GetNode(sUnit.tileX, sUnit.tileY-i).myUnit != null) {
+						hitwall[3] = true;
+					}
 				}
 				
 			}
