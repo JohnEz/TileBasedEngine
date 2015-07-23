@@ -3,38 +3,66 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.UI;
 
+public enum UnitSize {
+	Small,
+	Normal,
+	Large,
+	Giant
+}
+
 [System.Serializable]
 public class Unit : MonoBehaviour {
 
 	public int tileX;
 	public int tileY;
 	public TileMap map;
+    public UnitManager uManager;
 
 	public List<Node> currentPath;
 	public List<Node> reachableTiles;
 	public List<Node> reachableTilesWithDash;
 
+    //Stats
+
+    //Base - stats that the max should return to with no modifications
+    public int baseHP = 100;
+    public int baseMana = 100;
+    public int baseMove = 4;
+    public float baseArmour = 0.16f;
+    public int baseInit = 4;
+    public int baseAP = 1;
+	public UnitSize mySize = UnitSize.Normal;
+
+    //Max - current maximum stats after effects
 	public int maxHP = 100;
 	public int maxMana = 100;
 	public int movespeed = 4;
-	public int damageReduction = 16;
+	public float armourDamageReduction = 0.16f;
 	public int init = 5;
 	public int maxAP = 1;
 	public int teir = 1;
 
+    //current - the current value of the stats
+    public int shield = 0;
 	public int HP;
 	public int Mana;
 	public int remainingMove;
 	public int actionPoints;
 
+    //modifiers
+    public float damageDealtMod = 1;
+    public float damageRecievedMod = 1;
+    public float healingRecievedMod = 1;
+
+	//logic bools
 	public bool isDead = false;
+	public bool playable = true; // is it an npc or playable character
+	public bool moving 		= false; // is it currently moving
+	public bool attacking 	= false; // is it currently attacking
 
-	public bool playable = true; // if its an npc or playable character
-	public bool moving 		= false;
-	public bool attacking 	= false;
-
-	public Ability[] myAbilities = new Ability[8];
-
+	//combat
+	public Ability[] myAbilities = new Ability[6];
+    public List<Effect> myEffects = new List<Effect>();
 	public GameObject combatText;
 
 	void Start() {
@@ -44,7 +72,38 @@ public class Unit : MonoBehaviour {
 		actionPoints = maxAP;
 	}
 
-	public void StartTurn() {
+    public void StartTurn()
+    {
+        //set each stat to its base then apply effects
+        maxHP = baseHP;
+        maxMana = baseMana;
+        movespeed = baseMove;
+        armourDamageReduction = baseArmour;
+        init = baseInit;
+        maxAP = baseAP;
+        damageDealtMod = 1;
+        damageRecievedMod = 1;
+        healingRecievedMod = 1;
+
+        //apply the effects
+        foreach (Effect eff in myEffects)
+        {
+            eff.RunEffect(this);
+        }
+
+        // if maxhp is now lower than current hp
+        if (HP > maxHP)
+        {
+            HP = maxHP;
+        }
+
+        // if maxmana is now lower than current mana
+        if (Mana > maxMana)
+        {
+            Mana = maxMana;
+        }
+
+        // reset move and action
 		remainingMove = movespeed;
 		actionPoints = maxAP;
 
@@ -109,6 +168,15 @@ public class Unit : MonoBehaviour {
 		//TODO Attacking shit
 		if (attacking) {
 			attacking = false;
+
+			for (int i=0; i < 6; ++i) {
+				if (myAbilities[i] != null) {
+					if (!myAbilities[i].AbilityFinished) {
+						attacking = true;
+						myAbilities[i].UpdateAbility();
+					}
+				}
+			}
 		}
 	}
 
@@ -152,7 +220,6 @@ public class Unit : MonoBehaviour {
 
 		//at the target tile
 		if (currentPath.Count == 0) {
-			//map.GetNode (tileX, tileY).occupied = true;
 			//clear path finding info
 			currentPath = null;
 		}
@@ -175,7 +242,6 @@ public class Unit : MonoBehaviour {
 				
 			}
 
-			//map.GetNode (tileX, tileY).occupied = false;
 			// remove the old tile
 			currentPath.RemoveAt (0);
 
@@ -188,7 +254,6 @@ public class Unit : MonoBehaviour {
 
 			//at the target tile
 			if (currentPath.Count == 1) {
-				//map.GetNode (tileX, tileY).occupied = true;
 				//clear path finding info
 				currentPath = null;
 			}
@@ -197,6 +262,16 @@ public class Unit : MonoBehaviour {
 		if (remainingMove > 0 || actionPoints > 0) {
 			DrawReachableTiles();
 		}
+	}
+
+	public void SlideToTile(int x, int y) {
+		map.GetNode(tileX, tileY).myUnit = null;
+		map.GetNode(x, y).myUnit = this;
+
+		currentPath = new List<Node> ();
+		currentPath.Add (map.GetNode (x, y));
+		moving = true;
+
 	}
 
 	public void RemoveMovement() {
@@ -215,20 +290,29 @@ public class Unit : MonoBehaviour {
 		map.HighlightTiles (reachableTilesWithDash, new Color(1,1,0), new Color(1,1,0.75f), 1);
 	}
 
-	public void ShowDamage(int dmg, float x, float y) {
+    public void TakeDamage(int dmg)
+    {
+        int damage = (int)((dmg * damageRecievedMod) * (1 - armourDamageReduction));
+        HP -= damage;
+        ShowDamage(damage);
+    }
+
+	public void ShowDamage(int dmg) {
 		GameObject temp = Instantiate (combatText) as GameObject;
 		RectTransform tempRect = temp.GetComponent<RectTransform> ();
 		temp.GetComponent<Animator> ().SetTrigger ("Hit");
 		temp.transform.SetParent (transform.FindChild("UnitCanvas"));
-		
-		//tempRect.transform.localPosition = GetComponent<Canvas>().worldCamera.WorldToScreenPoint(new Vector3(x, y, CombatText.transform.localPosition.z));
+
 		tempRect.transform.localPosition = combatText.transform.localPosition;
-		//tempRect.transform.localPosition = new Vector3 (100, 100, 0);
-		
 		tempRect.transform.localScale = combatText.transform.localScale;
 		tempRect.transform.rotation = combatText.transform.localRotation;
 		
 		temp.GetComponent<Text> ().text = dmg.ToString ();
 		Destroy(temp.gameObject, 2); 
 	}
+
+    public void ApplyEffect(Effect eff)
+    {
+        myEffects.Add(eff);
+    }
 }

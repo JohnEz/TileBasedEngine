@@ -48,7 +48,7 @@ public class TileMap : MonoBehaviour {
 	
 	public bool UnitCanEnterTile(int x, int y)
 	{
-		return tileTypes [(int)currentLevel.tiles [y * currentLevel.maxSizeX + x]].isWalkable;
+		return tileTypes [(int)currentLevel.tiles [y * currentLevel.maxSizeX + x]].isWalkable && GetNode(x, y).myUnit == null;
 	}
 
 	public bool TileBlocksVision(int x, int y)
@@ -498,10 +498,17 @@ public class TileMap : MonoBehaviour {
 			//if this direction has not yet hit a wall
 			if (!hitwall[0]) {
 				//check to see if the next tile is a wall;
-				if (CostToEnterTile(sUnit.tileX+i, sUnit.tileY) > Mathf.Infinity - 1) {
+				if (CostToEnterTile(sUnit.tileX+i, sUnit.tileY) == Mathf.Infinity) {
 					hitwall[0] = true;
 				}
 				else {
+					if (i != 1)
+					{
+						GetNode(sUnit.tileX+i, sUnit.tileY).previous = GetNode(sUnit.tileX+i-1, sUnit.tileY);
+					} else {
+						GetNode(sUnit.tileX+i, sUnit.tileY).previous = null;
+					}
+					GetNode(sUnit.tileX+i, sUnit.tileY).directionToParent = new Vector2(-1, 0);
 					targetableNodes.Add(GetNode(sUnit.tileX+i, sUnit.tileY));
 				}
 
@@ -510,10 +517,17 @@ public class TileMap : MonoBehaviour {
 			//if this direction has not yet hit a wall
 			if (!hitwall[1]) {
 				//check to see if the next tile is a wall;
-				if (CostToEnterTile(sUnit.tileX-i, sUnit.tileY) > Mathf.Infinity - 1) {
+				if (CostToEnterTile(sUnit.tileX-i, sUnit.tileY) == Mathf.Infinity) {
 					hitwall[1] = true;
 				}
 				else {
+					if (i != 1)
+					{
+						GetNode(sUnit.tileX-i, sUnit.tileY).previous = GetNode(sUnit.tileX-i+1, sUnit.tileY);
+					} else {
+						GetNode(sUnit.tileX-i, sUnit.tileY).previous = null;
+					}
+					GetNode(sUnit.tileX-i, sUnit.tileY).directionToParent = new Vector2(1, 0);
 					targetableNodes.Add(GetNode(sUnit.tileX-i, sUnit.tileY));
 				}
 				
@@ -522,10 +536,17 @@ public class TileMap : MonoBehaviour {
 			//if this direction has not yet hit a wall
 			if (!hitwall[2]) {
 				//check to see if the next tile is a wall;
-				if (CostToEnterTile(sUnit.tileX, sUnit.tileY+i) > Mathf.Infinity - 1) {
+				if (CostToEnterTile(sUnit.tileX, sUnit.tileY+i) == Mathf.Infinity) {
 					hitwall[2] = true;
 				}
 				else {
+					if (i != 1)
+					{
+						GetNode(sUnit.tileX, sUnit.tileY+i).previous = GetNode(sUnit.tileX, sUnit.tileY+i-1);
+					} else {
+						GetNode(sUnit.tileX, sUnit.tileY+i).previous = null;
+					}
+					GetNode(sUnit.tileX, sUnit.tileY+i).directionToParent = new Vector2(0, -1);
 					targetableNodes.Add(GetNode(sUnit.tileX, sUnit.tileY+i));
 				}
 				
@@ -534,10 +555,18 @@ public class TileMap : MonoBehaviour {
 			//if this direction has not yet hit a wall
 			if (!hitwall[3]) {
 				//check to see if the next tile is a wall;
-				if (CostToEnterTile(sUnit.tileX, sUnit.tileY-i) > Mathf.Infinity - 1) {
+				if (CostToEnterTile(sUnit.tileX, sUnit.tileY-i) == Mathf.Infinity) {
 					hitwall[3] = true;
 				}
 				else {
+					if (i != 1)
+					{
+						GetNode(sUnit.tileX, sUnit.tileY-i).previous = GetNode(sUnit.tileX, sUnit.tileY-i+1);
+					} else {
+						GetNode(sUnit.tileX, sUnit.tileY-i).previous = null;
+					}
+
+					GetNode(sUnit.tileX, sUnit.tileY-i).directionToParent = new Vector2(0, 1);
 					targetableNodes.Add(GetNode(sUnit.tileX, sUnit.tileY-i));
 				}
 				

@@ -17,9 +17,10 @@ public enum TargetType {
 	All
 }
 
-[System.Serializable]
 public class Ability{
 	public string Name;
+    public int spellID;
+
 	public int damage = 0;
 	public int healing = 0;
 	public int duration = 0;
@@ -29,25 +30,36 @@ public class Ability{
 	public TargetType targets = TargetType.Enemy;
 	public int range;
 	public int AOERange = 2;
-	//effect - this will be another class and used for buffs / debuffs
 
-	public void UseAbility(Unit target) {
-		float dmgmod = 1 - ((float)target.damageReduction / 100);
-		int dmg = (int)(damage * dmgmod);
-		target.HP -= dmg;
-		target.ShowDamage (dmg, target.gameObject.transform.localPosition.x, target.gameObject.transform.localPosition.y);
-		target.HP += healing;
+    public Unit myCaster = null;
+	public Unit myTarget = null;
+
+	public bool AbilityFinished = true;
+
+    public Ability(Unit u)
+    {
+        myCaster = u;
+    }
+
+	public virtual void UseAbility(Unit target, TileMap map) {
 		cooldown = maxCooldown;
-
+		AbilityFinished = false;
+		myTarget = target;
 
 	}
 
-	public void UseAbility(List<Node> targetSquares) {
-		foreach (Node n in targetSquares) {
+	public virtual void UseAbility(List<Node> targetSquares, TileMap map) {
+		/*foreach (Node n in targetSquares) {
 			if (n.myUnit != null) {
 				UseAbility(n.myUnit);
 			}
-		}
+		}*/
+		cooldown = maxCooldown;
+		AbilityFinished = false;
+	}
+
+	public virtual void UpdateAbility() {
+		AbilityFinished = true;
 	}
 
 	public void ReduceCooldown(int i) {

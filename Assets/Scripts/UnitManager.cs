@@ -106,7 +106,11 @@ public class UnitManager : MonoBehaviour {
 			u.tileX = x;
 			u.tileY = y;
 			u.map = map;
+            u.uManager = this;
 			++characterCount;
+
+            //give the unit its spells TODO find a better way of doing this instead of hardcoding
+            GiveCharacterAbilities(u, c);
 
 			map.GetNode(x, y).myUnit = u;
 
@@ -204,7 +208,7 @@ public class UnitManager : MonoBehaviour {
 		Unit sUnit = currentQueue [turn].GetComponent<Unit> ();
 		//check to see if the current character is playable
 		if (sUnit.playable && sUnit.actionPoints > 0) {
-			if ((int)currentDisplaying != a+1) {
+			if ((int)currentDisplaying != a+1 && sUnit.myAbilities[a] != null) {
 				ChangeActionDisplay(a+1);
 				List<Node> targetableTiles = new List<Node>();
 
@@ -214,6 +218,9 @@ public class UnitManager : MonoBehaviour {
 					ShowSingleTargets(targetableTiles, sUnit.myAbilities[a]);
 					break;
 				case AreaType.AOE: targetableTiles = map.FindSingleRangedTargets(sUnit.myAbilities[a]);
+					map.HighlightTiles(targetableTiles, new Color(1, 0.7f, 0.7f), new Color(1,0.55f,0.55f), 1);
+					break;
+				case AreaType.Line: targetableTiles = map.FindLineTargets(sUnit.myAbilities[a]);
 					map.HighlightTiles(targetableTiles, new Color(1, 0.7f, 0.7f), new Color(1,0.55f,0.55f), 1);
 					break;
 				}
@@ -300,6 +307,32 @@ public class UnitManager : MonoBehaviour {
 				map.GetNode(x, y).reachableNodes = aoeTiles;
 			}
 		}
+		else if (sUnit.myAbilities[(int)currentDisplaying-1].area == AreaType.Line) {
+			if (map.GetClickableTile(x, y).targetable) {
+				List<Node> lineTiles = new List<Node>();
+
+				Node curr = map.GetNode(x,y);
+				int currX = x;
+				int currY = y;
+
+				//add previous
+				while(curr.previous != null) {
+					lineTiles.Add(curr.previous);
+					curr = curr.previous;
+				}
+
+				//add start and next
+				while(map.GetClickableTile(currX, currY).targetable && map.GetNode(currX, currY).directionToParent.magnitude > 0.1f) {
+					lineTiles.Add(map.GetNode(currX, currY));
+					currX -= (int)map.GetNode(currX, currY).directionToParent.x;
+					currY -= (int)map.GetNode(currX, currY).directionToParent.y;
+				}
+
+				map.HighlightTiles(lineTiles, new Color(1, 0.4f, 0.4f), new Color(1,0,0), -2);
+				map.GetNode(x, y).reachableNodes = lineTiles;
+			}
+		}
+
 	}
 
 	void AbilityTileExit(int x, int y) {
@@ -320,6 +353,15 @@ public class UnitManager : MonoBehaviour {
 
 			}
 		}
+		else if (sUnit.myAbilities[(int)currentDisplaying-1].area == AreaType.Line) {
+			if (map.GetClickableTile(x, y).targetable && map.GetNode(x,y).reachableNodes != null) {
+				foreach (Node n in map.GetNode(x,y).reachableNodes) {
+					map.GetClickableTile(n.x, n.y).HighlightTile(new Color(1, 0.7f, 0.7f), new Color(1,0.55f,0.55f), -2);
+				}
+				map.GetNode(x,y).reachableNodes = null;
+				
+			}
+		}
 	}
 
 	public void ShowMovement() {
@@ -338,17 +380,12 @@ public class UnitManager : MonoBehaviour {
 
 		sUnit.attacking = true;
 
-		//TEMP
-		Ability abil = new Ability();
-		abil.area = AreaType.AOE;
-		abil.targets = TargetType.All;
-		abil.range = 5;
-		abil.damage = 500;
-
 		switch (sUnit.myAbilities[a].area) {
-		case AreaType.Single: sUnit.myAbilities[a].UseAbility(map.GetNode(x, y).myUnit);
+		case AreaType.Single: sUnit.myAbilities[a].UseAbility(map.GetNode(x, y).myUnit, map);
 			break;
-		case AreaType.AOE: sUnit.myAbilities[a].UseAbility(map.GetNode(x,y).reachableNodes);
+		case AreaType.AOE: sUnit.myAbilities[a].UseAbility(map.GetNode(x,y).reachableNodes, map);
+			break;
+		case AreaType.Line: sUnit.myAbilities[a].UseAbility(map.GetNode(x,y).reachableNodes, map);
 			break;
 		}
 
@@ -363,4 +400,16 @@ public class UnitManager : MonoBehaviour {
 	void loadCharacters() {
 
 	}
+
+    void GiveCharacterAbilities(Unit u, CharacterClass c)
+    {
+        switch (c)
+        {
+			case CharacterClass.Warrior: u.myAbilities[0] = new CripplingStrike(u);
+			u.myAbilities[1] = new ShieldSlam(u);
+			u.myAbilities[2] = new Charge(u);
+            break;
+        }
+    }
+
 }
