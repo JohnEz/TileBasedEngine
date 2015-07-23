@@ -17,6 +17,7 @@ public class Charge : Ability
 
 	public override void UseAbility (List<Node> targetSquares, TileMap map)
 	{
+		targetSquares.Reverse ();
 		base.UseAbility (targetSquares, map);
 		int dmg = (int)(damage * myCaster.damageDealtMod);
 

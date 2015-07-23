@@ -82,7 +82,7 @@ public class UnitManager : MonoBehaviour {
 		spawnUnit (2, 1, CharacterClass.Elementalist);
 		spawnUnit (2, 2, CharacterClass.Ranger);
 		spawnUnit (3, 1, CharacterClass.Highwayman);
-		spawnUnit (3, 2, CharacterClass.Warrior);
+		spawnUnit (13, 2, CharacterClass.Warrior);
 
 		spawnEnemy (13, 3, EnemyClass.Goblin);
 
@@ -311,22 +311,32 @@ public class UnitManager : MonoBehaviour {
 			if (map.GetClickableTile(x, y).targetable) {
 				List<Node> lineTiles = new List<Node>();
 
-				Node curr = map.GetNode(x,y);
+				int dirX  = 0;
+				int dirY  = 0;
 				int currX = x;
 				int currY = y;
 
-				//add previous
-				while(curr.previous != null) {
-					lineTiles.Add(curr.previous);
+				//find end of line
+				while(map.GetClickableTile(currX, currY).targetable){
+					dirX = (int)map.GetNode(currX, currY).directionToParent.x;
+					dirY = (int)map.GetNode(currX, currY).directionToParent.y;
+					currX -= dirX;
+					currY -= dirY;
+				}
+
+				currX += dirX;
+				currY += dirY;
+				Node curr = map.GetNode(currX, currY);
+
+				//find the path
+				while(curr.previous != null){
+					lineTiles.Add(curr);
 					curr = curr.previous;
 				}
 
-				//add start and next
-				while(map.GetClickableTile(currX, currY).targetable && map.GetNode(currX, currY).directionToParent.magnitude > 0.1f) {
-					lineTiles.Add(map.GetNode(currX, currY));
-					currX -= (int)map.GetNode(currX, currY).directionToParent.x;
-					currY -= (int)map.GetNode(currX, currY).directionToParent.y;
-				}
+				lineTiles.Add (curr);
+
+
 
 				map.HighlightTiles(lineTiles, new Color(1, 0.4f, 0.4f), new Color(1,0,0), -2);
 				map.GetNode(x, y).reachableNodes = lineTiles;
