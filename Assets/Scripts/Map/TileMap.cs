@@ -549,7 +549,7 @@ public class TileMap : MonoBehaviour {
 					GetNode(sUnit.tileX, sUnit.tileY+i).directionToParent = new Vector2(0, -1);
 					targetableNodes.Add(GetNode(sUnit.tileX, sUnit.tileY+i));
 				}
-				
+
 			}
 
 			//if this direction has not yet hit a wall
