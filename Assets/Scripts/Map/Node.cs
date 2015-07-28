@@ -8,6 +8,7 @@ public class Node {
 	public int x;
 	public int y;
 	public Unit myUnit = null;
+	public Trigger myTrigger = null;
 	public Vector2 directionToParent;
 	public float cost = Mathf.Infinity;
 	public List<Node> reachableNodes = null;

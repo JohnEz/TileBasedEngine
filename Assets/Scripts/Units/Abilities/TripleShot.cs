@@ -17,7 +17,7 @@ public class TripleShot : Ability
 		base.UseAbility (target, map);
 		int dmg = (int)(damage * myCaster.damageDealtMod);
 
-		myCaster.GainMana (15);
+		myCaster.AddRemoveMana (15);
 
 		target.TakeDamage (dmg);
 		target.TakeDamage (dmg);

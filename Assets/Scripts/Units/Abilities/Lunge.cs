@@ -24,9 +24,11 @@ public class Lunge : Ability
 
 		if (targetSquares [0].myUnit == null) {
 			myCaster.SlideToTile (targetSquares [0].x, targetSquares [0].y);
-			if (targetSquares [1].myUnit != null) {
-				targetSquares [1].myUnit.TakeDamage (dmg);
-				myCaster.AddComboPoints (1);
+			if (targetSquares.Count > 1) {
+				if (targetSquares [1].myUnit != null) {
+					targetSquares [1].myUnit.TakeDamage (dmg);
+					myCaster.AddComboPoints (1);
+				}
 			}
 		} else {
 			targetSquares[0].myUnit.TakeDamage(dmg);

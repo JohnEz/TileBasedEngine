@@ -19,7 +19,9 @@ public class CripplingShot : Ability
 		base.UseAbility (target, map);
 
 		int dmg = (int)(damage * myCaster.damageDealtMod);
+
 		target.ApplyEffect (new Snare ("Crippled", duration));
+		target.TakeDamage (dmg);
 
 	}
 }

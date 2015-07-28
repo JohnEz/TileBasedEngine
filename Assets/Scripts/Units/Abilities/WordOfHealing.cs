@@ -11,6 +11,8 @@ public class WordOfHealing : Ability
 		range = 4;
 		area = AreaType.Single;
 		targets = TargetType.Ally;
+		stacks = 3;
+
 	}
 
 	public override void UseAbility (Unit target, TileMap map)
@@ -18,7 +20,7 @@ public class WordOfHealing : Ability
 		base.UseAbility (target, map);
 
 		target.TakeHealing (healing);
-		target.ApplyEffect (new DamageRecievedEffect ("Word of Healing", duration, -0.05f));
+		target.ApplyEffect (new DamageRecievedEffect ("Word of Healing", duration, -0.05f, stacks));
 	}
 }
 

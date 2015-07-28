@@ -60,7 +60,7 @@ public class ClickableTile : MonoBehaviour {
 	{
 		if (highlighted) {
 			highlighted = false;
-			GetComponent<Renderer> ().material.color = Color.white;
+			GetComponent<Renderer> ().material.color = new Color(0.5f, 0.5f, 0.5f);
 			storedColour = Color.white;
 			targetable = false;
 		}

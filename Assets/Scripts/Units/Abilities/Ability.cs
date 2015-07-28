@@ -8,6 +8,7 @@ public enum AreaType {
 	Cone,
 	Self,
 	SelfAOE,
+	Floor,
 	All
 }
 
@@ -25,7 +26,7 @@ public class Ability{
 	public int healing = 0;
 	public int duration = 0;
 	public int maxCooldown = 1;
-	public int manaCost;
+	public int manaCost = 0;
 	public int shield = 0;
 	int cooldown;
 	public AreaType area = AreaType.Single;
@@ -38,6 +39,8 @@ public class Ability{
 
 	public bool AbilityFinished = true;
 
+	public int stacks = 1;
+
     public Ability(Unit u)
     {
         myCaster = u;
@@ -48,6 +51,7 @@ public class Ability{
 		AbilityFinished = false;
 		myTarget = target;
 
+		myCaster.AddRemoveMana (-manaCost);
 	}
 
 	public virtual void UseAbility(List<Node> targetSquares, TileMap map) {
@@ -58,6 +62,13 @@ public class Ability{
 		}*/
 		cooldown = maxCooldown;
 		AbilityFinished = false;
+		myCaster.AddRemoveMana (-manaCost);
+	}
+
+	public virtual void UseAbility(Node n, TileMap map) {
+		cooldown = maxCooldown;
+		AbilityFinished = false;
+		myCaster.AddRemoveMana (-manaCost);
 	}
 
 	public virtual void UpdateAbility() {

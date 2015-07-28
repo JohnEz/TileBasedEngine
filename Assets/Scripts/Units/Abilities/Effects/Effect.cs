@@ -7,15 +7,17 @@ public class Effect
 
     int maxDuration = 0;
     public int duration = 0;
-    public int stackable = 1;
-    string name = "NAME THIS EFFECT SILLY";
+    public int maxStack = 1;
+	public int stack = 1;
+    public string name = "NAME THIS EFFECT SILLY";
 	public string description = "description";
 
-    public Effect(string n, int dur)
+    public Effect(string n, int dur, int mStack)
     {
         name = n;
         maxDuration = dur;
         duration = dur;
+		maxStack = mStack;
     }
 
     public virtual void RunEffect(Unit u) {
@@ -35,6 +37,10 @@ public class Effect
         }
         duration = dur;
     }
+
+	public virtual void AddStack() {
+		RefreshEffect ();
+	}
 
 }
 

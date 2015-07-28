@@ -391,11 +391,12 @@ public class TileMap : MonoBehaviour {
 		
 		sUnit.currentPath = currentPath;
 
-		CullPath ();
 	}
 
 	public void FollowPath() {
 		Unit sUnit = selectedUnit.GetComponent<Unit> ();
+
+		CullPath ();
 
 		sUnit.moving = true;
 		//set the node's unit
@@ -433,6 +434,22 @@ public class TileMap : MonoBehaviour {
 		//loop through all the current path nodes
 		for (int i = 0; i < sUnit.currentPath.Count; ++i)
 		{
+			//check to see if the unit has stepped on a trigger
+			if (sUnit.currentPath[i].myTrigger != null) {
+				Trigger trig = sUnit.currentPath[i].myTrigger;
+				if (trig.myTargets == TargetType.All || (trig.myTargets == TargetType.Ally && trig.myCaster.team == sUnit.team) || (trig.myTargets == TargetType.Enemy && trig.myCaster.team != sUnit.team)) {
+
+					//still need to check to see if last tile change direction
+					if (sUnit.currentPath[i].directionToParent != currentDirection) {
+						culledList.Add(sUnit.currentPath[i].previous);
+					}
+
+					//add the trigger as the last tile
+					culledList.Add(sUnit.currentPath[i]);
+					break;
+				}
+			}
+
 			// if its the first node set the starting direction
 			if ( i == 0) {
 				currentDirection = sUnit.currentPath[i].directionToParent;

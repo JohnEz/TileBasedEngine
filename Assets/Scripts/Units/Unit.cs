@@ -64,8 +64,13 @@ public class Unit : MonoBehaviour {
 	public Ability[] myAbilities = new Ability[6];
     public List<Effect> myEffects = new List<Effect>();
 	public List<Effect> expiredEffects = new List<Effect> ();
-	public GameObject combatText;
+	public List<Trigger> myTriggers = new List<Trigger> ();
+	public GameObject damageText;
+	public GameObject healingText;
+	public GameObject statusText;
+	public GameObject manaText;
 	public int comboPoints = 0;
+	public int team = 1;
 
 	void Start() {
 		hp = maxHP;
@@ -74,6 +79,7 @@ public class Unit : MonoBehaviour {
 		actionPoints = maxAP;
 	}
 
+	//when a unit starts a new turn, this function is ran
     public void StartTurn()
     {
         //set each stat to its base then apply effects
@@ -91,7 +97,7 @@ public class Unit : MonoBehaviour {
         foreach (Effect eff in myEffects)
         {
             eff.RunEffect(this);
-			if (eff.duration <= 0) {
+			if (eff.duration < 0) {
 				expiredEffects.Add(eff);
 			}
         }
@@ -124,6 +130,23 @@ public class Unit : MonoBehaviour {
 				myAbilities[i].ReduceCooldown(1);
 			}
 		}
+
+		List<Trigger> finishedTriggers = new List<Trigger> ();
+		
+		//check all triggers to see if this is their event
+		foreach (Trigger trig in myTriggers) {
+			--trig.duration;
+			if (trig.duration < 0) {
+				finishedTriggers.Add (trig);
+			}
+		}
+		
+		//remove finished triggers
+		foreach (Trigger trig in myTriggers) {
+			myTriggers.Remove(trig);
+		}
+
+
 	}
 
 	void Update() {
@@ -135,6 +158,7 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
+	//update for playable characters
 	public void PlayerUpdate() {
 		if (currentPath != null) {
 			int currNode = 0;
@@ -164,6 +188,20 @@ public class Unit : MonoBehaviour {
 			if (Vector3.Distance (transform.position, map.TileCoordToWorldCoord (tileX, tileY)) < 0.1f) {
 				SlideMovement ();
 				if (Vector3.Distance (transform.position, map.TileCoordToWorldCoord (tileX, tileY)) < 0.1f) {
+
+					//check to see if unit is stood on a trigger
+					if (map.GetNode(tileX, tileY).myTrigger != null) {
+						Trigger trig = map.GetNode(tileX, tileY).myTrigger;
+						// check to see the target type
+						if (trig.myTargets == TargetType.All || (trig.myTargets == TargetType.Ally && trig.myCaster.team == team) || (trig.myTargets == TargetType.Enemy && trig.myCaster.team != team)) {
+							//you have activated my trap card!
+							trig.CheckTrigger(TriggerType.Floor, this);
+							map.GetNode(tileX, tileY).myTrigger = null;
+						}
+					}
+					
+					//stopped moving
+
 					// if the unit can still move
 					if (remainingMove > 0 || actionPoints > 0) {
 						DrawReachableTiles();
@@ -192,6 +230,7 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
+	// the AI update function, used mainly for animation
 	public void AIUpdate() {
 
 		AIBehaviours myAI = GetComponent<AIBehaviours> ();
@@ -200,6 +239,19 @@ public class Unit : MonoBehaviour {
 			if (Vector3.Distance (transform.position, map.TileCoordToWorldCoord (tileX, tileY)) < 0.01f) {
 				SlideMovement ();
 				if (Vector3.Distance (transform.position, map.TileCoordToWorldCoord (tileX, tileY)) < 0.01f) {
+
+					//check to see if unit is stood on a trigger
+					if (map.GetNode(tileX, tileY).myTrigger != null) {
+						Trigger trig = map.GetNode(tileX, tileY).myTrigger;
+						// check to see the target type
+						if (trig.myTargets == TargetType.All || (trig.myTargets == TargetType.Ally && trig.myCaster.team == team) || (trig.myTargets == TargetType.Enemy && trig.myCaster.team != team)) {
+							//you have activated my trap card!
+							trig.CheckTrigger(TriggerType.Floor, this);
+							map.GetNode(tileX, tileY).myTrigger = null;
+						}
+					}
+
+					//stopped moving
 					moving = false;
 					transform.position = map.TileCoordToWorldCoord (tileX, tileY);
 				}
@@ -218,6 +270,7 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
+	// sets the variables for where the unit should slide to next in its path
 	public void SlideMovement() {
 		// if there is no path return
 		if(currentPath==null)
@@ -239,6 +292,7 @@ public class Unit : MonoBehaviour {
 
 	}
 
+	//old, used to slide tile to tile in current path
 	public void MoveNextTile() {
 		map.UnhighlightTiles();
 
@@ -276,6 +330,7 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
+	// animates the unit to slide to a specified tile
 	public void SlideToTile(int x, int y) {
 		map.GetNode(tileX, tileY).myUnit = null;
 		map.GetNode(x, y).myUnit = this;
@@ -286,6 +341,7 @@ public class Unit : MonoBehaviour {
 
 	}
 
+	// removes the amount of moves it took to follow path
 	public void RemoveMovement() {
 		//remove movement cost
 		if (currentPath.Last ().cost > remainingMove) {
@@ -296,52 +352,99 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
+	// shows all the tiles the unit can walk on
 	public void DrawReachableTiles() {
 		map.FindReachableTilesUnit ();
-		map.HighlightTiles (reachableTiles, Color.blue, new Color(0.75f,0.75f,1), 1);
-		map.HighlightTiles (reachableTilesWithDash, new Color(1,1,0), new Color(1,1,0.75f), 1);
+		map.HighlightTiles (reachableTiles, new Color(0.3f,0.3f,0.6f), new Color(0.4f,0.4f,0.85f), 1);
+		map.HighlightTiles (reachableTilesWithDash, new Color(0.6f,0.6f,0.3f), new Color(0.85f,0.85f,0.4f), 1);
 	}
 
+	// unit takes parameter damage and shows in combat text
     public void TakeDamage(int dmg)
     {
         int damage = (int)((dmg * damageRecievedMod) * (1 - armourDamageReduction));
         hp -= damage;
-        ShowDamage(damage);
+		CheckTriggers (TriggerType.Hit);
+        ShowCombatText(damage.ToString(), damageText);
     }
 
+	// heals the target
 	public void TakeHealing(int heal)
 	{
 		int healing = (int)(heal * healingRecievedMod);
 		hp += healing;
-		ShowDamage(healing);
+		CheckTriggers (TriggerType.Healed);
+		ShowCombatText(healing.ToString(), healingText);
 	}
 
-	public void GainMana(int m) {
-		mana += m;
-		if (mana > maxMana) {
-			mana = maxMana;
+	//gives mana up until the current max
+	public void AddRemoveMana(int m) {
+		if (m != 0)
+		{
+			mana += m;
+			if (mana > maxMana) {
+				mana = maxMana;
+			}
+			else if (mana < 0) {
+				mana = 0;
+			}
+			ShowCombatText(m.ToString(), manaText);
 		}
 	}
 
-	public void ShowDamage(int dmg) {
-		GameObject temp = Instantiate (combatText) as GameObject;
+	// created floating combat text with the specified value
+	public void ShowCombatText(string txt, GameObject go) {
+		GameObject temp = Instantiate (go) as GameObject;
 		RectTransform tempRect = temp.GetComponent<RectTransform> ();
 		temp.GetComponent<Animator> ().SetTrigger ("Hit");
 		temp.transform.SetParent (transform.FindChild("UnitCanvas"));
 
-		tempRect.transform.localPosition = combatText.transform.localPosition;
-		tempRect.transform.localScale = combatText.transform.localScale;
-		tempRect.transform.rotation = combatText.transform.localRotation;
+		tempRect.transform.localPosition = damageText.transform.localPosition;
+		tempRect.transform.localScale = damageText.transform.localScale;
+		tempRect.transform.rotation = damageText.transform.localRotation;
 		
-		temp.GetComponent<Text> ().text = dmg.ToString ();
+		temp.GetComponent<Text> ().text = txt;
 		Destroy(temp.gameObject, 2); 
 	}
 
+	// applies the specified effect, or stacks and refreshes it if it is already on
     public void ApplyEffect(Effect eff)
     {
-        myEffects.Add(eff);
+		//need to reaply all the buffs
+		
+		//set each stat to its base then apply effects
+		maxHP = baseHP;
+		maxMana = baseMana;
+		movespeed = baseMove;
+		armourDamageReduction = baseArmour;
+		init = baseInit;
+		maxAP = baseAP;
+		damageDealtMod = 1;
+		damageRecievedMod = 1;
+		healingRecievedMod = 1;
+		bool alreadyHad = false;
+
+		foreach (Effect currentEffect in myEffects) {
+			if (currentEffect.name.Contains(eff.name)) {
+				currentEffect.AddStack();
+			}
+			currentEffect.RunEffect(this);
+			++currentEffect.duration; // effect did not last a turn
+		}
+
+		if (!alreadyHad) {
+			myEffects.Add (eff);
+			eff.RunEffect(this);
+			++eff.duration;
+		}
+
     }
 
+	public void AddTrigger(Trigger trig) {
+		myTriggers.Add (trig);
+	}
+
+	// finds if the unit is stunned
 	public bool IsStunned() {
 		foreach (Effect eff in myEffects) {
 			if (eff.description.Equals("Stun")) {
@@ -351,6 +454,7 @@ public class Unit : MonoBehaviour {
 		return false;
 	}
 
+	// finds if the unit is snared
 	public bool IsSnared() {
 		foreach (Effect eff in myEffects) {
 			if (eff.description.Equals("Snare")) {
@@ -360,6 +464,7 @@ public class Unit : MonoBehaviour {
 		return false;
 	}
 
+	// adds the parameter of combo points until up to 5
 	public void AddComboPoints(int i) {
 		comboPoints += i;
 		if (comboPoints > 5) {
@@ -367,9 +472,29 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
+	//uses all the combo points the unit as got and returns the value
 	public int UseComboPoints() {
 		int cp = comboPoints;
 		comboPoints = 0;
 		return cp;
+	}
+
+	public void CheckTriggers(TriggerType tt) {
+		List<Trigger> finishedTriggers = new List<Trigger> ();
+
+		//check all triggers to see if this is their event
+		foreach (Trigger trig in myTriggers) {
+			trig.CheckTrigger(tt, this);
+			// if the trigger has finished add it to the remove list
+			if (trig.triggerCount >= trig.maxTriggers) {
+				finishedTriggers.Add(trig);
+			}
+		}
+
+		//remove finished triggers
+		foreach (Trigger trig in myTriggers) {
+			myTriggers.Remove(trig);
+		}
+
 	}
 }

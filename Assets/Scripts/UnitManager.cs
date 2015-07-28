@@ -133,6 +133,7 @@ public class UnitManager : MonoBehaviour {
 		u.tileX = x;
 		u.tileY = y;
 		u.map = map;
+		u.team = 2;
 		ai.myMap = map;
 		ai.myManager = this;
 		++enemyCount;
@@ -162,8 +163,10 @@ public class UnitManager : MonoBehaviour {
 		}
 
 		foreach (GameObject go in everyUnit) {
-			if (go.GetComponent<Unit>().hp < 1) {
+			sUnit = go.GetComponent<Unit>();
+			if (sUnit.hp < 1) {
 				// REMOVE UNIT FROM FUCKING EVERYTHING
+				sUnit.CheckTriggers(TriggerType.Death);
 				currentQueue.Remove(go);
 			}
 		}
@@ -209,20 +212,26 @@ public class UnitManager : MonoBehaviour {
 		//check to see if the current character is playable
 		if (sUnit.playable && sUnit.actionPoints > 0) {
 			if ((int)currentDisplaying != a+1 && sUnit.myAbilities[a] != null) {
-				ChangeActionDisplay(a+1);
-				List<Node> targetableTiles = new List<Node>();
+				if (sUnit.mana >= sUnit.myAbilities[a].manaCost) {
+					ChangeActionDisplay(a+1);
+					List<Node> targetableTiles = new List<Node>();
 
-				switch(sUnit.myAbilities[a].area) {
-				case AreaType.Single: targetableTiles = map.FindSingleRangedTargets(sUnit.myAbilities[a]);
-					map.HighlightTiles(targetableTiles, new Color(1, 0.7f, 0.7f), new Color(1,0.55f,0.55f), 0);
-					ShowSingleTargets(targetableTiles, sUnit.myAbilities[a]);
-					break;
-				case AreaType.AOE: targetableTiles = map.FindSingleRangedTargets(sUnit.myAbilities[a]);
-					map.HighlightTiles(targetableTiles, new Color(1, 0.7f, 0.7f), new Color(1,0.55f,0.55f), 1);
-					break;
-				case AreaType.Line: targetableTiles = map.FindLineTargets(sUnit.myAbilities[a]);
-					map.HighlightTiles(targetableTiles, new Color(1, 0.7f, 0.7f), new Color(1,0.55f,0.55f), 1);
-					break;
+					switch(sUnit.myAbilities[a].area) {
+					case AreaType.Single: targetableTiles = map.FindSingleRangedTargets(sUnit.myAbilities[a]);
+						map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), 0);
+						ShowSingleTargets(targetableTiles, sUnit.myAbilities[a]);
+						break;
+					case AreaType.AOE: targetableTiles = map.FindSingleRangedTargets(sUnit.myAbilities[a]);
+						map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), 1);
+						break;
+					case AreaType.Line: targetableTiles = map.FindLineTargets(sUnit.myAbilities[a]);
+						map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), 1);
+						break;
+					case AreaType.Floor : targetableTiles = map.FindSingleRangedTargets(sUnit.myAbilities[a]);
+						map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f, 0.3f, 0.3f), 1);
+						ShowFloorTargets(targetableTiles, sUnit.myAbilities[a]);
+						break;
+					}
 				}
 			}
 		}
@@ -230,32 +239,30 @@ public class UnitManager : MonoBehaviour {
 
 	//searches through tiles to find target types
 	void ShowSingleTargets(List<Node> tiles, Ability abil) {
-		//if the ability can hit allies
-		Unit cUnit = null;
+		Unit sUnit = currentQueue [turn].GetComponent<Unit> ();
 
-		if (abil.targets == TargetType.Ally || abil.targets == TargetType.All) {
-			for(int i=0; i < MAXCHARACTERS; ++i) {
-				cUnit = playerUnitObjects[i].GetComponent<Unit>();
-				if (map.GetClickableTile(cUnit.tileX, cUnit.tileY).highlighted) {
-					map.GetClickableTile(cUnit.tileX, cUnit.tileY).HighlightTile(new Color(1, 0.4f, 0.4f), new Color(1,0,0), 1);
-				}
-			}
-		}
-
-		if (abil.targets == TargetType.Enemy || abil.targets == TargetType.All) {
-			for(int i=0; i < MAXENEMIES; ++i) {
-				if (enemies[i] != null) {
-					cUnit = enemies[i].GetComponent<Unit>();
-					if (map.GetClickableTile(cUnit.tileX, cUnit.tileY).highlighted) {
-						map.GetClickableTile(cUnit.tileX, cUnit.tileY).HighlightTile(new Color(1, 0.4f, 0.4f), new Color(1,0,0), 1);
-					}
+		//loop through every active unit TODO many need to add the next queue too
+		foreach (GameObject go in currentQueue) {
+			Unit u = go.GetComponent<Unit>();
+			//check to see if the ability hits this type of unit
+			if (map.GetClickableTile(u.tileX, u.tileY).highlighted) {
+				if (abil.targets == TargetType.All || (abil.targets == TargetType.Ally && u.team == sUnit.team) || (abil.targets == TargetType.Enemy && u.team != sUnit.team)) {
+					map.GetClickableTile(u.tileX, u.tileY).HighlightTile(new Color(0.85f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), 1);
 				}
 			}
 		}
 
 
+	}
 
+	void ShowFloorTargets(List<Node> tiles, Ability abil) {
 
+		//unhighlight tiles 
+		foreach (Node n in tiles) {
+			if (n.myUnit != null) {
+				map.GetClickableTile(n.x, n.y).UnhighlightTile();
+			}
+		}
 	}
 
 	//function that gets rid of everything to do with previous actions
@@ -279,6 +286,7 @@ public class UnitManager : MonoBehaviour {
 	public void TileEnter(int x, int y) {
 		switch(currentDisplaying) {
 		case Display.Movement: map.GetPath(x, y);
+			currentQueue [turn].GetComponent<Unit> ().CheckTriggers (TriggerType.Move);
 			break;
 		case Display.Nothing: break;
 		default: AbilityTileEnter(x, y);
@@ -297,53 +305,48 @@ public class UnitManager : MonoBehaviour {
 	}
 
 	void AbilityTileEnter(int x, int y) {
-
 		Unit sUnit = currentQueue [turn].GetComponent<Unit> ();
+		if (map.GetClickableTile (x, y).targetable) {
+			if (sUnit.myAbilities [(int)currentDisplaying - 1].area == AreaType.AOE) {
 
-		if (sUnit.myAbilities[(int)currentDisplaying-1].area == AreaType.AOE) {
-			if (map.GetClickableTile(x, y).targetable) {
-				List<Node> aoeTiles = map.FindReachableTiles(x, y, sUnit.myAbilities[(int)currentDisplaying-1].AOERange, true);
-				map.HighlightTiles(aoeTiles, new Color(1, 0.4f, 0.4f), new Color(1,0,0), -2);
-				map.GetNode(x, y).reachableNodes = aoeTiles;
-			}
-		}
-		else if (sUnit.myAbilities[(int)currentDisplaying-1].area == AreaType.Line) {
-			if (map.GetClickableTile(x, y).targetable) {
-				List<Node> lineTiles = new List<Node>();
+				List<Node> aoeTiles = map.FindReachableTiles (x, y, sUnit.myAbilities [(int)currentDisplaying - 1].AOERange, true);
+				map.HighlightTiles (aoeTiles, new Color(0.85f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), -2);
+				map.GetNode (x, y).reachableNodes = aoeTiles;
+			} else if (sUnit.myAbilities [(int)currentDisplaying - 1].area == AreaType.Line) {
 
-				int dirX  = 0;
-				int dirY  = 0;
+				List<Node> lineTiles = new List<Node> ();
+
+				int dirX = 0;
+				int dirY = 0;
 				int currX = x;
 				int currY = y;
 
 				//find end of line
-				while(map.GetClickableTile(currX, currY).targetable){
-					dirX = (int)map.GetNode(currX, currY).directionToParent.x;
-					dirY = (int)map.GetNode(currX, currY).directionToParent.y;
+				while (map.GetClickableTile(currX, currY).targetable) {
+					dirX = (int)map.GetNode (currX, currY).directionToParent.x;
+					dirY = (int)map.GetNode (currX, currY).directionToParent.y;
 					currX -= dirX;
 					currY -= dirY;
 				}
 
 				currX += dirX;
 				currY += dirY;
-				Node curr = map.GetNode(currX, currY);
+				Node curr = map.GetNode (currX, currY);
 
 				//find the path
-				while(curr.previous != null){
-					lineTiles.Add(curr);
+				while (curr.previous != null) {
+					lineTiles.Add (curr);
 					curr = curr.previous;
 				}
 
 				lineTiles.Add (curr);
 
-
-
-				map.HighlightTiles(lineTiles, new Color(1, 0.4f, 0.4f), new Color(1,0,0), -2);
-				map.GetNode(x, y).reachableNodes = lineTiles;
+				map.HighlightTiles (lineTiles, new Color(0.85f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), -2);
+				map.GetNode (x, y).reachableNodes = lineTiles;
 			}
 		}
-
 	}
+
 
 	void AbilityTileExit(int x, int y) {
 		Unit sUnit = currentQueue [turn].GetComponent<Unit> ();
@@ -353,7 +356,7 @@ public class UnitManager : MonoBehaviour {
 				foreach (Node n in map.GetNode(x,y).reachableNodes) {
 					ClickableTile ct = map.GetClickableTile(n.x, n.y);
 					if (ct.targetable) {
-						ct.HighlightTile(new Color(1, 0.7f, 0.7f), new Color(1,0.55f,0.55f), -2);
+						ct.HighlightTile(new Color(0.6f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), -2);
 					}
 					else {
 						ct.UnhighlightTile();
@@ -366,7 +369,7 @@ public class UnitManager : MonoBehaviour {
 		else if (sUnit.myAbilities[(int)currentDisplaying-1].area == AreaType.Line) {
 			if (map.GetClickableTile(x, y).targetable && map.GetNode(x,y).reachableNodes != null) {
 				foreach (Node n in map.GetNode(x,y).reachableNodes) {
-					map.GetClickableTile(n.x, n.y).HighlightTile(new Color(1, 0.7f, 0.7f), new Color(1,0.55f,0.55f), -2);
+					map.GetClickableTile(n.x, n.y).HighlightTile(new Color(0.6f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), -2);
 				}
 				map.GetNode(x,y).reachableNodes = null;
 				
@@ -390,12 +393,16 @@ public class UnitManager : MonoBehaviour {
 
 		sUnit.attacking = true;
 
+		sUnit.CheckTriggers (TriggerType.Use_Ability);
+
 		switch (sUnit.myAbilities[a].area) {
 		case AreaType.Single: sUnit.myAbilities[a].UseAbility(map.GetNode(x, y).myUnit, map);
 			break;
 		case AreaType.AOE: sUnit.myAbilities[a].UseAbility(map.GetNode(x,y).reachableNodes, map);
 			break;
 		case AreaType.Line: sUnit.myAbilities[a].UseAbility(map.GetNode(x,y).reachableNodes, map);
+			break;
+		case AreaType.Floor: sUnit.myAbilities[a].UseAbility(map.GetNode(x,y), map);
 			break;
 		}
 
@@ -429,7 +436,7 @@ public class UnitManager : MonoBehaviour {
 			break;
 		case CharacterClass.Elementalist: u.myAbilities[0] = new Fireball(u);
 			u.myAbilities[1] = new FlashFreeze(u);
-			u.myAbilities[2] = new ArcaneEmpowerment(u);
+			u.myAbilities[2] = new ManaTrap(u);
 			break;
 		case CharacterClass.Ranger: u.myAbilities[0] = new TripleShot(u);
 			u.myAbilities[1] = new CripplingShot(u);

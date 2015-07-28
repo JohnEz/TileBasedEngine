@@ -28,12 +28,12 @@ public class Charge : Ability
 			count = targetSquares.Count - 2;
 			targetSquares.Last ().myUnit.TakeDamage(dmg);
 			targetSquares.Last ().myUnit.ApplyEffect(new Stun("Charged", duration));
-		} else {
-			count = targetSquares.Count - 1;
-		}
 
-		if (targetSquares.Count > 1) {
-			myCaster.SlideToTile (targetSquares [count].x, targetSquares [count].y);
+			if (targetSquares.Count > 1) {
+				myCaster.SlideToTile (targetSquares [count].x, targetSquares [count].y);
+			}
+		} else {
+			myCaster.SlideToTile (targetSquares [targetSquares.Count-1].x, targetSquares [targetSquares.Count-1].y);
 		}
 
 	}

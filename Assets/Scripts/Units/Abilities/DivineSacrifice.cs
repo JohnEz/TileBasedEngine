@@ -20,6 +20,7 @@ public class DivineSacrifice : Ability
 		
 		target.TakeDamage(dmg);
 		//apply an on death trigger
+		target.AddTrigger (new DivineSacrificeTrigger (myCaster));
 	}
 }
 

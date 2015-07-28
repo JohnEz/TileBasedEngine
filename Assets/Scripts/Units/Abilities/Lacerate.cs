@@ -10,6 +10,7 @@ public class Lacerate : Ability
 		area = AreaType.Single;
 		targets = TargetType.Enemy;
 		maxCooldown = 1;
+		stacks = 3;
 	}
 
 	public override void UseAbility (Unit target, TileMap map)
@@ -20,7 +21,7 @@ public class Lacerate : Ability
 
 		myCaster.AddComboPoints (2);
 		target.TakeDamage(dmg);
-		target.ApplyEffect(new DamageRecievedEffect("Lacerate", duration, 0.1f));
+		target.ApplyEffect(new DamageRecievedEffect("Lacerate", duration, 0.1f, stacks));
 	}
 }
 

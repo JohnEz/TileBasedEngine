@@ -7,7 +7,7 @@ public class Stun : Effect
 {
 
     public Stun(string n, int dur)
-        : base(n, dur)
+        : base(n, dur, 1)
     {
 		description = "Stun";
     }
@@ -17,6 +17,7 @@ public class Stun : Effect
         base.RunEffect(u);
         u.movespeed = 0;
         u.maxAP = 0;
+		u.ShowCombatText ("Stunned", u.statusText);
     }
 
 }
