@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class FlashFreeze : Ability
 {
-	public FlashFreeze (Unit u) : base(u)
+	public FlashFreeze (Unit u, TileMap m, VisualEffectLibrary el) : base(u, m , el)
 	{
 		damage = 20;
 		manaCost = 20;
@@ -16,9 +16,9 @@ public class FlashFreeze : Ability
 		targets = TargetType.All;
 	}
 	
-	public override void UseAbility (Unit target, TileMap map)
+	public override void UseAbility (Unit target)
 	{
-		base.UseAbility (target, map);
+		base.UseAbility (target);
 		int dmg = (int)(damage * myCaster.damageDealtMod);
 		
 		target.TakeDamage (dmg);
@@ -26,16 +26,24 @@ public class FlashFreeze : Ability
 		
 	}
 	
-	public override void UseAbility (List<Node> targetSquares, TileMap map)
+	public override void UseAbility (Node n)
 	{
-		base.UseAbility (targetSquares, map);
+		List<Node> targetSquares = n.reachableNodes;
+		base.UseAbility (n);
 		
-		foreach (Node n in targetSquares) {
-			if (n.myUnit != null) {
-				UseAbility(n.myUnit, map);
+		foreach (Node no in targetSquares) {
+			if (no.myUnit != null) {
+				UseAbility(no.myUnit);
 			}
 		}
+
+		Vector3 pos = map.TileCoordToWorldCoord (n.x, n.y);
+
+		myVisualEffects.Add (effectLib.CreateEffect ("Flash Freeze", pos).GetComponent<EffectController> ());
+
+		
 	}
+
 }
 
 

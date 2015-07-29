@@ -3,7 +3,7 @@ using System;
 
 public class CripplingShot : Ability
 {
-	public CripplingShot (Unit u) : base(u)
+	public CripplingShot (Unit u, TileMap m, VisualEffectLibrary el) : base(u, m , el)
 	{
 		damage = 10;
 		manaCost = 20;
@@ -14,9 +14,9 @@ public class CripplingShot : Ability
 		maxCooldown = 1;
 	}
 
-	public override void UseAbility (Unit target, TileMap map)
+	public override void UseAbility (Unit target)
 	{
-		base.UseAbility (target, map);
+		base.UseAbility (target);
 
 		int dmg = (int)(damage * myCaster.damageDealtMod);
 

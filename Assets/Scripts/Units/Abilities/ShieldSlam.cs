@@ -3,8 +3,7 @@ using System;
 
 public class ShieldSlam : Ability
 {
-	public ShieldSlam(Unit u)
-		: base(u)
+	public ShieldSlam(Unit u, TileMap m, VisualEffectLibrary el) : base(u, m , el)
 	{
 		damage = 20;
 		duration = 1;
@@ -14,9 +13,9 @@ public class ShieldSlam : Ability
 		maxCooldown = 2;
 	}
 
-	public override void UseAbility (Unit t, TileMap map)
+	public override void UseAbility (Unit t)
 	{
-		base.UseAbility (t, map);
+		base.UseAbility (t);
 
 		if (t.mySize <= UnitSize.Normal) {
 			int dmg = (int)(damage * myCaster.damageDealtMod);

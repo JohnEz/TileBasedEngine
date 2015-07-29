@@ -3,7 +3,7 @@ using System;
 
 public class ManaTrap : Ability
 {
-	public ManaTrap (Unit caster) : base(caster)
+	public ManaTrap (Unit u, TileMap m, VisualEffectLibrary el) : base(u, m , el)
 	{
 		manaCost = 5;
 		duration = 2;
@@ -13,9 +13,9 @@ public class ManaTrap : Ability
 		targets = TargetType.All;
 	}
 
-	public override void UseAbility (Node n, TileMap map)
+	public override void UseAbility (Node n)
 	{
-		base.UseAbility (n, map);
+		base.UseAbility (n);
 
 		n.myTrigger = new ManaTrapTrigger (myCaster);
 	}

@@ -3,7 +3,7 @@ using System;
 
 public class PointBlank : Ability
 {
-	public PointBlank (Unit u) : base(u) 
+	public PointBlank (Unit u, TileMap m, VisualEffectLibrary el) : base(u, m , el)
 	{
 		damage = 20;
 		duration = 0;
@@ -13,9 +13,9 @@ public class PointBlank : Ability
 		maxCooldown = 1;
 	}
 
-	public override void UseAbility (Unit target, TileMap map)
+	public override void UseAbility (Unit target)
 	{
-		base.UseAbility (target, map);
+		base.UseAbility (target);
 		int dmg = (int)(damage * myCaster.damageDealtMod);
 		int combo = myCaster.UseComboPoints ();
 

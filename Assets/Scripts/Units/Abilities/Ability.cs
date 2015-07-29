@@ -37,16 +37,23 @@ public class Ability{
     public Unit myCaster = null;
 	public Unit myTarget = null;
 
+	public VisualEffectLibrary effectLib;
+	public TileMap map;
+
 	public bool AbilityFinished = true;
 
 	public int stacks = 1;
 
-    public Ability(Unit u)
+	public List<EffectController> myVisualEffects = new List<EffectController> ();
+
+    public Ability(Unit u, TileMap m, VisualEffectLibrary el)
     {
         myCaster = u;
+		effectLib = el;
+		map = m;
     }
 
-	public virtual void UseAbility(Unit target, TileMap map) {
+	public virtual void UseAbility(Unit target) {
 		cooldown = maxCooldown;
 		AbilityFinished = false;
 		myTarget = target;
@@ -54,25 +61,21 @@ public class Ability{
 		myCaster.AddRemoveMana (-manaCost);
 	}
 
-	public virtual void UseAbility(List<Node> targetSquares, TileMap map) {
-		/*foreach (Node n in targetSquares) {
-			if (n.myUnit != null) {
-				UseAbility(n.myUnit);
-			}
-		}*/
+	public virtual void UseAbility(Node n) {
 		cooldown = maxCooldown;
 		AbilityFinished = false;
 		myCaster.AddRemoveMana (-manaCost);
-	}
-
-	public virtual void UseAbility(Node n, TileMap map) {
-		cooldown = maxCooldown;
-		AbilityFinished = false;
-		myCaster.AddRemoveMana (-manaCost);
+		myVisualEffects = new List<EffectController> ();
 	}
 
 	public virtual void UpdateAbility() {
 		AbilityFinished = true;
+
+		foreach (EffectController ec in myVisualEffects) {
+			if (!ec.animFinished) {
+				AbilityFinished = false;
+			}
+		}
 	}
 
 	public void ReduceCooldown(int i) {

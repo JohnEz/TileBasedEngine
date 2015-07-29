@@ -5,8 +5,7 @@ using System;
 
 public class Charge : Ability
 {
-	public Charge (Unit u) 
-		: base (u) 
+	public Charge (Unit u, TileMap m, VisualEffectLibrary el) : base(u, m , el)
 	{
 		damage = 20;
 		duration = 1;
@@ -16,10 +15,11 @@ public class Charge : Ability
 		maxCooldown = 3;
 	}
 
-	public override void UseAbility (List<Node> targetSquares, TileMap map)
+	public override void UseAbility (Node n)
 	{
+		List<Node> targetSquares = n.reachableNodes;
 		targetSquares.Reverse ();
-		base.UseAbility (targetSquares, map);
+		base.UseAbility (n);
 		int dmg = (int)(damage * myCaster.damageDealtMod);
 
 		int count = 0;

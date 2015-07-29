@@ -4,8 +4,7 @@ using System.Collections.Generic;
 public class CripplingStrike : Ability
 {
 
-    public CripplingStrike(Unit u)
-        : base(u)
+	public CripplingStrike(Unit u, TileMap m, VisualEffectLibrary el) : base(u, m , el)
     {
         damage = 30;
         duration = 2;
@@ -15,9 +14,9 @@ public class CripplingStrike : Ability
         maxCooldown = 1;
     }
 
-    public override void UseAbility(Unit target, TileMap map)
+    public override void UseAbility(Unit target)
     {
-        base.UseAbility(target, map);
+        base.UseAbility(target);
         int dmg = (int)(damage * myCaster.damageDealtMod);
 
         target.TakeDamage(dmg);

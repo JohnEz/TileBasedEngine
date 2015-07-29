@@ -44,6 +44,7 @@ public class UnitManager : MonoBehaviour {
 
 	//the map manager
 	TileMap map;
+	VisualEffectLibrary effectLibrary;
 
 	//turn order
 	List<GameObject> currentQueue;
@@ -67,6 +68,7 @@ public class UnitManager : MonoBehaviour {
 
 	public void Initialise() {
 		map = GetComponent<TileMap>();
+		effectLibrary = GetComponent<VisualEffectLibrary> ();
 
 		activeUnits = new List<GameObject> ();
 		everyUnit = new List<GameObject> ();
@@ -272,9 +274,18 @@ public class UnitManager : MonoBehaviour {
 		currentDisplaying = (Display)(a);
 	}
 
+	void TileClickedMovement(int x, int y) {
+		if (currentQueue [turn].GetComponent<Unit> ().currentPath == null) {
+			map.GetPath(x, y);
+		}
+
+		currentQueue [turn].GetComponent<Unit> ().CheckTriggers (TriggerType.Move);
+		map.FollowPath ();
+	}
+
 	public void TileClicked(int x, int y) {
 		switch(currentDisplaying) {
-		case Display.Movement: map.FollowPath ();
+		case Display.Movement: TileClickedMovement(x, y);
 			break;
 		case Display.Nothing: 
 			break;
@@ -286,7 +297,6 @@ public class UnitManager : MonoBehaviour {
 	public void TileEnter(int x, int y) {
 		switch(currentDisplaying) {
 		case Display.Movement: map.GetPath(x, y);
-			currentQueue [turn].GetComponent<Unit> ().CheckTriggers (TriggerType.Move);
 			break;
 		case Display.Nothing: break;
 		default: AbilityTileEnter(x, y);
@@ -396,13 +406,13 @@ public class UnitManager : MonoBehaviour {
 		sUnit.CheckTriggers (TriggerType.Use_Ability);
 
 		switch (sUnit.myAbilities[a].area) {
-		case AreaType.Single: sUnit.myAbilities[a].UseAbility(map.GetNode(x, y).myUnit, map);
+		case AreaType.Single: sUnit.myAbilities[a].UseAbility(map.GetNode(x, y).myUnit);
+			map.UnhighlightTiles();
 			break;
-		case AreaType.AOE: sUnit.myAbilities[a].UseAbility(map.GetNode(x,y).reachableNodes, map);
-			break;
-		case AreaType.Line: sUnit.myAbilities[a].UseAbility(map.GetNode(x,y).reachableNodes, map);
-			break;
-		case AreaType.Floor: sUnit.myAbilities[a].UseAbility(map.GetNode(x,y), map);
+		case AreaType.AOE:
+		case AreaType.Line:
+		case AreaType.Floor: sUnit.myAbilities[a].UseAbility(map.GetNode(x,y));
+			map.UnhighlightTiles();
 			break;
 		}
 
@@ -422,25 +432,25 @@ public class UnitManager : MonoBehaviour {
     {
         switch (c)
         {
-		case CharacterClass.Warrior: u.myAbilities[0] = new CripplingStrike(u);
-			u.myAbilities[1] = new ShieldSlam(u);
-			u.myAbilities[2] = new Charge(u);
+		case CharacterClass.Warrior: u.myAbilities[0] = new CripplingStrike(u, map, effectLibrary);
+			u.myAbilities[1] = new ShieldSlam(u, map, effectLibrary);
+			u.myAbilities[2] = new Charge(u, map, effectLibrary);
             break;
-		case CharacterClass.Acolyte: u.myAbilities[0] = new WordOfHealing(u);
-			u.myAbilities[1] = new RighteousShield(u);
-			u.myAbilities[2] = new DivineSacrifice(u);
+		case CharacterClass.Acolyte: u.myAbilities[0] = new WordOfHealing(u, map, effectLibrary);
+			u.myAbilities[1] = new RighteousShield(u, map, effectLibrary);
+			u.myAbilities[2] = new DivineSacrifice(u, map, effectLibrary);
 			break;
-		case CharacterClass.Highwayman: u.myAbilities[0] = new Lacerate(u);
-			u.myAbilities[1] = new Lunge(u);
-			u.myAbilities[2] = new PointBlank(u);
+		case CharacterClass.Highwayman: u.myAbilities[0] = new Lacerate(u, map, effectLibrary);
+			u.myAbilities[1] = new Lunge(u, map, effectLibrary);
+			u.myAbilities[2] = new PointBlank(u, map, effectLibrary);
 			break;
-		case CharacterClass.Elementalist: u.myAbilities[0] = new Fireball(u);
-			u.myAbilities[1] = new FlashFreeze(u);
-			u.myAbilities[2] = new ManaTrap(u);
+		case CharacterClass.Elementalist: u.myAbilities[0] = new Fireball(u, map, effectLibrary);
+			u.myAbilities[1] = new FlashFreeze(u, map, effectLibrary);
+			u.myAbilities[2] = new ManaTrap(u, map, effectLibrary);
 			break;
-		case CharacterClass.Ranger: u.myAbilities[0] = new TripleShot(u);
-			u.myAbilities[1] = new CripplingShot(u);
-			u.myAbilities[2] = new ExploitWeakness(u);
+		case CharacterClass.Ranger: u.myAbilities[0] = new TripleShot(u, map, effectLibrary);
+			u.myAbilities[1] = new CripplingShot(u, map, effectLibrary);
+			u.myAbilities[2] = new ExploitWeakness(u, map, effectLibrary);
 			break;
         }
     }

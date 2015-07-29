@@ -3,7 +3,7 @@ using System;
 
 public class ArcaneEmpowerment : Ability
 {
-	public ArcaneEmpowerment (Unit u) : base(u)
+	public ArcaneEmpowerment (Unit u, TileMap m, VisualEffectLibrary el) : base(u, m , el)
 	{
 		manaCost = 15;
 		maxCooldown = 3;
@@ -13,9 +13,9 @@ public class ArcaneEmpowerment : Ability
 		targets = TargetType.Ally;
 	}
 
-	public override void UseAbility (Unit target, TileMap map)
+	public override void UseAbility (Unit target)
 	{
-		base.UseAbility (target, map);
+		base.UseAbility (target);
 
 		target.ApplyEffect(new DamageDealtEffect("Arcane Empowerment", duration, 0.30f));
 	}

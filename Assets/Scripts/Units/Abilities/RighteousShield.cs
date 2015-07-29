@@ -4,7 +4,7 @@ using System;
 public class RighteousShield : Ability
 {
 
-	public RighteousShield (Unit u) : base (u)
+	public RighteousShield (Unit u, TileMap m, VisualEffectLibrary el) : base(u, m , el)
 	{
 		shield = 50;
 		manaCost = 20;
@@ -15,9 +15,9 @@ public class RighteousShield : Ability
 		targets = TargetType.Ally;
 	}
 
-	public override void UseAbility (Unit target, TileMap map)
+	public override void UseAbility (Unit target)
 	{
-		base.UseAbility (target, map);
+		base.UseAbility (target);
 		target.shield += shield;
 
 		target.ApplyEffect (new MovespeedMod ("Righteous Shield", duration, 1));

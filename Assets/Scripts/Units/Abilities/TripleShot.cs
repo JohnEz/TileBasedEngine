@@ -3,7 +3,7 @@ using System;
 
 public class TripleShot : Ability
 {
-	public TripleShot (Unit u) : base(u)
+	public TripleShot (Unit u, TileMap m, VisualEffectLibrary el) : base(u, m , el)
 	{
 		damage = 10;
 		range = 5;
@@ -12,9 +12,9 @@ public class TripleShot : Ability
 		targets = TargetType.Enemy;
 	}
 
-	public override void UseAbility (Unit target, TileMap map)
+	public override void UseAbility (Unit target)
 	{
-		base.UseAbility (target, map);
+		base.UseAbility (target);
 		int dmg = (int)(damage * myCaster.damageDealtMod);
 
 		myCaster.AddRemoveMana (15);

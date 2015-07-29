@@ -2,7 +2,7 @@ using UnityEngine;
 using System;
 public class Lacerate : Ability
 {
-	public Lacerate (Unit u) : base(u)
+	public Lacerate (Unit u, TileMap m, VisualEffectLibrary el) : base(u, m , el)
 	{
 		damage = 40;
 		duration = 2;
@@ -13,9 +13,9 @@ public class Lacerate : Ability
 		stacks = 3;
 	}
 
-	public override void UseAbility (Unit target, TileMap map)
+	public override void UseAbility (Unit target)
 	{
-		base.UseAbility (target, map);
+		base.UseAbility (target);
 
 		int dmg = (int)(damage * myCaster.damageDealtMod);
 

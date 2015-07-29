@@ -97,7 +97,7 @@ public class Unit : MonoBehaviour {
         foreach (Effect eff in myEffects)
         {
             eff.RunEffect(this);
-			if (eff.duration < 0) {
+			if (eff.duration <= 0) {
 				expiredEffects.Add(eff);
 			}
         }

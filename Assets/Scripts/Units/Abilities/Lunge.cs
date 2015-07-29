@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 public class Lunge : Ability
 {
-	public Lunge (Unit u) : base(u)
+	public Lunge (Unit u, TileMap m, VisualEffectLibrary el) : base(u, m , el)
 	{
 		damage = 35;
 		duration = 1;
@@ -15,10 +15,11 @@ public class Lunge : Ability
 		maxCooldown = 2;
 	}
 
-	public override void UseAbility (List<Node> targetSquares, TileMap map)
+	public override void UseAbility (Node n)
 	{
+		List<Node> targetSquares = n.reachableNodes;
 		targetSquares.Reverse ();
-		base.UseAbility (targetSquares, map);
+		base.UseAbility (n);
 		int dmg = (int)(damage * myCaster.damageDealtMod);
 		
 

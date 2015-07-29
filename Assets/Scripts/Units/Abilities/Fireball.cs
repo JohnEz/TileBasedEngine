@@ -1,9 +1,10 @@
 using UnityEngine;
+using System.Collections.Generic;
 using System;
 
 public class Fireball : Ability
 {
-	public Fireball (Unit u) : base(u)
+	public Fireball (Unit u, TileMap m, VisualEffectLibrary el) : base(u, m , el)
 	{
 		damage = 35;
 		manaCost = 20;
@@ -15,9 +16,9 @@ public class Fireball : Ability
 		targets = TargetType.All;
 	}
 
-	public override void UseAbility (Unit target, TileMap map)
+	public override void UseAbility (Unit target)
 	{
-		base.UseAbility (target, map);
+		base.UseAbility (target);
 		int dmg = (int)(damage * myCaster.damageDealtMod);
 
 		target.TakeDamage (dmg);
@@ -25,13 +26,13 @@ public class Fireball : Ability
 
 	}
 
-	public override void UseAbility (System.Collections.Generic.List<Node> targetSquares, TileMap map)
+	public override void UseAbility (Node n)
 	{
-		base.UseAbility (targetSquares, map);
+		base.UseAbility (n);
 
-		foreach (Node n in targetSquares) {
-			if (n.myUnit != null) {
-				UseAbility(n.myUnit, map);
+		foreach (Node no in n.reachableNodes) {
+			if (no.myUnit != null) {
+				UseAbility(no.myUnit);
 			}
 		}
 	}

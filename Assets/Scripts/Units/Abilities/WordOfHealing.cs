@@ -2,7 +2,7 @@ using UnityEngine;
 using System;
 public class WordOfHealing : Ability
 {
-	public WordOfHealing (Unit u) : base (u)
+	public WordOfHealing (Unit u, TileMap m, VisualEffectLibrary el) : base(u, m , el)
 	{
 		healing = 30;
 		manaCost = 10;
@@ -15,9 +15,9 @@ public class WordOfHealing : Ability
 
 	}
 
-	public override void UseAbility (Unit target, TileMap map)
+	public override void UseAbility (Unit target)
 	{
-		base.UseAbility (target, map);
+		base.UseAbility (target);
 
 		target.TakeHealing (healing);
 		target.ApplyEffect (new DamageRecievedEffect ("Word of Healing", duration, -0.05f, stacks));

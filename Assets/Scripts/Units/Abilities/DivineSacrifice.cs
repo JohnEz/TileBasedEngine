@@ -3,7 +3,7 @@ using System;
 
 public class DivineSacrifice : Ability
 {
-	public DivineSacrifice (Unit u) : base(u)
+	public DivineSacrifice (Unit u, TileMap m, VisualEffectLibrary el) : base(u, m , el)
 	{
 		damage = 10;
 		duration = 4;
@@ -13,9 +13,9 @@ public class DivineSacrifice : Ability
 		maxCooldown = 1;
 	}
 
-	public override void UseAbility (Unit target, TileMap map)
+	public override void UseAbility (Unit target)
 	{
-		base.UseAbility (target, map);
+		base.UseAbility (target);
 		int dmg = (int)(damage * myCaster.damageDealtMod);
 		
 		target.TakeDamage(dmg);
