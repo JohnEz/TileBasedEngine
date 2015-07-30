@@ -13,25 +13,28 @@ public class ShieldSlam : Ability
 		maxCooldown = 2;
 	}
 
-	public override void UseAbility (Unit t)
+	public override void UseAbility (Unit target)
 	{
-		base.UseAbility (t);
+		base.UseAbility (target);
 
-		if (t.mySize <= UnitSize.Normal) {
+		if (target.mySize <= UnitSize.Normal) {
 			int dmg = (int)(damage * myCaster.damageDealtMod);
-			int diffX = t.tileX - myCaster.tileX;
-			int diffY = t.tileY - myCaster.tileY;
+			int diffX = target.tileX - myCaster.tileX;
+			int diffY = target.tileY - myCaster.tileY;
+
+			Vector3 pos = map.TileCoordToWorldCoord (target.tileX, target.tileY);
+			myVisualEffects.Add (effectLib.CreateEffect ("Hit1", pos).GetComponent<EffectController> ());
 
 			if (map.UnitCanEnterTile(myCaster.tileX+(diffX*2), myCaster.tileY+(diffY*2))) {
-				t.SlideToTile(myCaster.tileX+(diffX*2), myCaster.tileY+(diffY*2));
+				target.SlideToTile(myCaster.tileX+(diffX*2), myCaster.tileY+(diffY*2));
 			}
 
-			t.TakeDamage(dmg);
-			t.ApplyEffect(new Stun("Shield Slammed", duration));
+			target.TakeDamage(dmg);
+			target.ApplyEffect(new Stun("Shield Slammed", duration));
 		} else {
 			int dmg = (int)(damage * myCaster.damageDealtMod);
 
-			t.TakeDamage(dmg*3);
+			target.TakeDamage(dmg*3);
 		}
 	}
 

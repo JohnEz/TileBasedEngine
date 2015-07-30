@@ -38,7 +38,6 @@ public class FlashFreeze : Ability
 		}
 
 		Vector3 pos = map.TileCoordToWorldCoord (n.x, n.y);
-
 		myVisualEffects.Add (effectLib.CreateEffect ("Flash Freeze", pos).GetComponent<EffectController> ());
 
 		

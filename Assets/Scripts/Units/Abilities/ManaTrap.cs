@@ -5,12 +5,12 @@ public class ManaTrap : Ability
 {
 	public ManaTrap (Unit u, TileMap m, VisualEffectLibrary el) : base(u, m , el)
 	{
-		manaCost = 5;
+		manaCost = 0;
 		duration = 2;
 		maxCooldown = 2;
 		range = 6;
 		area = AreaType.Floor;
-		targets = TargetType.All;
+		targets = TargetType.Enemy;
 	}
 
 	public override void UseAbility (Node n)
@@ -18,6 +18,7 @@ public class ManaTrap : Ability
 		base.UseAbility (n);
 
 		n.myTrigger = new ManaTrapTrigger (myCaster);
+		n.myTrigger.myTargets = targets;
 	}
 }
 

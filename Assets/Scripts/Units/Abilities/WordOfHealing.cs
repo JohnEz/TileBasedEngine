@@ -21,6 +21,9 @@ public class WordOfHealing : Ability
 
 		target.TakeHealing (healing);
 		target.ApplyEffect (new DamageRecievedEffect ("Word of Healing", duration, -0.05f, stacks));
+
+		Vector3 pos = map.TileCoordToWorldCoord (target.tileX, target.tileY);
+		myVisualEffects.Add (effectLib.CreateEffect ("Word of Healing", pos).GetComponent<EffectController> ());
 	}
 }
 

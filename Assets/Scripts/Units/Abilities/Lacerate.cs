@@ -22,6 +22,9 @@ public class Lacerate : Ability
 		myCaster.AddComboPoints (2);
 		target.TakeDamage(dmg);
 		target.ApplyEffect(new DamageRecievedEffect("Lacerate", duration, 0.1f, stacks));
+
+		Vector3 pos = map.TileCoordToWorldCoord (target.tileX, target.tileY);
+		myVisualEffects.Add (effectLib.CreateEffect ("Slash1", pos).GetComponent<EffectController> ());
 	}
 }
 

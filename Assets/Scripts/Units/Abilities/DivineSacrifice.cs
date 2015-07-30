@@ -21,6 +21,9 @@ public class DivineSacrifice : Ability
 		target.TakeDamage(dmg);
 		//apply an on death trigger
 		target.AddTrigger (new DivineSacrificeTrigger (myCaster));
+
+		Vector3 pos = map.TileCoordToWorldCoord (target.tileX, target.tileY);
+		myVisualEffects.Add (effectLib.CreateEffect ("Divine Sacrifice", pos).GetComponent<EffectController> ());
 	}
 }
 

@@ -23,6 +23,8 @@ public class CripplingShot : Ability
 		target.ApplyEffect (new Snare ("Crippled", duration));
 		target.TakeDamage (dmg);
 
+		Vector3 pos = map.TileCoordToWorldCoord (target.tileX, target.tileY);
+		myVisualEffects.Add (effectLib.CreateEffect ("Hit1", pos).GetComponent<EffectController> ());
 	}
 }
 

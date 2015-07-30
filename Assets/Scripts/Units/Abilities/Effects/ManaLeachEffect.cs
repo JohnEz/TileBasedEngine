@@ -8,11 +8,11 @@ public class ManaLeachEffect : Effect
 	int manaTake = 0;
 
 
-	public ManaLeachEffect (string n, int dur, Unit caster, int mGive, int gTake) : base(n, dur, 1)
+	public ManaLeachEffect (string n, int dur, Unit caster, int mGive, int mTake) : base(n, dur, 1)
 	{
 		myCaster = caster;
 		manaGive = mGive;
-		manaTake = manaTake;
+		manaTake = mTake;
 	}
 
 	public override void RunEffect (Unit u)

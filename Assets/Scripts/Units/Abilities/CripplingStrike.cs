@@ -21,6 +21,9 @@ public class CripplingStrike : Ability
 
         target.TakeDamage(dmg);
         target.ApplyEffect(new DamageDealtEffect("Cripple", duration, -0.1f));
+
+		Vector3 pos = map.TileCoordToWorldCoord (target.tileX, target.tileY);
+		myVisualEffects.Add (effectLib.CreateEffect ("Slash1", pos).GetComponent<EffectController> ());
     }
 
 

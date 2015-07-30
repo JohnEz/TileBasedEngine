@@ -21,6 +21,9 @@ public class RighteousShield : Ability
 		target.shield += shield;
 
 		target.ApplyEffect (new MovespeedMod ("Righteous Shield", duration, 1));
+
+		Vector3 pos = map.TileCoordToWorldCoord (target.tileX, target.tileY);
+		myVisualEffects.Add (effectLib.CreateEffect ("Righteous Shield", pos).GetComponent<EffectController> ());
 	}
 }
 

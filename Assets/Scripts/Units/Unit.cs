@@ -260,6 +260,7 @@ public class Unit : MonoBehaviour {
 
 			// Smoothly animate towards the correct map tile.
 			transform.position = Vector3.Lerp (transform.position, map.TileCoordToWorldCoord (tileX, tileY), 5f * Time.deltaTime);
+
 		} else if (attacking) {
 			myAI.Attack();
 			attacking = false;
@@ -335,8 +336,11 @@ public class Unit : MonoBehaviour {
 		map.GetNode(tileX, tileY).myUnit = null;
 		map.GetNode(x, y).myUnit = this;
 
-		currentPath = new List<Node> ();
-		currentPath.Add (map.GetNode (x, y));
+		//currentPath = new List<Node> ();
+		//currentPath.Add (map.GetNode (x, y));
+
+		tileX = x;
+		tileY = y;
 		moving = true;
 
 	}
@@ -357,6 +361,8 @@ public class Unit : MonoBehaviour {
 		map.FindReachableTilesUnit ();
 		map.HighlightTiles (reachableTiles, new Color(0.3f,0.3f,0.6f), new Color(0.4f,0.4f,0.85f), 1);
 		map.HighlightTiles (reachableTilesWithDash, new Color(0.6f,0.6f,0.3f), new Color(0.85f,0.85f,0.4f), 1);
+
+		map.GetClickableTile (tileX, tileY).HighlightTile (new Color (0.75f, 0.75f, 0.75f), new Color (0.85f, 0.85f, 0.85f), 0);
 	}
 
 	// unit takes parameter damage and shows in combat text

@@ -110,7 +110,13 @@ public class TileMap : MonoBehaviour {
 			for (int x=0; x < currentLevel.maxSizeX; ++x) {
 				TileType tt = tileTypes[(int)currentLevel.tiles[y * currentLevel.maxSizeX + x]];
 
-				Vector3 pos = new Vector3(x, y, 0) + transform.position;
+				int z = 0;
+
+				if (currentLevel.tiles[y * currentLevel.maxSizeX + x] == Tile.WALL) {
+					z = -3;
+				}
+
+				Vector3 pos = new Vector3(x, y, z) + transform.position;
 				Quaternion rot = transform.rotation;
 
 				GameObject go = (GameObject)Instantiate(tt.tileVisualPrefab, pos, rot);

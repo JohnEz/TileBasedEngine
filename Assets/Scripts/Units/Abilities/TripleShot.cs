@@ -22,6 +22,9 @@ public class TripleShot : Ability
 		target.TakeDamage (dmg);
 		target.TakeDamage (dmg);
 		target.TakeDamage (dmg);
+
+		Vector3 pos = map.TileCoordToWorldCoord (target.tileX, target.tileY);
+		myVisualEffects.Add (effectLib.CreateEffect ("Triple Shot", pos).GetComponent<EffectController> ());
 	}
 }
 

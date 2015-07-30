@@ -93,9 +93,10 @@ public class AIBehaviours : MonoBehaviour {
 
 	// run to and attack closest target
 	void Dumb(){
-		if (myUnit.remainingMove <= 0 && myUnit.actionPoints <= 0) {
+		if (myUnit.remainingMove <= 0 && myUnit.actionPoints <= 0 || myUnit.currentPath == null) {
 			return;
 		}
+
 
 		// is it already in melee?
 		if (myUnit.currentPath.Count < 1) {

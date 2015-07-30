@@ -5,6 +5,10 @@ public class EffectController : MonoBehaviour {
 
 	public bool animFinished = false;
 
+	void Start() {
+
+	}
+
 	// Update is called once per frame
 	void Update () {
 	}

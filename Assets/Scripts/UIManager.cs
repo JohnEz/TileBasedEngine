@@ -12,6 +12,7 @@ public class UIManager : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		currentObjects = new List<GameObject> ();
+		DrawAbilities (3);
 	}
 	
 	// Update is called once per frame
@@ -27,15 +28,19 @@ public class UIManager : MonoBehaviour {
 
 		for (int i = 0; i < count; ++i) {
 
-			Vector3 pos = new Vector3(startX + (32*i)+16, -300, 0) / 40; // needs to divide because parent idk
-			Vector3 scale = new Vector3(1, 1, 1);
+
+			float y = GetComponent<RectTransform>().rect.height / 2 - 17;
+
+			Vector3 pos = new Vector3(startX + (32*i)+16, -y, 0); // needs to divide because parent idk
 
 			//GameObject go = (GameObject)Instantiate (AbilityNumbers [i], new Vector3(0,0,0), rot);
 			GameObject go = (GameObject)Instantiate (AbilityNumbers [i], pos, rot);
 
-			go.transform.SetParent(transform);
 
-			go.transform.localScale = scale;
+
+			go.transform.SetParent(transform);
+			go.transform.localPosition = pos;
+			go.transform.localScale = new Vector3(1, 1, 1);
 
 
 			currentObjects.Add(go);

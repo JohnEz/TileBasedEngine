@@ -82,11 +82,11 @@ public class UnitManager : MonoBehaviour {
 		//temp
 		spawnUnit (1, 1, CharacterClass.Acolyte);
 		spawnUnit (2, 1, CharacterClass.Elementalist);
-		spawnUnit (2, 2, CharacterClass.Ranger);
-		spawnUnit (3, 1, CharacterClass.Highwayman);
-		spawnUnit (13, 2, CharacterClass.Warrior);
+		spawnUnit (3, 1, CharacterClass.Ranger);
+		spawnUnit (4, 1, CharacterClass.Highwayman);
+		spawnUnit (5, 1, CharacterClass.Warrior);
 
-		spawnEnemy (13, 3, EnemyClass.Goblin);
+		spawnEnemy (3, 2, EnemyClass.Goblin);
 
 		currentQueue = activeUnits;
 
@@ -97,6 +97,8 @@ public class UnitManager : MonoBehaviour {
 	void spawnUnit(int x, int y, CharacterClass c) {
 		if (characterCount < MAXCHARACTERS) {
 			Vector3 pos = map.TileCoordToWorldCoord (x, y);
+
+			pos = new Vector3(pos.x, pos.y, -2);
 
 			GameObject go = (GameObject)Instantiate (classes [(int)c], pos, Quaternion.identity);
 
@@ -123,6 +125,8 @@ public class UnitManager : MonoBehaviour {
 
 	void spawnEnemy(int x, int y, EnemyClass e) {
 		Vector3 pos = map.TileCoordToWorldCoord (x, y);
+
+		pos = new Vector3(pos.x, pos.y, -2);
 
 		GameObject go = (GameObject)Instantiate (enemyTypes [(int)e], pos, Quaternion.identity);
 
