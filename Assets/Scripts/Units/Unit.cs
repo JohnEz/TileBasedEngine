@@ -65,18 +65,32 @@ public class Unit : MonoBehaviour {
     public List<Effect> myEffects = new List<Effect>();
 	public List<Effect> expiredEffects = new List<Effect> ();
 	public List<Trigger> myTriggers = new List<Trigger> ();
-	public GameObject damageText;
-	public GameObject healingText;
-	public GameObject statusText;
-	public GameObject manaText;
 	public int comboPoints = 0;
 	public int team = 1;
+
+	Image healthBar;
+	Text hpText;
+	Image manaBar;
+	Text manaText;
+	public GameObject damageCombatText;
+	public GameObject healingCombatText;
+	public GameObject statusCombatText;
+	public GameObject manaCombatText;
 
 	void Start() {
 		hp = maxHP;
 		mana = maxMana;
 		remainingMove = movespeed;
 		actionPoints = maxAP;
+		healthBar = transform.FindChild("UnitCanvas").FindChild ("HealthBar(Clone)").GetComponent<Image> ();
+		hpText = transform.FindChild("UnitCanvas").FindChild ("HPText(Clone)").GetComponent<Text> ();
+
+		manaBar = transform.FindChild("UnitCanvas").FindChild ("ManaBar(Clone)").GetComponent<Image> ();
+		manaText = transform.FindChild("UnitCanvas").FindChild ("ManaText(Clone)").GetComponent<Text> ();
+
+		//update status bars
+		UpdateHealthBar ();
+		UpdateManaBar();
 	}
 
 	//when a unit starts a new turn, this function is ran
@@ -142,11 +156,13 @@ public class Unit : MonoBehaviour {
 		}
 		
 		//remove finished triggers
-		foreach (Trigger trig in myTriggers) {
+		foreach (Trigger trig in finishedTriggers) {
 			myTriggers.Remove(trig);
 		}
 
-
+		//update status bars
+		UpdateHealthBar ();
+		UpdateManaBar();
 	}
 
 	void Update() {
@@ -161,23 +177,25 @@ public class Unit : MonoBehaviour {
 	//update for playable characters
 	public void PlayerUpdate() {
 		if (currentPath != null) {
-			int currNode = 0;
-			Vector3 start = map.TileCoordToWorldCoord(tileX, tileY) +
-				new Vector3(0,0,-1.5f);
-			Vector3 end = map.TileCoordToWorldCoord(currentPath[currNode].x, currentPath[currNode].y) +
-				new Vector3(0,0,-1.5f);
-
-			Debug.DrawLine(start, end, Color.blue);
-
-			while ( currNode < currentPath.Count - 1) {
-				start = map.TileCoordToWorldCoord(currentPath[currNode].x, currentPath[currNode].y) +
+			if (currentPath.Count > 0) {
+				int currNode = 0;
+				Vector3 start = map.TileCoordToWorldCoord(tileX, tileY) +
 					new Vector3(0,0,-1.5f);
-				end = map.TileCoordToWorldCoord(currentPath[currNode+1].x, currentPath[currNode+1].y) +
+				Vector3 end = map.TileCoordToWorldCoord(currentPath[currNode].x, currentPath[currNode].y) +
 					new Vector3(0,0,-1.5f);
-				
+					
 				Debug.DrawLine(start, end, Color.blue);
-				
-				++currNode;
+					
+				while ( currNode < currentPath.Count - 1) {
+					start = map.TileCoordToWorldCoord(currentPath[currNode].x, currentPath[currNode].y) +
+						new Vector3(0,0,-1.5f);
+					end = map.TileCoordToWorldCoord(currentPath[currNode+1].x, currentPath[currNode+1].y) +
+						new Vector3(0,0,-1.5f);
+					
+					Debug.DrawLine(start, end, Color.blue);
+					
+					++currNode;
+				}
 			}
 		}
 		
@@ -344,7 +362,7 @@ public class Unit : MonoBehaviour {
 		moving = true;
 
 	}
-
+	
 	// removes the amount of moves it took to follow path
 	public void RemoveMovement() {
 		//remove movement cost
@@ -365,13 +383,45 @@ public class Unit : MonoBehaviour {
 		map.GetClickableTile (tileX, tileY).HighlightTile (new Color (0.75f, 0.75f, 0.75f), new Color (0.85f, 0.85f, 0.85f), 0);
 	}
 
+	// updates the visual of the unit's healthbar
+	public void UpdateHealthBar() {
+		if (healthBar) {
+			healthBar.fillAmount = (float)hp / (float)maxHP;
+			hpText.text = hp.ToString();
+
+			if (hp <= 0) {
+				hpText.text = "";
+			}
+		}
+	}
+
+	// updates the visual of the unit's manabar
+	public void UpdateManaBar() {
+		if (manaBar) {
+			if (maxMana != 0) {
+				manaBar.fillAmount = (float)mana / (float)maxMana;
+
+				manaText.text = mana.ToString();
+				
+				if (mana <= 0) {
+					manaText.text = "";
+				}
+
+			} else {
+				manaBar.fillAmount = 0;
+				manaText.text = "";
+			}
+		}
+	}
+
 	// unit takes parameter damage and shows in combat text
     public void TakeDamage(int dmg)
     {
         int damage = (int)((dmg * damageRecievedMod) * (1 - armourDamageReduction));
         hp -= damage;
 		CheckTriggers (TriggerType.Hit);
-        ShowCombatText(damage.ToString(), damageText);
+        ShowCombatText(damage.ToString(), damageCombatText);
+		UpdateHealthBar ();
     }
 
 	// heals the target
@@ -380,7 +430,7 @@ public class Unit : MonoBehaviour {
 		int healing = (int)(heal * healingRecievedMod);
 		hp += healing;
 		CheckTriggers (TriggerType.Healed);
-		ShowCombatText(healing.ToString(), healingText);
+		ShowCombatText(healing.ToString(), healingCombatText);
 	}
 
 	//gives mana up until the current max
@@ -394,8 +444,10 @@ public class Unit : MonoBehaviour {
 			else if (mana < 0) {
 				mana = 0;
 			}
-			ShowCombatText(m.ToString(), manaText);
+			ShowCombatText(m.ToString(), manaCombatText);
 		}
+
+		UpdateManaBar();
 	}
 
 	// created floating combat text with the specified value
@@ -405,9 +457,9 @@ public class Unit : MonoBehaviour {
 		temp.GetComponent<Animator> ().SetTrigger ("Hit");
 		temp.transform.SetParent (transform.FindChild("UnitCanvas"));
 
-		tempRect.transform.localPosition = damageText.transform.localPosition;
-		tempRect.transform.localScale = damageText.transform.localScale;
-		tempRect.transform.rotation = damageText.transform.localRotation;
+		tempRect.transform.localPosition = damageCombatText.transform.localPosition;
+		tempRect.transform.localScale = damageCombatText.transform.localScale;
+		tempRect.transform.rotation = damageCombatText.transform.localRotation;
 		
 		temp.GetComponent<Text> ().text = txt;
 		Destroy(temp.gameObject, 2); 
@@ -498,7 +550,7 @@ public class Unit : MonoBehaviour {
 		}
 
 		//remove finished triggers
-		foreach (Trigger trig in myTriggers) {
+		foreach (Trigger trig in finishedTriggers) {
 			myTriggers.Remove(trig);
 		}
 

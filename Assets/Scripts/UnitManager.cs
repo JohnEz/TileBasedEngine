@@ -63,6 +63,10 @@ public class UnitManager : MonoBehaviour {
 	public int characterCount = 0;
 	public GameObject[] classes;
 	public GameObject[] playerUnitObjects;
+	public GameObject healthBar;
+	public GameObject hpText;
+	public GameObject manaBar;
+	public GameObject manaText;
 
 	Display currentDisplaying; //used so things dont get run when they dont need to
 
@@ -96,46 +100,61 @@ public class UnitManager : MonoBehaviour {
 	//temp
 	void spawnUnit(int x, int y, CharacterClass c) {
 		if (characterCount < MAXCHARACTERS) {
+
+			//set its position in the world and spawn in
 			Vector3 pos = map.TileCoordToWorldCoord (x, y);
-
 			pos = new Vector3(pos.x, pos.y, -2);
+			GameObject character = (GameObject)Instantiate (classes [(int)c], pos, Quaternion.identity);
 
-			GameObject go = (GameObject)Instantiate (classes [(int)c], pos, Quaternion.identity);
 
-			playerUnitObjects [characterCount] = go;
-			everyUnit.Add(go);
 
-			Unit u = go.GetComponent<Unit>();
-
+			//set its starting values
+			Unit u = character.GetComponent<Unit>();
 			u.tileX = x;
 			u.tileY = y;
 			u.map = map;
             u.uManager = this;
-			++characterCount;
+
+			//add a healthbar
+			AddUnitUIElement (healthBar, u);
+			AddUnitUIElement (hpText, u);
+			
+			//add a manabar
+			AddUnitUIElement (manaBar, u);
+			AddUnitUIElement (manaText, u);
+
+			
+			//manabar.GetComponent<Text> ().text = txt;
 
             //give the unit its spells TODO find a better way of doing this instead of hardcoding
             GiveCharacterAbilities(u, c);
 
+			//make the map know where the unit is
 			map.GetNode(x, y).myUnit = u;
 
-			activeUnits.Add(go);
+			//add it to the manager lists
+			playerUnitObjects [characterCount] = character; // list of players characters
+			everyUnit.Add(character);						// list of every unit
+			activeUnits.Add(character);						// list of currently active units
+
+			//increase the character counter
+			++characterCount;
 		}
 
 	}
 
 	void spawnEnemy(int x, int y, EnemyClass e) {
+
+		//set starting position and spawn unit
 		Vector3 pos = map.TileCoordToWorldCoord (x, y);
-
 		pos = new Vector3(pos.x, pos.y, -2);
-
 		GameObject go = (GameObject)Instantiate (enemyTypes [(int)e], pos, Quaternion.identity);
 
-		enemies [enemyCount] = go;
-		everyUnit.Add(go);
 
 		Unit u 			= go.GetComponent<Unit> ();
 		AIBehaviours ai = go.GetComponent<AIBehaviours> ();
 
+		//set its starting values
 		u.tileX = x;
 		u.tileY = y;
 		u.map = map;
@@ -144,10 +163,35 @@ public class UnitManager : MonoBehaviour {
 		ai.myManager = this;
 		++enemyCount;
 
+		//add a healthbar
+		AddUnitUIElement (healthBar, u);
+		AddUnitUIElement (hpText, u);
+		
+		//add a manabar
+		AddUnitUIElement (manaBar, u);
+		AddUnitUIElement (manaText, u);
+		
+		//manabar.GetComponent<Text> ().text = txt;
+
+		//let the map know where the unit is
 		map.GetNode (x, y).myUnit = u;
 
-		// wait until discovered 
-		activeUnits.Add (go);
+		// TODO wait until discovered 
+		// add to all the lists
+		activeUnits.Add (go);		//current active units
+		enemies [enemyCount] = go;	//enemy array
+		everyUnit.Add(go);			//every unit
+	}
+
+	void AddUnitUIElement(GameObject prefab, Unit u) {
+		GameObject go = Instantiate (prefab) as GameObject;
+		RectTransform tempRect = go.GetComponent<RectTransform> ();
+		go.transform.SetParent (u.transform.FindChild("UnitCanvas"));
+		
+		tempRect.transform.localPosition = prefab.transform.localPosition;
+		tempRect.transform.localScale = prefab.transform.localScale;
+		tempRect.transform.rotation = prefab.transform.localRotation;
+
 	}
 
 	void Update() {

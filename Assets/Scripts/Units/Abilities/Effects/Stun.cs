@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 
 
@@ -17,7 +17,7 @@ public class Stun : Effect
         base.RunEffect(u);
         u.movespeed = 0;
         u.maxAP = 0;
-		u.ShowCombatText ("Stunned", u.statusText);
+		u.ShowCombatText ("Stunned", u.statusCombatText);
     }
 
 }

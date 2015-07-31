@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 
 public class Snare : Effect
@@ -15,7 +15,7 @@ public class Snare : Effect
         base.RunEffect(u);
         u.movespeed = 0;
 		u.remainingMove = 0;
-		u.ShowCombatText ("Snared", u.statusText);
+		u.ShowCombatText ("Snared", u.statusCombatText);
     }
 
 }
