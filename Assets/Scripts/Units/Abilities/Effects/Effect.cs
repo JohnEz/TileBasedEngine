@@ -20,8 +20,10 @@ public class Effect
 		maxStack = mStack;
     }
 
-    public virtual void RunEffect(Unit u) {
-        --duration;
+	public virtual void RunEffect(Unit u, bool reapply = false) {
+        if (!reapply) {
+			--duration;
+		}
     }
 
     public void RefreshEffect()

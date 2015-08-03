@@ -15,12 +15,14 @@ public class ManaLeachEffect : Effect
 		manaTake = mTake;
 	}
 
-	public override void RunEffect (Unit u)
+	public override void RunEffect (Unit u, bool reapply = false)
 	{
-		base.RunEffect (u);
+		base.RunEffect (u, reapply);
 
-		u.AddRemoveMana (-manaTake);
-		myCaster.AddRemoveMana (manaGive);
+		if (!reapply) {
+			u.AddRemoveMana (-manaTake);
+			myCaster.AddRemoveMana (manaGive);
+		}
 	}
 
 }

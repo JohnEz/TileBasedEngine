@@ -4,6 +4,7 @@ using System.Collections;
 public class GameManager : MonoBehaviour {
 
 	public GameObject UI;
+	public Camera cam;
 
 
 	// Use this for initialization

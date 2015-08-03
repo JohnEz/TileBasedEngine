@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 
 public enum AreaType {
@@ -37,7 +37,7 @@ public class Ability{
     public Unit myCaster = null;
 	public Unit myTarget = null;
 
-	public VisualEffectLibrary effectLib;
+	public PrefabLibrary effectLib;
 	public TileMap map;
 
 	public bool AbilityFinished = true;
@@ -45,8 +45,10 @@ public class Ability{
 	public int stacks = 1;
 
 	public List<EffectController> myVisualEffects = new List<EffectController> ();
+	public List<ProjectileController> myProjectiles = new List<ProjectileController> ();
 
-    public Ability(Unit u, TileMap m, VisualEffectLibrary el)
+
+    public Ability(Unit u, TileMap m, PrefabLibrary el)
     {
         myCaster = u;
 		effectLib = el;
@@ -59,6 +61,10 @@ public class Ability{
 		myTarget = target;
 
 		myCaster.AddRemoveMana (-manaCost);
+	}
+
+	public virtual void AbilityOnHit() {
+
 	}
 
 	public virtual void UseAbility(Node n) {
@@ -75,6 +81,25 @@ public class Ability{
 			if (!ec.animFinished) {
 				AbilityFinished = false;
 			}
+		}
+
+		List<ProjectileController> destroyProjectiles = new List<ProjectileController> ();
+		
+		foreach (ProjectileController proj in myProjectiles) {
+			if (proj.reachedTarget) {
+				
+				AbilityOnHit();
+				
+				destroyProjectiles.Add(proj);
+			} else {
+				AbilityFinished = false;
+			}
+		}
+		
+		//remove finished projectiles
+		foreach (ProjectileController proj in destroyProjectiles) {
+			myProjectiles.Remove(proj);
+			GameObject.Destroy(proj.gameObject, 0);
 		}
 	}
 

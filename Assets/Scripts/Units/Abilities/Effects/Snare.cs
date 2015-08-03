@@ -10,12 +10,15 @@ public class Snare : Effect
 		description = "Snare";
     }
 
-    public override void RunEffect(Unit u)
+	public override void RunEffect(Unit u, bool reapply = false)
     {
-        base.RunEffect(u);
+        base.RunEffect(u, reapply);
+
         u.movespeed = 0;
 		u.remainingMove = 0;
-		u.ShowCombatText ("Snared", u.statusCombatText);
+		if (!reapply) {
+			u.ShowCombatText ("Snared", u.statusCombatText);
+		}
     }
 
 }

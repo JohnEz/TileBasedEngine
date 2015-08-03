@@ -12,8 +12,9 @@ public class ManaTrapTrigger : Trigger
 	{
 		base.RunTrigger (host);
 		
-		host.ApplyEffect(new ManaLeachEffect("Mana Trap", 2, myCaster, 10, 0));
+		host.ApplyEffect(new ManaLeachEffect("Mana Leach", 2, myCaster, 10, 0));
 		host.ApplyEffect (new Snare ("Mana Trap", 2));
+		host.ShowCombatText ("Snared", host.statusCombatText);
 	}
 
 }

@@ -43,7 +43,7 @@ public class TileMap : MonoBehaviour {
 	}
 
 	public Vector3 TileCoordToWorldCoord(int x, int y) {
-		return new Vector3 (x, y, 0) + transform.position;
+		return new Vector3 (x, y, -2) + transform.position;
 	}
 	
 	public bool UnitCanEnterTile(int x, int y)
@@ -164,7 +164,7 @@ public class TileMap : MonoBehaviour {
 			//find current lowest cost tile
 			Node u = null;
 			foreach (Node n in unvisited) {
-				if (u == null || (n.cost < u.cost && (!n.myUnit || n == source || u == target))){
+				if (u == null || (n.cost < u.cost && (!n.myUnit || n == source || n == target))){
 					u = n;
 				}
 			}

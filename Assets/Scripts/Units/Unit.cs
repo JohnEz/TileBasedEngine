@@ -13,6 +13,7 @@ public enum UnitSize {
 [System.Serializable]
 public class Unit : MonoBehaviour {
 
+	public int ID;
 	public int tileX;
 	public int tileY;
 	public TileMap map;
@@ -32,6 +33,8 @@ public class Unit : MonoBehaviour {
     public int baseInit = 4;
     public int baseAP = 1;
 	public UnitSize mySize = UnitSize.Normal;
+	public int baseDodge = 5;
+	public int baseBlock = 0;
 
     //Max - current maximum stats after effects
 	public int maxHP = 100;
@@ -41,6 +44,8 @@ public class Unit : MonoBehaviour {
 	public int init = 5;
 	public int maxAP = 1;
 	public int teir = 1;
+	public int dodgeChance = 5;
+	public int blockChance = 0;
 
     //current - the current value of the stats
     public int shield = 0;
@@ -72,6 +77,7 @@ public class Unit : MonoBehaviour {
 	Text hpText;
 	Image manaBar;
 	Text manaText;
+	Image shieldBar;
 	public GameObject damageCombatText;
 	public GameObject healingCombatText;
 	public GameObject statusCombatText;
@@ -82,11 +88,13 @@ public class Unit : MonoBehaviour {
 		mana = maxMana;
 		remainingMove = movespeed;
 		actionPoints = maxAP;
-		healthBar = transform.FindChild("UnitCanvas").FindChild ("HealthBar(Clone)").GetComponent<Image> ();
-		hpText = transform.FindChild("UnitCanvas").FindChild ("HPText(Clone)").GetComponent<Text> ();
+		healthBar = transform.FindChild("UnitCanvas").FindChild ("HealthBar").GetComponent<Image> ();
+		hpText = transform.FindChild("UnitCanvas").FindChild ("HPText").GetComponent<Text> ();
 
-		manaBar = transform.FindChild("UnitCanvas").FindChild ("ManaBar(Clone)").GetComponent<Image> ();
-		manaText = transform.FindChild("UnitCanvas").FindChild ("ManaText(Clone)").GetComponent<Text> ();
+		manaBar = transform.FindChild("UnitCanvas").FindChild ("ManaBar").GetComponent<Image> ();
+		manaText = transform.FindChild("UnitCanvas").FindChild ("ManaText").GetComponent<Text> ();
+
+		shieldBar = transform.FindChild("UnitCanvas").FindChild ("ShieldBar").GetComponent<Image> ();
 
 		//update status bars
 		UpdateHealthBar ();
@@ -106,6 +114,9 @@ public class Unit : MonoBehaviour {
         damageDealtMod = 1;
         damageRecievedMod = 1;
         healingRecievedMod = 1;
+		shield = 0;
+		dodgeChance = baseDodge;
+		blockChance = baseBlock;
 
 		//apply the effects
         foreach (Effect eff in myEffects)
@@ -282,11 +293,24 @@ public class Unit : MonoBehaviour {
 		} else if (attacking) {
 			myAI.Attack();
 			attacking = false;
+			
+			for (int i=0; i < 6; ++i) {
+				if (myAbilities[i] != null) {
+					if (!myAbilities[i].AbilityFinished) {
+						attacking = true;
+						myAbilities[i].UpdateAbility();
+					}
+				}
+			}
 		}
 		else {
 			remainingMove = 0;
 			actionPoints = 0;
 		}
+	}
+
+	public bool UnitBusy() {
+		return attacking || moving;
 	}
 
 	// sets the variables for where the unit should slide to next in its path
@@ -386,9 +410,38 @@ public class Unit : MonoBehaviour {
 	// updates the visual of the unit's healthbar
 	public void UpdateHealthBar() {
 		if (healthBar) {
-			healthBar.fillAmount = (float)hp / (float)maxHP;
-			hpText.text = hp.ToString();
+			//calculate fill ammounts
+			float fullFill = (float)(hp + shield) / (float)(maxHP + shield);
+			float hpFill = (float)hp / (float)(hp + shield);
+			float shieldFill = (float)shield / (float)(hp + shield);
 
+			//fill the hp Bar
+			healthBar.fillAmount = hpFill * fullFill;
+
+			//find the position of the shield
+			float hpWidth = healthBar.rectTransform.rect.width;
+
+			if (shieldFill > 0) {
+				//how far the bar is past its mid point
+				float pastMid = ((hpFill * fullFill) - 0.5f) * hpWidth;
+
+				//calculate the position for the shield bar
+				Vector3 sPos = new Vector3(pastMid + (hpWidth * 0.5f), shieldBar.transform.localPosition.y, shieldBar.transform.localPosition.z);
+				shieldBar.transform.localPosition = sPos;
+
+
+				//fill the shield bar
+				shieldBar.fillAmount = shieldFill * fullFill;
+			}
+			else {
+				shieldBar.fillAmount = 0;
+			}
+
+			//set the text
+			int hpShield = hp + shield;
+			hpText.text = hpShield.ToString();
+		
+			//if there isnt hp, show no hp
 			if (hp <= 0) {
 				hpText.text = "";
 			}
@@ -417,20 +470,91 @@ public class Unit : MonoBehaviour {
 	// unit takes parameter damage and shows in combat text
     public void TakeDamage(int dmg)
     {
-        int damage = (int)((dmg * damageRecievedMod) * (1 - armourDamageReduction));
-        hp -= damage;
+		//calculate the actual damage after reductions
+		int damage = (int)((dmg * damageRecievedMod) * (1 - armourDamageReduction));
+
+		//see if the unit dodges the attack
+		int dodge = Random.Range (1, 100);
+		if (dodge <= dodgeChance) {
+			ShowCombatText("Dodged", statusCombatText);
+			return;
+		}
+
+		//see if the unit Blocks the attack
+		int block = Random.Range (1, 100);
+		if (block <= blockChance) {
+			ShowCombatText("Blocked", statusCombatText);
+			damage = (int)(damage * 0.75f);
+		}
+
+		int currentDamage = damage;
+
+		if (shield != 0) {
+			currentDamage = DamageShield(currentDamage);
+		}
+
+        hp -= currentDamage;
 		CheckTriggers (TriggerType.Hit);
         ShowCombatText(damage.ToString(), damageCombatText);
+
+		if (hp < 0) {
+			hp = 0;
+		}
+
 		UpdateHealthBar ();
     }
+
+	int DamageShield(int dmg) {
+		int currentDamage = dmg;
+
+		shield -= currentDamage;
+		
+		if (shield < 0) {
+			shield = 0;
+		}
+		
+		foreach (Effect eff in myEffects) {
+			if (eff.description.Equals("Damage Shield")) {
+				
+				ShieldEffect sEff = eff as ShieldEffect;
+				currentDamage = sEff.TakeDamage(currentDamage);
+				
+				//if it has no shield amount left, remove it
+				if (sEff.ShieldIsDestroyed()) {
+					expiredEffects.Add(eff);
+				}
+				
+				// if the current damage is less than 1, stop looking through shields
+				if (currentDamage <=0) {
+					//dont want a negative so it doesnt heal the target
+					currentDamage = 0;
+					break;
+				}
+			}
+		}
+
+		return currentDamage;
+	}
+
+	public void AddShield(int s) {
+		shield += s;
+		ShowCombatText(s.ToString(), statusCombatText);
+		UpdateHealthBar ();
+	}
 
 	// heals the target
 	public void TakeHealing(int heal)
 	{
 		int healing = (int)(heal * healingRecievedMod);
 		hp += healing;
+
+		if (hp > maxHP) {
+			hp = maxHP;
+		}
+
 		CheckTriggers (TriggerType.Healed);
 		ShowCombatText(healing.ToString(), healingCombatText);
+		UpdateHealthBar ();
 	}
 
 	//gives mana up until the current max
@@ -444,7 +568,10 @@ public class Unit : MonoBehaviour {
 			else if (mana < 0) {
 				mana = 0;
 			}
-			ShowCombatText(m.ToString(), manaCombatText);
+
+			if (m > 0) {
+				ShowCombatText(m.ToString(), manaCombatText);
+			}
 		}
 
 		UpdateManaBar();
@@ -481,19 +608,21 @@ public class Unit : MonoBehaviour {
 		damageRecievedMod = 1;
 		healingRecievedMod = 1;
 		bool alreadyHad = false;
+		shield = 0;
+		dodgeChance = baseDodge;
+		blockChance = baseBlock;
 
 		foreach (Effect currentEffect in myEffects) {
 			if (currentEffect.name.Contains(eff.name)) {
 				currentEffect.AddStack();
+				alreadyHad = true;
 			}
-			currentEffect.RunEffect(this);
-			++currentEffect.duration; // effect did not last a turn
+			currentEffect.RunEffect(this, true);
 		}
 
 		if (!alreadyHad) {
-			myEffects.Add (eff);
-			eff.RunEffect(this);
-			++eff.duration;
+			myEffects.Add(eff);
+			eff.RunEffect(this, true);
 		}
 
     }

@@ -12,9 +12,9 @@ public class DamageRecievedEffect : Effect
 		damageRecievedMod = 1 + mod;
     }
 
-    public override void RunEffect(Unit u)
+	public override void RunEffect(Unit u, bool reapply = false)
     {
-        base.RunEffect(u);
+        base.RunEffect(u, reapply);
         u.damageRecievedMod *= damageRecievedMod;
     }
 

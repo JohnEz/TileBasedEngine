@@ -13,11 +13,14 @@ public class Dot : Effect
         damage = dmg;
     }
 
-    public override void RunEffect(Unit u)
+	public override void RunEffect(Unit u, bool reapply = false)
     {
- 	    base.RunEffect(u);
+ 	    base.RunEffect(u, reapply);
+
         //deal damage 
-        u.TakeDamage(damage);
+		if (!reapply) {
+			u.TakeDamage (damage);
+		}
     }
 
 	public override void AddStack ()

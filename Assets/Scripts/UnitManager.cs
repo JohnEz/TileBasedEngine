@@ -44,7 +44,7 @@ public class UnitManager : MonoBehaviour {
 
 	//the map manager
 	TileMap map;
-	VisualEffectLibrary effectLibrary;
+	PrefabLibrary effectLibrary;
 
 	//turn order
 	List<GameObject> currentQueue;
@@ -67,12 +67,13 @@ public class UnitManager : MonoBehaviour {
 	public GameObject hpText;
 	public GameObject manaBar;
 	public GameObject manaText;
+	public GameObject shieldBar;
 
 	Display currentDisplaying; //used so things dont get run when they dont need to
 
 	public void Initialise() {
 		map = GetComponent<TileMap>();
-		effectLibrary = GetComponent<VisualEffectLibrary> ();
+		effectLibrary = GetComponent<PrefabLibrary> ();
 
 		activeUnits = new List<GameObject> ();
 		everyUnit = new List<GameObject> ();
@@ -90,8 +91,14 @@ public class UnitManager : MonoBehaviour {
 		spawnUnit (4, 1, CharacterClass.Highwayman);
 		spawnUnit (5, 1, CharacterClass.Warrior);
 
-		spawnEnemy (3, 2, EnemyClass.Goblin);
+		//spawnEnemy (4, 2, EnemyClass.Goblin);
 
+		spawnEnemy (15, 4, EnemyClass.Goblin);
+		spawnEnemy (15, 5, EnemyClass.Goblin);
+		spawnEnemy (17, 1, EnemyClass.Goblin);
+		spawnEnemy (15, 8, EnemyClass.Goblin);
+
+		activeUnits.Sort(CompareListByInitiative);
 		currentQueue = activeUnits;
 
 		NextUnitsTurn ();
@@ -113,6 +120,7 @@ public class UnitManager : MonoBehaviour {
 			u.tileX = x;
 			u.tileY = y;
 			u.map = map;
+			u.ID = everyUnit.Count;
             u.uManager = this;
 
 			//add a healthbar
@@ -123,8 +131,8 @@ public class UnitManager : MonoBehaviour {
 			AddUnitUIElement (manaBar, u);
 			AddUnitUIElement (manaText, u);
 
-			
-			//manabar.GetComponent<Text> ().text = txt;
+			//add a shieldbar
+			AddUnitUIElement (shieldBar, u);
 
             //give the unit its spells TODO find a better way of doing this instead of hardcoding
             GiveCharacterAbilities(u, c);
@@ -159,8 +167,10 @@ public class UnitManager : MonoBehaviour {
 		u.tileY = y;
 		u.map = map;
 		u.team = 2;
+		u.ID = everyUnit.Count;
 		ai.myMap = map;
 		ai.myManager = this;
+		ai.Initialise ();
 		++enemyCount;
 
 		//add a healthbar
@@ -170,8 +180,12 @@ public class UnitManager : MonoBehaviour {
 		//add a manabar
 		AddUnitUIElement (manaBar, u);
 		AddUnitUIElement (manaText, u);
-		
-		//manabar.GetComponent<Text> ().text = txt;
+
+		//add a shieldbar
+		AddUnitUIElement (shieldBar, u);
+
+		//give the enemy their abilities
+		GiveEnemyAbilities (u, e);
 
 		//let the map know where the unit is
 		map.GetNode (x, y).myUnit = u;
@@ -187,6 +201,8 @@ public class UnitManager : MonoBehaviour {
 		GameObject go = Instantiate (prefab) as GameObject;
 		RectTransform tempRect = go.GetComponent<RectTransform> ();
 		go.transform.SetParent (u.transform.FindChild("UnitCanvas"));
+
+		go.name = prefab.name;
 		
 		tempRect.transform.localPosition = prefab.transform.localPosition;
 		tempRect.transform.localScale = prefab.transform.localScale;
@@ -203,21 +219,30 @@ public class UnitManager : MonoBehaviour {
 
 		// is it a players turn or ai
 		if (sUnit.playable) {
-			if (sUnit.remainingMove < 1 && sUnit.actionPoints < 1 && !sUnit.moving && !sUnit.attacking) {
+			if ((sUnit.remainingMove < 1 && sUnit.actionPoints < 1 && !sUnit.moving && !sUnit.attacking) || sUnit.isDead) {
 				EndTurn ();
 			}
 		} else {
-			if (sUnit.remainingMove < 1 && sUnit.actionPoints < 1 && !sUnit.moving) {
+			if ((sUnit.remainingMove < 1 && sUnit.actionPoints < 1 && !sUnit.moving && !sUnit.attacking) || sUnit.isDead) {
 				EndTurn ();
 			}
 		}
 
 		foreach (GameObject go in everyUnit) {
 			sUnit = go.GetComponent<Unit>();
-			if (sUnit.hp < 1) {
+			if (sUnit.hp < 1 && !sUnit.isDead) {
 				// REMOVE UNIT FROM FUCKING EVERYTHING
 				sUnit.CheckTriggers(TriggerType.Death);
+
+				int ind = currentQueue.IndexOf(go);
+
+				if (ind < turn) {
+					--turn;
+				}
 				currentQueue.Remove(go);
+				sUnit.isDead = true;
+				map.GetNode(sUnit.tileX, sUnit.tileY).myUnit = null;
+				go.transform.position = new Vector3(5, 5, 10);
 			}
 		}
 	}
@@ -232,15 +257,24 @@ public class UnitManager : MonoBehaviour {
 
 	public void NextUnitsTurn() {
 		Unit sUnit = currentQueue [turn].GetComponent<Unit> ();
-		map.selectedUnit = currentQueue[turn];
-		sUnit.StartTurn ();
-		//is it a character or ai
-		if (sUnit.playable) {
-			ShowMovement();
+		if (!sUnit.isDead) {
+
+			//move camera to unit's position
+			GetComponent<GameManager> ().cam.GetComponent<CameraController> ().MoveToTarget (sUnit.transform.position);
+
+			map.selectedUnit = currentQueue [turn];
+			sUnit.StartTurn ();
+			//is it a character or ai
+			if (sUnit.playable) {
+				ShowMovement ();
+			} else {
+				//run the AIs turn
+				currentQueue [turn].GetComponent<AIBehaviours> ().FSM ();
+			}
 		} else {
-			//run the AIs turn
-			currentQueue [turn].GetComponent<AIBehaviours> ().FSM();
+			EndTurn();
 		}
+
 	}
 
 	public void EndTurn() {
@@ -250,17 +284,37 @@ public class UnitManager : MonoBehaviour {
 
 		if (turn >= currentQueue.Count) {
 			turn = 0;
-			//TODO SORT ACTIVE UNITS BY INIT
+			activeUnits.Sort(CompareListByInitiative);
+
 			currentQueue = activeUnits;
 		}
 
 		NextUnitsTurn ();
 	}
 
+	static int CompareListByInitiative(GameObject g1, GameObject g2) {
+
+		Unit u1 = g1.GetComponent<Unit> ();
+		Unit u2 = g2.GetComponent<Unit> ();
+
+		// high the better so use u2
+		int val = u2.init.CompareTo (u1.init);
+
+		//if there init is the same, go off id i guess?
+		if (val == 0) {
+			//lower better so us u1
+			val = u1.ID.CompareTo (u2.ID);
+		}
+
+		//return the value
+		return val;
+		
+	}
+
 	public void ShowAbility(int a) {
 		Unit sUnit = currentQueue [turn].GetComponent<Unit> ();
 		//check to see if the current character is playable
-		if (sUnit.playable && sUnit.actionPoints > 0) {
+		if (sUnit.playable && sUnit.actionPoints > 0 && !sUnit.UnitBusy()) {
 			if ((int)currentDisplaying != a+1 && sUnit.myAbilities[a] != null) {
 				if (sUnit.mana >= sUnit.myAbilities[a].manaCost) {
 					ChangeActionDisplay(a+1);
@@ -492,9 +546,9 @@ public class UnitManager : MonoBehaviour {
 			u.myAbilities[1] = new Lunge(u, map, effectLibrary);
 			u.myAbilities[2] = new PointBlank(u, map, effectLibrary);
 			break;
-		case CharacterClass.Elementalist: u.myAbilities[0] = new Fireball(u, map, effectLibrary);
-			u.myAbilities[1] = new FlashFreeze(u, map, effectLibrary);
-			u.myAbilities[2] = new ManaTrap(u, map, effectLibrary);
+		case CharacterClass.Elementalist: u.myAbilities[0] = new ArcanePulse(u, map, effectLibrary);
+			u.myAbilities[1] = new Fireball(u, map, effectLibrary);
+			u.myAbilities[2] = new FlashFreeze(u, map, effectLibrary);
 			break;
 		case CharacterClass.Ranger: u.myAbilities[0] = new TripleShot(u, map, effectLibrary);
 			u.myAbilities[1] = new CripplingShot(u, map, effectLibrary);
@@ -502,5 +556,12 @@ public class UnitManager : MonoBehaviour {
 			break;
         }
     }
+
+	void GiveEnemyAbilities(Unit u, EnemyClass e) {
+		switch (e) {
+		case EnemyClass.Goblin: u.myAbilities[0] = new Clobber(u, map, effectLibrary);
+			break;
+		}
+	}
 
 }

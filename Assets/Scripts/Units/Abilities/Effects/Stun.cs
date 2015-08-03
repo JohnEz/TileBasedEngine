@@ -12,12 +12,15 @@ public class Stun : Effect
 		description = "Stun";
     }
 
-    public override void RunEffect(Unit u)
+	public override void RunEffect(Unit u, bool reapply = false)
     {
-        base.RunEffect(u);
+        base.RunEffect(u, reapply);
+
         u.movespeed = 0;
         u.maxAP = 0;
-		u.ShowCombatText ("Stunned", u.statusCombatText);
+		if (!reapply) {
+			u.ShowCombatText ("Stunned", u.statusCombatText);
+		}
     }
 
 }
