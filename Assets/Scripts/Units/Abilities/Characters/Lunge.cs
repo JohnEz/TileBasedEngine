@@ -26,6 +26,8 @@ public class Lunge : Ability
 		Vector3 pos = map.TileCoordToWorldCoord (myCaster.tileX, myCaster.tileY);
 		myVisualEffects.Add (effectLib.CreateVisualEffect ("Dash", pos, false, false).GetComponent<EffectController> ());
 
+		myCaster.GetComponent<AudioSource> ().PlayOneShot (effectLib.getSoundEffect ("Lunge"));
+
 		int count = 0;
 		int x = targetSquares [0].x;
 		int y = targetSquares [0].y;

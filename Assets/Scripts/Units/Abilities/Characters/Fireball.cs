@@ -32,8 +32,11 @@ public class Fireball : Ability
 
 		int dmg = (int)(damage * myCaster.damageDealtMod);
 
-		myTarget.TakeDamage (dmg, effectLib.getSoundEffect ("Fireball Hit"));
-		myTarget.ApplyEffect (new Dot ("Burning", duration, 10));
+		//deal damage, if not dodged, apply effect
+		if (myTarget.TakeDamage (dmg, effectLib.getSoundEffect ("Fireball Hit")) != -1) {
+			myTarget.ApplyEffect (new Dot ("Burning", duration, 10));
+			myTarget.ShowCombatText ("Burning", myTarget.statusCombatText);
+		}
 
 		Vector3 pos = map.TileCoordToWorldCoord (myTarget.tileX, myTarget.tileY);
 		myVisualEffects.Add (effectLib.CreateVisualEffect ("Fireball Explosion", pos).GetComponent<EffectController> ());

@@ -27,12 +27,14 @@ public class Ability{
 	public int duration = 0;
 	public int maxCooldown = 1;
 	public int manaCost = 0;
+	public int manaGain = 0;
 	public int shield = 0;
 	public int cooldown;
 	public AreaType area = AreaType.Single;
 	public TargetType targets = TargetType.Enemy;
 	public int range;
 	public int AOERange = 2;
+	public bool usesCombo = false;
 
     public Unit myCaster = null;
 	public Unit myTarget = null;

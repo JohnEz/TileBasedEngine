@@ -5,7 +5,8 @@ public class ArcanePulse : Ability
 	public ArcanePulse (Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
 		Name = "Arcane Pulse";
-		manaCost = -20;
+		manaCost = 0;
+		manaGain = 20;
 		maxCooldown = 1;
 		damage = 25;
 		range = 5;
@@ -29,7 +30,10 @@ public class ArcanePulse : Ability
  
 		dmg = (int)(dmg * mod);
 
-		target.TakeDamage (dmg, effectLib.getSoundEffect ("Arcane Pulse"));
+		//deal damage, if it was not dodged
+		if (target.TakeDamage (dmg, effectLib.getSoundEffect ("Arcane Pulse")) != -1) {
+			myCaster.AddRemoveMana(manaGain);
+		}
 		
 		Vector3 pos = map.TileCoordToWorldCoord (target.tileX, target.tileY);
 		myVisualEffects.Add (effectLib.CreateVisualEffect ("Arcane Pulse", pos).GetComponent<EffectController> ());

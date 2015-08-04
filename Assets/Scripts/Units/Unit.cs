@@ -49,8 +49,8 @@ public class Unit : MonoBehaviour {
 
     //current - the current value of the stats
     public int shield = 0;
-	public int hp;
-	public int mana;
+	public int hp = 100;
+	public int mana = 100;
 	public int remainingMove;
 	public int actionPoints;
 
@@ -73,15 +73,22 @@ public class Unit : MonoBehaviour {
 	public int comboPoints = 0;
 	public int team = 1;
 
+	public List<GameObject> displayedEffects = new List<GameObject> ();
+
 	Image healthBar;
 	Text hpText;
 	Image manaBar;
 	Text manaText;
 	Image shieldBar;
+	List<GameObject> comboPointGameObjects = new List<GameObject> ();
+
 	public GameObject damageCombatText;
 	public GameObject healingCombatText;
 	public GameObject statusCombatText;
 	public GameObject manaCombatText;
+	public GameObject comboPoint;
+
+
 
 	void Start() {
 		hp = maxHP;
@@ -104,51 +111,7 @@ public class Unit : MonoBehaviour {
 	//when a unit starts a new turn, this function is ran
     public void StartTurn()
     {
-        //set each stat to its base then apply effects
-        maxHP = baseHP;
-        maxMana = baseMana;
-        movespeed = baseMove;
-        armourDamageReduction = baseArmour;
-        init = baseInit;
-        maxAP = baseAP;
-        damageDealtMod = 1;
-        damageRecievedMod = 1;
-        healingRecievedMod = 1;
-		shield = 0;
-		dodgeChance = baseDodge;
-		blockChance = baseBlock;
-
-		//apply the effects
-        foreach (Effect eff in myEffects)
-        {
-            eff.RunEffect(this);
-			if (eff.duration <= 0) {
-				expiredEffects.Add(eff);
-			}
-        }
-
-		//remove expired effects
-		foreach (Effect eff in expiredEffects) {
-			myEffects.Remove(eff);
-		}
-		
-		expiredEffects = new List<Effect> ();
-
-        // if maxhp is now lower than current hp
-        if (hp > maxHP)
-        {
-            hp = maxHP;
-        }
-
-        // if maxmana is now lower than current mana
-        if (mana > maxMana)
-        {
-            mana = maxMana;
-        }
-
-        // reset move and action
-		remainingMove = movespeed;
-		actionPoints = maxAP;
+		UpdateStats ();
 
 		for(int i=0; i < myAbilities.Length; ++i) {
 			if (myAbilities[i] != null) {
@@ -174,6 +137,55 @@ public class Unit : MonoBehaviour {
 		//update status bars
 		UpdateHealthBar ();
 		UpdateManaBar();
+		ShowDebuffs ();
+	}
+
+	void UpdateStats() {
+		//set each stat to its base then apply effects
+		maxHP = baseHP;
+		maxMana = baseMana;
+		movespeed = baseMove;
+		armourDamageReduction = baseArmour;
+		init = baseInit;
+		maxAP = baseAP;
+		damageDealtMod = 1;
+		damageRecievedMod = 1;
+		healingRecievedMod = 1;
+		shield = 0;
+		dodgeChance = baseDodge;
+		blockChance = baseBlock;
+		
+		//apply the effects
+		foreach (Effect eff in myEffects)
+		{
+			eff.RunEffect(this);
+			if (eff.duration <= 0) {
+				expiredEffects.Add(eff);
+			}
+		}
+		
+		//remove expired effects
+		foreach (Effect eff in expiredEffects) {
+			myEffects.Remove(eff);
+		}
+		
+		expiredEffects = new List<Effect> ();
+		
+		// if maxhp is now lower than current hp
+		if (hp > maxHP)
+		{
+			hp = maxHP;
+		}
+		
+		// if maxmana is now lower than current mana
+		if (mana > maxMana)
+		{
+			mana = maxMana;
+		}
+		
+		// reset move and action
+		remainingMove = movespeed;
+		actionPoints = maxAP;
 	}
 
 	void Update() {
@@ -467,12 +479,33 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
-	// unit takes parameter damage and shows in combat text
-	public void TakeDamage(int dmg, AudioClip sound = null, bool canBeEvaded = true)
+	public void ShowDebuffs() {
+		//destroy old debuffs
+		foreach (GameObject go in displayedEffects) {
+			Destroy(go, 0);
+		}
+
+		displayedEffects = new List<GameObject> ();
+
+		if (IsStunned()) {
+			displayedEffects.Add(uManager.GetComponent<PrefabLibrary>().CreateBuffVisual("Stunned", transform));
+		}
+
+		if (IsSnared()) {
+			displayedEffects.Add(uManager.GetComponent<PrefabLibrary>().CreateBuffVisual("Snared", transform));
+		}
+	}
+
+	// unit takes parameter damage and shows in combat text, returns if the dmg was dodged(-1), blocked(0) or hit(1)
+	public int TakeDamage(int dmg, AudioClip sound = null, bool canBeEvaded = true)
     {
+		// 1 if hit, 0 if blocked, -1 is dodged
+		int outcome = 1;
+
 		//calculate the actual damage after reductions
 		int damage = (int)((dmg * damageRecievedMod) * (1 - armourDamageReduction));
 
+		//if the damage can actually be avaded
 		if (canBeEvaded) {
 
 			//see if the unit dodges the attack
@@ -480,19 +513,24 @@ public class Unit : MonoBehaviour {
 			if (dodge <= dodgeChance) {
 				ShowCombatText ("Dodged", statusCombatText);
 				GetComponent<AudioSource> ().PlayOneShot (uManager.GetComponent<PrefabLibrary> ().getSoundEffect ("Dodge"));
-				return;
+				return -1;
 			}
 
 			//see if the unit Blocks the attack
 			int block = Random.Range (1, 100);
 			if (block <= blockChance) {
+				//dmg was blocked, reduce damage and display block
 				ShowCombatText ("Blocked", statusCombatText);
 				damage = (int)(damage * 0.25f);
 				GetComponent<AudioSource> ().PlayOneShot (uManager.GetComponent<PrefabLibrary> ().getSoundEffect ("Block"));
+
+				outcome = 0; // show the dmg was blocked
 			} else if (sound != null) {
+				//play the normal sound instead of the block sound
 				GetComponent<AudioSource> ().PlayOneShot (sound);
 			}
 		} else if (sound != null) {
+			//play the normal sound instead of the block or dodge sound
 			GetComponent<AudioSource> ().PlayOneShot (sound);
 		}
 
@@ -512,6 +550,8 @@ public class Unit : MonoBehaviour {
 		}
 
 		UpdateHealthBar ();
+
+		return outcome;
     }
 
 	int DamageShield(int dmg) {
@@ -594,9 +634,9 @@ public class Unit : MonoBehaviour {
 		temp.GetComponent<Animator> ().SetTrigger ("Hit");
 		temp.transform.SetParent (transform.FindChild("UnitCanvas"));
 
-		tempRect.transform.localPosition = damageCombatText.transform.localPosition;
-		tempRect.transform.localScale = damageCombatText.transform.localScale;
-		tempRect.transform.rotation = damageCombatText.transform.localRotation;
+		tempRect.transform.localPosition = go.transform.localPosition;
+		tempRect.transform.localScale = go.transform.localScale;
+		tempRect.transform.rotation = go.transform.localRotation;
 		
 		temp.GetComponent<Text> ().text = txt;
 		Destroy(temp.gameObject, 2); 
@@ -635,6 +675,8 @@ public class Unit : MonoBehaviour {
 			eff.RunEffect(this, true);
 		}
 
+		ShowDebuffs ();
+
     }
 
 	public void AddTrigger(Trigger trig) {
@@ -667,12 +709,67 @@ public class Unit : MonoBehaviour {
 		if (comboPoints > 5) {
 			comboPoints = 5;
 		}
+
+		UpdateComboPoints ();
+	}
+
+	public void UpdateComboPoints() {
+		//check to see if there was a change
+		if (comboPointGameObjects.Count != comboPoints) {
+
+			//find the difference
+			int change = comboPoints - comboPointGameObjects.Count;
+
+			//position value
+			float width = healthBar.GetComponent<RectTransform>().rect.width;
+
+			// if we need to add more combo
+			if (change > 0) {
+
+				//add the amount of combo points
+				for(int i = 0; i < change; ++i) {
+
+					int ind = comboPointGameObjects.Count;
+
+					//calculate its position (index 3 should be at 0 X)
+					float x = (width/5) * (ind-2);
+
+					//add the new combo point
+					comboPointGameObjects.Add(CreateComboPoint(x));
+				}
+			}
+			else {
+				//loop for the change
+				for (int i = 0; i < change*-1; ++i) {
+
+					GameObject go = comboPointGameObjects[comboPointGameObjects.Count-1];
+					comboPointGameObjects.RemoveAt(comboPointGameObjects.Count-1);
+					Destroy(go, 0);
+
+				}
+
+			}
+
+		}
+	}
+
+	GameObject CreateComboPoint(float x) {
+		GameObject temp = Instantiate (comboPoint) as GameObject;
+		RectTransform tempRect = temp.GetComponent<RectTransform> ();
+		temp.transform.SetParent (transform.FindChild("UnitCanvas"));
+		
+		tempRect.transform.localPosition = comboPoint.transform.localPosition + new Vector3(x, 0, 0);
+		tempRect.transform.localScale = comboPoint.transform.localScale;
+		tempRect.transform.rotation = comboPoint.transform.localRotation;
+		
+		return temp;
 	}
 
 	//uses all the combo points the unit as got and returns the value
 	public int UseComboPoints() {
 		int cp = comboPoints;
 		comboPoints = 0;
+		UpdateComboPoints ();
 		return cp;
 	}
 

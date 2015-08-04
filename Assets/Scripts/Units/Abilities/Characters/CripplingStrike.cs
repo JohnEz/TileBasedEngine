@@ -20,8 +20,10 @@ public class CripplingStrike : Ability
         base.UseAbility(target);
         int dmg = (int)(damage * myCaster.damageDealtMod);
 
-		target.TakeDamage(dmg, effectLib.getSoundEffect ("Crippling Strike"));
-        target.ApplyEffect(new DamageDealtEffect("Cripple", duration, -0.1f));
+		//deal damage, if not dodged, apply effect
+		if (target.TakeDamage (dmg, effectLib.getSoundEffect ("Crippling Strike")) != -1) {
+			target.ApplyEffect (new DamageDealtEffect ("Cripple", duration, -0.1f));
+		}
 
 		Vector3 pos = map.TileCoordToWorldCoord (target.tileX, target.tileY);
 		myVisualEffects.Add (effectLib.CreateVisualEffect ("Slash1", pos).GetComponent<EffectController> ());

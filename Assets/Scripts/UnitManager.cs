@@ -20,6 +20,7 @@ public enum CharacterClass {
 
 public enum EnemyClass {
 	Goblin,
+	GoblinAxeThrower,
 	MAXCLASSES
 }
 
@@ -69,6 +70,8 @@ public class UnitManager : MonoBehaviour {
 	public GameObject manaText;
 	public GameObject shieldBar;
 
+	bool waitingForCamera = false;
+
 	Display currentDisplaying; //used so things dont get run when they dont need to
 
 	public void Initialise() {
@@ -96,7 +99,7 @@ public class UnitManager : MonoBehaviour {
 		spawnEnemy (15, 4, EnemyClass.Goblin);
 		spawnEnemy (15, 5, EnemyClass.Goblin);
 		spawnEnemy (17, 1, EnemyClass.Goblin);
-		spawnEnemy (15, 8, EnemyClass.Goblin);
+		spawnEnemy (15, 8, EnemyClass.GoblinAxeThrower);
 
 		activeUnits.Sort(CompareListByInitiative);
 		currentQueue = activeUnits;
@@ -122,6 +125,8 @@ public class UnitManager : MonoBehaviour {
 			u.map = map;
 			u.ID = everyUnit.Count;
             u.uManager = this;
+			u.hp = u.maxHP;
+			u.mana = u.maxMana;
 
 			//add a healthbar
 			AddUnitUIElement (healthBar, u);
@@ -169,6 +174,8 @@ public class UnitManager : MonoBehaviour {
 		u.team = 2;
 		u.ID = everyUnit.Count;
 		u.uManager = this;
+		u.hp = u.maxHP;
+		u.mana = u.maxMana;
 		ai.myMap = map;
 		ai.myManager = this;
 		ai.Initialise ();
@@ -212,7 +219,26 @@ public class UnitManager : MonoBehaviour {
 	}
 
 	void Update() {
-		ManageTurn ();
+		if (!waitingForCamera) {
+			ManageTurn ();
+		} else if (!GetComponent<GameManager> ().cam.GetComponent<CameraController> ().movingToDestination) {
+			waitingForCamera = false;
+
+			Unit sUnit = currentQueue [turn].GetComponent<Unit>();
+			map.selectedUnit = currentQueue [turn];
+			
+			sUnit.StartTurn ();
+
+			//is it a character or ai
+			if (sUnit.playable) {
+				ShowMovement ();
+				GetComponentInChildren<UIManager>().DrawAbilities(3, currentQueue [turn].GetComponent<Unit>());
+			} else {
+				//run the AIs turn
+				currentQueue [turn].GetComponent<AIBehaviours> ().FSM ();
+				GetComponentInChildren<UIManager>().DrawAbilities(0, null);
+			}
+		}
 	}
 
 	void ManageTurn() {
@@ -234,16 +260,22 @@ public class UnitManager : MonoBehaviour {
 			if (sUnit.hp < 1 && !sUnit.isDead) {
 				//TODO REMOVE UNIT FROM FUCKING EVERYTHING
 				sUnit.CheckTriggers(TriggerType.Death);
-
+				
 				int ind = currentQueue.IndexOf(go);
 
-				if (ind < turn) {
-					--turn;
-				}
-				currentQueue.Remove(go);
 				sUnit.isDead = true;
 				map.GetNode(sUnit.tileX, sUnit.tileY).myUnit = null;
 				go.transform.position = new Vector3(5, 5, 10);
+				
+				if (ind == turn) {
+					EndTurn ();
+					--turn;
+				} else if (ind < turn) {
+					--turn;
+				}
+				currentQueue.Remove(go);
+
+
 			}
 		}
 	}
@@ -263,19 +295,7 @@ public class UnitManager : MonoBehaviour {
 			//move camera to unit's position
 			GetComponent<GameManager> ().cam.GetComponent<CameraController> ().MoveToTarget (sUnit.transform.position);
 
-			map.selectedUnit = currentQueue [turn];
-
-			sUnit.StartTurn ();
-
-			//is it a character or ai
-			if (sUnit.playable) {
-				ShowMovement ();
-				GetComponentInChildren<UIManager>().DrawAbilities(3, currentQueue [turn].GetComponent<Unit>());
-			} else {
-				//run the AIs turn
-				currentQueue [turn].GetComponent<AIBehaviours> ().FSM ();
-				GetComponentInChildren<UIManager>().DrawAbilities(0, null);
-			}
+			waitingForCamera = true;
 		} else {
 			EndTurn();
 		}
@@ -322,27 +342,38 @@ public class UnitManager : MonoBehaviour {
 		if (sUnit.playable && sUnit.actionPoints > 0 && !sUnit.UnitBusy()) {
 			// dont try to reload the same ability
 			if ((int)currentDisplaying != a+1 && sUnit.myAbilities[a] != null) {
-				//if the unit has mana, and ability is off cooldown
+				//if the unit has mana
 				if (sUnit.mana >= sUnit.myAbilities[a].manaCost) {
+					// if the ability isnt on cooldown
 					if (sUnit.myAbilities[a].cooldown < 1) {
-						ChangeActionDisplay(a+1);
-						List<Node> targetableTiles = new List<Node>();
+						// check if the user has any combo if it needs it
+						if ((sUnit.myAbilities[a].usesCombo && sUnit.comboPoints > 1) || !sUnit.myAbilities[a].usesCombo) {
 
-						switch(sUnit.myAbilities[a].area) {
-						case AreaType.Single: targetableTiles = map.FindSingleRangedTargets(sUnit.myAbilities[a]);
-							map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), 0);
-							ShowSingleTargets(targetableTiles, sUnit.myAbilities[a]);
-							break;
-						case AreaType.AOE: targetableTiles = map.FindSingleRangedTargets(sUnit.myAbilities[a]);
-							map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), 1);
-							break;
-						case AreaType.Line: targetableTiles = map.FindLineTargets(sUnit.myAbilities[a]);
-							map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), 1);
-							break;
-						case AreaType.Floor : targetableTiles = map.FindSingleRangedTargets(sUnit.myAbilities[a]);
-							map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f, 0.3f, 0.3f), 1);
-							ShowFloorTargets(targetableTiles, sUnit.myAbilities[a]);
-							break;
+							//highlight icon
+							GetComponentInChildren<UIManager>().HighlightIcon(a);
+
+							ChangeActionDisplay(a+1);
+							List<Node> targetableTiles = new List<Node>();
+
+							switch(sUnit.myAbilities[a].area) {
+							case AreaType.Single: targetableTiles = map.FindSingleRangedTargets(sUnit.myAbilities[a], sUnit);
+								map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), 0);
+								ShowSingleTargets(targetableTiles, sUnit.myAbilities[a]);
+								break;
+							case AreaType.AOE: targetableTiles = map.FindSingleRangedTargets(sUnit.myAbilities[a], sUnit);
+								map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), 1);
+								break;
+							case AreaType.Line: targetableTiles = map.FindLineTargets(sUnit.myAbilities[a]);
+								map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), 1);
+								break;
+							case AreaType.Floor : targetableTiles = map.FindSingleRangedTargets(sUnit.myAbilities[a], sUnit);
+								map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f, 0.3f, 0.3f), 1);
+								ShowFloorTargets(targetableTiles, sUnit.myAbilities[a]);
+								break;
+							}
+						} else {
+							GetComponentInChildren<UIManager>().ShowErrorText("Unit doesnt have any combo");
+							sUnit.GetComponent<AudioSource> ().PlayOneShot (effectLibrary.getSoundEffect ("Error"));
 						}
 					} else {
 						GetComponentInChildren<UIManager>().ShowErrorText("Ability is on cooldown");
@@ -582,7 +613,10 @@ public class UnitManager : MonoBehaviour {
 			u.myAbilities[1] = new Clobber(u, map, effectLibrary);
 			u.myAbilities[2] = new Clobber(u, map, effectLibrary);
 			break;
+		case EnemyClass.GoblinAxeThrower: u.myAbilities[0] = new AxeThrow(u, map, effectLibrary);
+			break;
 		}
+
 	}
 
 }

@@ -9,6 +9,7 @@ public class TripleShot : Ability
 	{
 		Name = "Triple Shot";
 		damage = 10;
+		manaGain = 5;
 		range = 7;
 		maxCooldown = 1;
 		area = AreaType.Single;
@@ -37,9 +38,10 @@ public class TripleShot : Ability
 
 		int dmg = (int)(damage * myCaster.damageDealtMod);
 
-		myCaster.AddRemoveMana (5);
-		
-		myTarget.TakeDamage (dmg, effectLib.getSoundEffect ("TripleShot Hit"));
+		//deal damage, if not dodged, gain mana
+		if (myTarget.TakeDamage (dmg, effectLib.getSoundEffect ("TripleShot Hit")) != -1) {
+			myCaster.AddRemoveMana (manaGain);
+		}
 
 		if (firstHit) {
 			Vector3 pos = map.TileCoordToWorldCoord (myTarget.tileX, myTarget.tileY);

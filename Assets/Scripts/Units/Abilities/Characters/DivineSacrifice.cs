@@ -18,10 +18,12 @@ public class DivineSacrifice : Ability
 	{
 		base.UseAbility (target);
 		int dmg = (int)(damage * myCaster.damageDealtMod);
-		
-		target.TakeDamage(dmg);
-		//apply an on death trigger
-		target.AddTrigger (new DivineSacrificeTrigger (myCaster));
+
+		//deal damage, if not dodged, apply effect
+		if (target.TakeDamage (dmg, effectLib.getSoundEffect ("Divine Sacrifice")) != -1) {
+			//apply an on death trigger
+			target.AddTrigger (new DivineSacrificeTrigger (myCaster));
+		}
 
 		Vector3 pos = map.TileCoordToWorldCoord (target.tileX, target.tileY);
 		myVisualEffects.Add (effectLib.CreateVisualEffect ("Divine Sacrifice", pos).GetComponent<EffectController> ());

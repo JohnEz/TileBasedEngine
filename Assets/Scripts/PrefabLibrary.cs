@@ -38,11 +38,14 @@ public class PrefabLibrary : MonoBehaviour {
 		visualEffects.Add ("Divine Sacrifice", 4);
 		visualEffects.Add ("Hit1", 5);
 		visualEffects.Add ("Triple Shot", 6);
-		visualEffects.Add ("Exploit Weakness", 7);
+		visualEffects.Add ("Exploit Weakness Target", 7);
 		visualEffects.Add ("Point Blank", 8);
 		visualEffects.Add ("Dash", 9);
 		visualEffects.Add ("Arcane Pulse", 10);
 		visualEffects.Add ("Fireball Explosion", 11);
+		visualEffects.Add ("Exploit Weakness Hit", 12);
+		visualEffects.Add ("Stunned", 13);
+		visualEffects.Add ("Snared", 14);
 	}
 
 	void AttachAudioEffects() {
@@ -67,6 +70,13 @@ public class PrefabLibrary : MonoBehaviour {
 		soundEffects.Add ("Error", 18);
 		soundEffects.Add ("Dodge", 19);
 		soundEffects.Add ("Block", 20);
+		soundEffects.Add ("Divine Sacrifice", 21);
+		soundEffects.Add ("Charge", 22);
+		soundEffects.Add ("Lunge", 23);
+		soundEffects.Add ("Righteous Shield", 24);
+		soundEffects.Add ("Exploit Weakness Crit", 25);
+		soundEffects.Add ("Exploit Weakness Fire", 26);
+		soundEffects.Add ("Crippling Shot Hit", 27);
 
 	}
 
@@ -74,6 +84,7 @@ public class PrefabLibrary : MonoBehaviour {
 		projectiles.Add ("Arrow1", 0);
 		projectiles.Add ("Crippling Shot", 1);
 		projectiles.Add ("Fireball", 2);
+		projectiles.Add ("Axe", 3);
 	}
 
 
@@ -142,11 +153,29 @@ public class PrefabLibrary : MonoBehaviour {
 		return go;
 	}
 
-	public GameObject CreateProjectile(string s, Vector3 pos, Vector3 target, float speed) {
+	public GameObject CreateProjectile(string s, Vector3 pos, Vector3 target, float speed, bool flip = false) {
 		GameObject go = (GameObject)Instantiate (projPrefabs[projectiles[s]], pos, Quaternion.identity);;
 
 		go.GetComponent<ProjectileController> ().Initialise (target, speed);
 
+		//if the visual effect needs to be flipped
+		if (flip) {
+			Vector3 theScale = go.transform.localScale;
+			theScale.x *= -1;
+			go.transform.localScale = theScale;
+		}
+
+		return go;
+	}
+
+	public GameObject CreateBuffVisual(string s, Transform t) {
+
+		Vector3 pos = new Vector3(0, 0, 0);
+		GameObject go = (GameObject)Instantiate (spritePrefabs[visualEffects[s]], pos, Quaternion.identity);
+
+		go.transform.SetParent (t);
+		go.transform.localPosition = pos;
+		
 		return go;
 	}
 }

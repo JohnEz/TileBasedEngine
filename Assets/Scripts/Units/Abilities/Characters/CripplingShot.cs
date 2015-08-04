@@ -23,7 +23,7 @@ public class CripplingShot : Ability
 		myTarget = target;
 
 		myProjectiles.Add(effectLib.CreateProjectile("Crippling Shot", myCaster.transform.position, target.transform.position, 10).GetComponent<ProjectileController>());
-
+		myCaster.GetComponent<AudioSource> ().PlayOneShot (effectLib.getSoundEffect ("Exploit Weakness Fire"));
 	}
 
 	public override void AbilityOnHit ()
@@ -33,9 +33,13 @@ public class CripplingShot : Ability
 		myVisualEffects.Add (effectLib.CreateVisualEffect ("Hit1", pos).GetComponent<EffectController> ());
 		
 		int dmg = (int)(damage * myCaster.damageDealtMod);
-		
-		myTarget.ApplyEffect (new Snare ("Crippled", duration));
-		myTarget.TakeDamage (dmg);
+
+		// deal damage, if not dodged apply cripple
+		if (myTarget.TakeDamage (dmg, effectLib.getSoundEffect ("Crippling Shot Hit")) != -1) {
+			myTarget.ApplyEffect (new Snare ("Crippled", duration));
+			myTarget.ShowCombatText ("Snared", myTarget.statusCombatText);
+		}
+
 	}
 }
 

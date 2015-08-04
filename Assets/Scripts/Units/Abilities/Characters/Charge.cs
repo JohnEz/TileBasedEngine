@@ -31,6 +31,8 @@ public class Charge : Ability
 		Vector3 pos = map.TileCoordToWorldCoord (myCaster.tileX, myCaster.tileY);
 		myVisualEffects.Add (effectLib.CreateVisualEffect ("Dash", pos, false, false).GetComponent<EffectController> ());
 
+		myCaster.GetComponent<AudioSource> ().PlayOneShot (effectLib.getSoundEffect ("Charge"));
+
 		//check to see if the final tile has a unit
 		if (targetSquares.Last ().myUnit != null) {
 			// find the index of the tile before the last one
@@ -38,9 +40,10 @@ public class Charge : Ability
 
 			//if the unit is on another team
 			if (targetSquares.Last ().myUnit.team != myCaster.team) {
-				//make the unit take damage
-				targetSquares.Last ().myUnit.TakeDamage(dmg * targetSquares.Count+1);
-				targetSquares.Last ().myUnit.ApplyEffect(new Snare("Charged", duration));
+				//make the unit take damage, if not dodged apply snare
+				if (targetSquares.Last ().myUnit.TakeDamage(dmg * targetSquares.Count+1) != -1) {
+					targetSquares.Last ().myUnit.ApplyEffect(new Snare("Charged", duration));
+				}
 			}
 
 			// if there is a tile to move to

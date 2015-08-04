@@ -41,6 +41,8 @@ public class GameManager : MonoBehaviour {
 		if (Input.GetKeyDown(KeyCode.Mouse1)) {
 			//Show movement
 			GetComponent<UnitManager> ().ShowMovement();
+			//unhighlight icons
+			GetComponentInChildren<UIManager>().HighlightIcon(-1);
 		}
 
 	}

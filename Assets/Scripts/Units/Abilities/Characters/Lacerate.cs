@@ -21,8 +21,10 @@ public class Lacerate : Ability
 		int dmg = (int)(damage * myCaster.damageDealtMod);
 
 		myCaster.AddComboPoints (2);
-		target.TakeDamage(dmg, effectLib.getSoundEffect ("Lacerate"));
-		target.ApplyEffect(new DamageRecievedEffect("Lacerate", duration, 0.1f, stacks));
+		//deal damage, if not dodged, apply effect
+		if (target.TakeDamage (dmg, effectLib.getSoundEffect ("Lacerate")) != -1) {
+			target.ApplyEffect (new DamageRecievedEffect ("Lacerate", duration, 0.1f, stacks));
+		}
 
 		Vector3 pos = map.TileCoordToWorldCoord (target.tileX, target.tileY);
 		myVisualEffects.Add (effectLib.CreateVisualEffect ("Slash1", pos).GetComponent<EffectController> ());

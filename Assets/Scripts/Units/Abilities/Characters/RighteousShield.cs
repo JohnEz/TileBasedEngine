@@ -29,6 +29,8 @@ public class RighteousShield : Ability
 
 		Vector3 pos = map.TileCoordToWorldCoord (target.tileX, target.tileY);
 		myVisualEffects.Add (effectLib.CreateVisualEffect ("Righteous Shield", pos).GetComponent<EffectController> ());
+
+		myCaster.GetComponent<AudioSource> ().PlayOneShot (effectLib.getSoundEffect ("Righteous Shield"));
 	}
 }
 

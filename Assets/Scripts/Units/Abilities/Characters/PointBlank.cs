@@ -12,6 +12,7 @@ public class PointBlank : Ability
 		area = AreaType.Single;
 		targets = TargetType.Enemy;
 		maxCooldown = 1;
+		usesCombo = true;
 	}
 
 	public override void UseAbility (Unit target)
@@ -52,7 +53,8 @@ public class PointBlank : Ability
 			myCaster.SlideToTile (currX, currY);
 		}
 
-		target.TakeDamage (dmg * combo);
+		//cant dodge or block this finisher
+		target.TakeDamage (dmg * combo, null, false);
 
 
 	}

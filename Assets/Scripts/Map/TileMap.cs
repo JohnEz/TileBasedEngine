@@ -133,13 +133,9 @@ public class TileMap : MonoBehaviour {
 	}
 
 	// finds a path using dijkstra's algorithm
-	public void GeneratePathTo(int x, int y) {
+	public void GeneratePathTo(int x, int y, bool ignoreUnits = false) {
 		List<Node> currentPath = null;
 		Unit sUnit = selectedUnit.GetComponent<Unit> ();
-
-		if (!UnitCanEnterTile (x, y)) {
-			//return;
-		}
 
 		List<Node> unvisited = new List<Node> ();
 
@@ -164,7 +160,7 @@ public class TileMap : MonoBehaviour {
 			//find current lowest cost tile
 			Node u = null;
 			foreach (Node n in unvisited) {
-				if ((u == null || n.cost < u.cost) && (n.myUnit == null || n == source || n == target)){
+				if ((u == null || n.cost < u.cost) && ((n.myUnit == null || ignoreUnits) || n == source || n == target)){
 					u = n;
 				}
 			}
@@ -476,8 +472,8 @@ public class TileMap : MonoBehaviour {
 		sUnit.currentPath = culledList;
 	}
 
-	public List<Node> FindSingleRangedTargets(Ability abil) {
-		Unit sUnit = selectedUnit.GetComponent<Unit> ();
+	public List<Node> FindSingleRangedTargets(Ability abil, Unit u) {
+		Unit sUnit = u;
 
 		List<Node> reachNodes = FindReachableTiles (sUnit.tileX, sUnit.tileY, abil.range, true);
 		List<Node> targetableNodes = new List<Node> ();

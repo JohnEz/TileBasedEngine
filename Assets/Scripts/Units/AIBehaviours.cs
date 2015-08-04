@@ -6,7 +6,7 @@ using System.Linq;
 public enum Behaviour {
 	Dumb,
 	Scared,
-	Ranged,
+	DumbRanged,
 	Taunted,
 	MAXBEHAVIOURS
 }
@@ -44,16 +44,21 @@ public class AIBehaviours : MonoBehaviour {
 
 	public void FSM() {
 		switch (myBehaviour) {
-		case Behaviour.Dumb: FindTargetClosest(myManager.playerUnitObjects);
+		case Behaviour.Dumb: FindTargetClosest(myManager.playerUnitObjects, false);
 			Dumb ();
 			break;
+		case Behaviour.DumbRanged: FindTargetClosest(myManager.playerUnitObjects, true);
+			FindClosestLoS();
+			DumbRanged();
+			break;
 		}
+
 	}
 	
 	//find target closest to the unit, from array
-	void FindTargetClosest(GameObject[] targets) {
+	void FindTargetClosest(GameObject[] targets, bool ignoreUnits) {
 
-		if (myUnit.remainingMove <= 0 && (myUnit.actionPoints <= 0 || myUnit.movespeed == 0)) {
+		if (myUnit.remainingMove <= 0 && myUnit.actionPoints <= 0 && myUnit.movespeed == 0) {
 			return;
 		}
 
@@ -74,7 +79,7 @@ public class AIBehaviours : MonoBehaviour {
 				if (!targetUnit.isDead && targetUnit != myUnit) {
 
 					//find the path to the target
-					myMap.GeneratePathTo(targetUnit.tileX, targetUnit.tileY);
+					myMap.GeneratePathTo(targetUnit.tileX, targetUnit.tileY, ignoreUnits);
 
 					// if the path is shorter than current path
 					if (myUnit.currentPath.Count < currentPathLength && myUnit.currentPath.Count > 0) {
@@ -173,13 +178,81 @@ public class AIBehaviours : MonoBehaviour {
 			BasicTurn();
 		}
 
+	}
 
-
-		if (myUnit.moving) {
-			myMap.CullPath ();
-			myMap.GetNode (myUnit.tileX, myUnit.tileY).myUnit = null;
-			myUnit.currentPath.Last ().myUnit = myUnit;
+	void DumbRanged() {
+		// if the ai is stunned, or didnt have a path for some reason
+		if (myUnit.currentPath == null) {
+			return;
 		}
+
+		//if no path could be found, look for an ally i can support
+		if (myUnit.currentPath.Count == 0) {
+			//pass go
+			myUnit.ShowCombatText ("Passed", myUnit.statusCombatText);
+		}
+
+		BasicTurn ();
+
+	}
+
+	void FindClosestLoS() {
+		List<Node> shortestPath = new List<Node> ();
+		myUnit.currentPath = new List<Node> ();
+		float currentPathLength = Mathf.Infinity;
+
+		List<Node> losNodes = myMap.FindSingleRangedTargets (myUnit.myAbilities [0], target.myUnit);
+				
+		//each tile in los of target
+		foreach (Node n in losNodes) {
+		myMap.GeneratePathTo (n.x, n.y);
+				
+			//if the new path is shorter
+			if (myUnit.currentPath.Count < currentPathLength && myUnit.currentPath.Count > 0) {
+				shortestPath = myUnit.currentPath;
+				currentPathLength = myUnit.currentPath.Count;
+			}
+		}
+
+		
+		//set the target
+		myUnit.currentPath = shortestPath;
+		
+	}
+
+	void FindClosestLoS2(GameObject[] targets) {
+		List<Node> shortestPath = new List<Node> ();
+		myUnit.currentPath = new List<Node> ();
+		float currentPathLength = Mathf.Infinity;
+		int tx = 0;
+		int ty = 0;
+
+		//loop for every targget
+		foreach (GameObject go in targets) {
+			Unit u = go.GetComponent<Unit>();
+			//only look at alive targets
+			if (!u.isDead) {
+				List<Node> losNodes = myMap.FindSingleRangedTargets (myUnit.myAbilities [0], u);
+
+				//each tile in los of target
+				foreach (Node n in losNodes) {
+					myMap.GeneratePathTo (n.x, n.y);
+
+					//if the new path is shorter
+					if (myUnit.currentPath.Count < currentPathLength && myUnit.currentPath.Count > 0) {
+						shortestPath = myUnit.currentPath;
+						currentPathLength = myUnit.currentPath.Count;
+						tx = u.tileX;
+						ty = u.tileY;
+					}
+				}
+			}
+		}
+
+		//set the target
+		target = myMap.GetNode (tx, ty);
+		myUnit.currentPath = shortestPath;
+
 	}
 
 	//Basic turn - attack if in range or move and attack, or dash
@@ -218,6 +291,12 @@ public class AIBehaviours : MonoBehaviour {
 		}
 
 		myUnit.currentPath.Remove (target);
+
+		if (myUnit.moving) {
+			myMap.CullPath ();
+			myMap.GetNode (myUnit.tileX, myUnit.tileY).myUnit = null;
+			myUnit.currentPath.Last ().myUnit = myUnit;
+		}
 	}
 
 	//moves up to an ally unit
@@ -253,10 +332,15 @@ public class AIBehaviours : MonoBehaviour {
 			hasAttacked = true;
 		}
 
-
+		if (myUnit.moving) {
+			myMap.CullPath ();
+			myMap.GetNode (myUnit.tileX, myUnit.tileY).myUnit = null;
+			myUnit.currentPath.Last ().myUnit = myUnit;
+		}
+		
+		
 	}
-
-	//TODO MAKE THIS
+	
 	public void Attack() {
 		//temp
 		if (!hasAttacked) {

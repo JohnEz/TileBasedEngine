@@ -29,10 +29,11 @@ public class ShieldSlam : Ability
 			if (map.UnitCanEnterTile(myCaster.tileX+(diffX*2), myCaster.tileY+(diffY*2))) {
 				target.SlideToTile(myCaster.tileX+(diffX*2), myCaster.tileY+(diffY*2));
 			}
-
-			target.TakeDamage(dmg, effectLib.getSoundEffect ("Shield Slam"));
-			target.ApplyEffect(new Stun("Shield Slammed", duration));
-			target.ShowCombatText ("Stunned", target.statusCombatText);
+			//deal damage, if not dodged, apply effect
+			if (target.TakeDamage(dmg, effectLib.getSoundEffect ("Shield Slam")) != -1) {
+				target.ApplyEffect(new Stun("Shield Slammed", duration));
+				target.ShowCombatText ("Stunned", target.statusCombatText);
+			}
 		} else {
 			int dmg = (int)(damage * myCaster.damageDealtMod);
 
