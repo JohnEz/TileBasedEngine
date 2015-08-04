@@ -7,12 +7,13 @@ public class Lunge : Ability
 {
 	public Lunge (Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
+		Name = "Lunge";
 		damage = 20;
 		duration = 1;
 		range = 3;
 		area = AreaType.Line;
 		targets = TargetType.Enemy;
-		maxCooldown = 3;
+		maxCooldown = 4;
 	}
 
 	public override void UseAbility (Node n)

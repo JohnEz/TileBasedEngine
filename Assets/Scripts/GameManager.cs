@@ -9,6 +9,8 @@ public class GameManager : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		GetComponent<PrefabLibrary> ().Initialise ();
+		GetComponentInChildren<UIManager>().prefabs = GetComponent<PrefabLibrary> ();
 		GetComponent<TileMap> ().Initialise ();
 		GetComponent<UnitManager> ().Initialise ();
 	}

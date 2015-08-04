@@ -7,7 +7,7 @@ public class ManaTrap : Ability
 	{
 		manaCost = 0;
 		duration = 2;
-		maxCooldown = 2;
+		maxCooldown = 3;
 		range = 6;
 		area = AreaType.Floor;
 		targets = TargetType.Enemy;

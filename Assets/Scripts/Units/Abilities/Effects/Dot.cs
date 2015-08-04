@@ -19,7 +19,7 @@ public class Dot : Effect
 
         //deal damage 
 		if (!reapply) {
-			u.TakeDamage (damage);
+			u.TakeDamage (damage, null, false);
 		}
     }
 

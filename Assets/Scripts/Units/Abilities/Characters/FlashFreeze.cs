@@ -6,6 +6,7 @@ public class FlashFreeze : Ability
 {
 	public FlashFreeze (Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
+		Name = "Flash Freeze";
 		damage = 20;
 		manaCost = 20;
 		duration = 1;

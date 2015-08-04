@@ -168,6 +168,7 @@ public class UnitManager : MonoBehaviour {
 		u.map = map;
 		u.team = 2;
 		u.ID = everyUnit.Count;
+		u.uManager = this;
 		ai.myMap = map;
 		ai.myManager = this;
 		ai.Initialise ();
@@ -231,7 +232,7 @@ public class UnitManager : MonoBehaviour {
 		foreach (GameObject go in everyUnit) {
 			sUnit = go.GetComponent<Unit>();
 			if (sUnit.hp < 1 && !sUnit.isDead) {
-				// REMOVE UNIT FROM FUCKING EVERYTHING
+				//TODO REMOVE UNIT FROM FUCKING EVERYTHING
 				sUnit.CheckTriggers(TriggerType.Death);
 
 				int ind = currentQueue.IndexOf(go);
@@ -263,13 +264,17 @@ public class UnitManager : MonoBehaviour {
 			GetComponent<GameManager> ().cam.GetComponent<CameraController> ().MoveToTarget (sUnit.transform.position);
 
 			map.selectedUnit = currentQueue [turn];
+
 			sUnit.StartTurn ();
+
 			//is it a character or ai
 			if (sUnit.playable) {
 				ShowMovement ();
+				GetComponentInChildren<UIManager>().DrawAbilities(3, currentQueue [turn].GetComponent<Unit>());
 			} else {
 				//run the AIs turn
 				currentQueue [turn].GetComponent<AIBehaviours> ().FSM ();
+				GetComponentInChildren<UIManager>().DrawAbilities(0, null);
 			}
 		} else {
 			EndTurn();
@@ -315,27 +320,37 @@ public class UnitManager : MonoBehaviour {
 		Unit sUnit = currentQueue [turn].GetComponent<Unit> ();
 		//check to see if the current character is playable
 		if (sUnit.playable && sUnit.actionPoints > 0 && !sUnit.UnitBusy()) {
+			// dont try to reload the same ability
 			if ((int)currentDisplaying != a+1 && sUnit.myAbilities[a] != null) {
+				//if the unit has mana, and ability is off cooldown
 				if (sUnit.mana >= sUnit.myAbilities[a].manaCost) {
-					ChangeActionDisplay(a+1);
-					List<Node> targetableTiles = new List<Node>();
+					if (sUnit.myAbilities[a].cooldown < 1) {
+						ChangeActionDisplay(a+1);
+						List<Node> targetableTiles = new List<Node>();
 
-					switch(sUnit.myAbilities[a].area) {
-					case AreaType.Single: targetableTiles = map.FindSingleRangedTargets(sUnit.myAbilities[a]);
-						map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), 0);
-						ShowSingleTargets(targetableTiles, sUnit.myAbilities[a]);
-						break;
-					case AreaType.AOE: targetableTiles = map.FindSingleRangedTargets(sUnit.myAbilities[a]);
-						map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), 1);
-						break;
-					case AreaType.Line: targetableTiles = map.FindLineTargets(sUnit.myAbilities[a]);
-						map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), 1);
-						break;
-					case AreaType.Floor : targetableTiles = map.FindSingleRangedTargets(sUnit.myAbilities[a]);
-						map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f, 0.3f, 0.3f), 1);
-						ShowFloorTargets(targetableTiles, sUnit.myAbilities[a]);
-						break;
+						switch(sUnit.myAbilities[a].area) {
+						case AreaType.Single: targetableTiles = map.FindSingleRangedTargets(sUnit.myAbilities[a]);
+							map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), 0);
+							ShowSingleTargets(targetableTiles, sUnit.myAbilities[a]);
+							break;
+						case AreaType.AOE: targetableTiles = map.FindSingleRangedTargets(sUnit.myAbilities[a]);
+							map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), 1);
+							break;
+						case AreaType.Line: targetableTiles = map.FindLineTargets(sUnit.myAbilities[a]);
+							map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), 1);
+							break;
+						case AreaType.Floor : targetableTiles = map.FindSingleRangedTargets(sUnit.myAbilities[a]);
+							map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f, 0.3f, 0.3f), 1);
+							ShowFloorTargets(targetableTiles, sUnit.myAbilities[a]);
+							break;
+						}
+					} else {
+						GetComponentInChildren<UIManager>().ShowErrorText("Ability is on cooldown");
+						sUnit.GetComponent<AudioSource> ().PlayOneShot (effectLibrary.getSoundEffect ("Error"));
 					}
+				} else {
+					GetComponentInChildren<UIManager>().ShowErrorText("Not enough mana");
+					sUnit.GetComponent<AudioSource> ().PlayOneShot (effectLibrary.getSoundEffect ("Error"));
 				}
 			}
 		}
@@ -499,6 +514,10 @@ public class UnitManager : MonoBehaviour {
 	}
 
 	void UseAbility(int x, int y) {
+		if (map.GetNode (x, y).reachableNodes == null) {
+			AbilityTileEnter(x, y);
+		}
+
 		Unit sUnit = currentQueue [turn].GetComponent<Unit> ();
 
 		int a = (int)currentDisplaying - 1;
@@ -560,6 +579,8 @@ public class UnitManager : MonoBehaviour {
 	void GiveEnemyAbilities(Unit u, EnemyClass e) {
 		switch (e) {
 		case EnemyClass.Goblin: u.myAbilities[0] = new Clobber(u, map, effectLibrary);
+			u.myAbilities[1] = new Clobber(u, map, effectLibrary);
+			u.myAbilities[2] = new Clobber(u, map, effectLibrary);
 			break;
 		}
 	}

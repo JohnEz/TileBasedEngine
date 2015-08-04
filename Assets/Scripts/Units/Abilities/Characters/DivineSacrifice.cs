@@ -5,6 +5,7 @@ public class DivineSacrifice : Ability
 {
 	public DivineSacrifice (Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
+		Name = "Divine Sacrifice";
 		damage = 10;
 		duration = 4;
 		range = 6;

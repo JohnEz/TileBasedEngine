@@ -4,6 +4,7 @@ public class ArcanePulse : Ability
 {
 	public ArcanePulse (Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
+		Name = "Arcane Pulse";
 		manaCost = -20;
 		maxCooldown = 1;
 		damage = 25;
@@ -28,12 +29,10 @@ public class ArcanePulse : Ability
  
 		dmg = (int)(dmg * mod);
 
-		target.TakeDamage (dmg);
+		target.TakeDamage (dmg, effectLib.getSoundEffect ("Arcane Pulse"));
 		
 		Vector3 pos = map.TileCoordToWorldCoord (target.tileX, target.tileY);
 		myVisualEffects.Add (effectLib.CreateVisualEffect ("Arcane Pulse", pos).GetComponent<EffectController> ());
-
-		myCaster.GetComponent<AudioSource> ().PlayOneShot (effectLib.getSoundEffect ("Arcane Pulse"));
 	}
 
 }

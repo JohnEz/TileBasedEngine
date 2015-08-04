@@ -4,6 +4,7 @@ public class Lacerate : Ability
 {
 	public Lacerate (Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
+		Name = "Lacerate";
 		damage = 40;
 		duration = 2;
 		range = 1;
@@ -20,13 +21,11 @@ public class Lacerate : Ability
 		int dmg = (int)(damage * myCaster.damageDealtMod);
 
 		myCaster.AddComboPoints (2);
-		target.TakeDamage(dmg);
+		target.TakeDamage(dmg, effectLib.getSoundEffect ("Lacerate"));
 		target.ApplyEffect(new DamageRecievedEffect("Lacerate", duration, 0.1f, stacks));
 
 		Vector3 pos = map.TileCoordToWorldCoord (target.tileX, target.tileY);
 		myVisualEffects.Add (effectLib.CreateVisualEffect ("Slash1", pos).GetComponent<EffectController> ());
-
-		myCaster.GetComponent<AudioSource> ().PlayOneShot (effectLib.getSoundEffect ("Lacerate"));
 	}
 }
 

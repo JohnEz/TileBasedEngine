@@ -19,7 +19,7 @@ public enum TargetType {
 }
 
 public class Ability{
-	public string Name;
+	public string Name = "";
     public int spellID;
 
 	public int damage = 0;
@@ -28,7 +28,7 @@ public class Ability{
 	public int maxCooldown = 1;
 	public int manaCost = 0;
 	public int shield = 0;
-	int cooldown;
+	public int cooldown;
 	public AreaType area = AreaType.Single;
 	public TargetType targets = TargetType.Enemy;
 	public int range;

@@ -17,12 +17,10 @@ public class Clobber : Ability
 		base.UseAbility(target);
 		int dmg = (int)(damage * myCaster.damageDealtMod);
 		
-		target.TakeDamage(dmg);
+		target.TakeDamage(dmg, effectLib.getSoundEffect ("Blunt2"));
 		
 		Vector3 pos = map.TileCoordToWorldCoord (target.tileX, target.tileY);
 		myVisualEffects.Add (effectLib.CreateVisualEffect ("Hit1", pos).GetComponent<EffectController> ());
-
-		myCaster.GetComponent<AudioSource> ().PlayOneShot (effectLib.getSoundEffect ("Blunt2"));
 	}
 
 }

@@ -7,6 +7,7 @@ public class Charge : Ability
 {
 	public Charge (Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
+		Name = "Charge";
 		damage = 10;
 		duration = 2;
 		range = 5;

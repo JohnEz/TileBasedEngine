@@ -5,6 +5,7 @@ public class PointBlank : Ability
 {
 	public PointBlank (Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
+		Name = "Point Blank";
 		damage = 20;
 		duration = 0;
 		range = 1;

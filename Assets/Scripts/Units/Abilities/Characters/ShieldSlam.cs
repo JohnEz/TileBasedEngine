@@ -5,12 +5,13 @@ public class ShieldSlam : Ability
 {
 	public ShieldSlam(Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
+		Name = "Shield Slam";
 		damage = 20;
 		duration = 1;
 		range = 1;
 		area = AreaType.Single;
 		targets = TargetType.Enemy;
-		maxCooldown = 2;
+		maxCooldown = 3;
 	}
 
 	public override void UseAbility (Unit target)
@@ -29,16 +30,15 @@ public class ShieldSlam : Ability
 				target.SlideToTile(myCaster.tileX+(diffX*2), myCaster.tileY+(diffY*2));
 			}
 
-			target.TakeDamage(dmg);
+			target.TakeDamage(dmg, effectLib.getSoundEffect ("Shield Slam"));
 			target.ApplyEffect(new Stun("Shield Slammed", duration));
 			target.ShowCombatText ("Stunned", target.statusCombatText);
 		} else {
 			int dmg = (int)(damage * myCaster.damageDealtMod);
 
-			target.TakeDamage(dmg*3);
+			target.TakeDamage(dmg*3, effectLib.getSoundEffect ("Shield Slam"));
 		}
 
-		myCaster.GetComponent<AudioSource> ().PlayOneShot (effectLib.getSoundEffect ("Shield Slam"));
 	}
 
 	public override void UpdateAbility ()

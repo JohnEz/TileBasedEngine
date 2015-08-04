@@ -164,7 +164,7 @@ public class TileMap : MonoBehaviour {
 			//find current lowest cost tile
 			Node u = null;
 			foreach (Node n in unvisited) {
-				if (u == null || (n.cost < u.cost && (!n.myUnit || n == source || n == target))){
+				if ((u == null || n.cost < u.cost) && (n.myUnit == null || n == source || n == target)){
 					u = n;
 				}
 			}

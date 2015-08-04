@@ -468,24 +468,34 @@ public class Unit : MonoBehaviour {
 	}
 
 	// unit takes parameter damage and shows in combat text
-    public void TakeDamage(int dmg)
+	public void TakeDamage(int dmg, AudioClip sound = null, bool canBeEvaded = true)
     {
 		//calculate the actual damage after reductions
 		int damage = (int)((dmg * damageRecievedMod) * (1 - armourDamageReduction));
 
-		//see if the unit dodges the attack
-		int dodge = Random.Range (1, 100);
-		if (dodge <= dodgeChance) {
-			ShowCombatText("Dodged", statusCombatText);
-			return;
+		if (canBeEvaded) {
+
+			//see if the unit dodges the attack
+			int dodge = Random.Range (1, 100);
+			if (dodge <= dodgeChance) {
+				ShowCombatText ("Dodged", statusCombatText);
+				GetComponent<AudioSource> ().PlayOneShot (uManager.GetComponent<PrefabLibrary> ().getSoundEffect ("Dodge"));
+				return;
+			}
+
+			//see if the unit Blocks the attack
+			int block = Random.Range (1, 100);
+			if (block <= blockChance) {
+				ShowCombatText ("Blocked", statusCombatText);
+				damage = (int)(damage * 0.25f);
+				GetComponent<AudioSource> ().PlayOneShot (uManager.GetComponent<PrefabLibrary> ().getSoundEffect ("Block"));
+			} else if (sound != null) {
+				GetComponent<AudioSource> ().PlayOneShot (sound);
+			}
+		} else if (sound != null) {
+			GetComponent<AudioSource> ().PlayOneShot (sound);
 		}
 
-		//see if the unit Blocks the attack
-		int block = Random.Range (1, 100);
-		if (block <= blockChance) {
-			ShowCombatText("Blocked", statusCombatText);
-			damage = (int)(damage * 0.75f);
-		}
 
 		int currentDamage = damage;
 

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class PrefabLibrary : MonoBehaviour {
 
@@ -15,11 +16,16 @@ public class PrefabLibrary : MonoBehaviour {
 	public GameObject[] projPrefabs;
 	public Dictionary<string, int> projectiles = new Dictionary<string, int>();
 
+	//projectiles
+	public GameObject[] iconPrefabs;
+	public Dictionary<string, int> icons = new Dictionary<string, int>();
+
 	// Use this for initialization
-	void Start () {
+	public void Initialise () {
 		AttachAudioEffects ();
 		AttachVisualEffects ();
 		AttachProjectiles ();
+		AttachIcons ();
 	}
 
 	void AttachVisualEffects() {
@@ -58,6 +64,9 @@ public class PrefabLibrary : MonoBehaviour {
 		soundEffects.Add ("TripleShot Hit", 15);
 		soundEffects.Add ("Fireball Cast", 16);
 		soundEffects.Add ("Fireball Hit", 17);
+		soundEffects.Add ("Error", 18);
+		soundEffects.Add ("Dodge", 19);
+		soundEffects.Add ("Block", 20);
 
 	}
 
@@ -66,7 +75,29 @@ public class PrefabLibrary : MonoBehaviour {
 		projectiles.Add ("Crippling Shot", 1);
 		projectiles.Add ("Fireball", 2);
 	}
-	
+
+
+	void AttachIcons() {
+		icons.Add ("Crippling Strike", 0);
+		icons.Add ("Shield Slam", 1);
+		icons.Add ("Charge", 2);
+
+		icons.Add ("Triple Shot", 3);
+		icons.Add ("Crippling Shot", 4);
+		icons.Add ("Exploit Weakness", 5);
+
+		icons.Add ("Word Of Healing", 6);
+		icons.Add ("Righteous Shield", 7);
+		icons.Add ("Divine Sacrifice", 8);
+
+		icons.Add ("Arcane Pulse", 9);
+		icons.Add ("Fireball", 10);
+		icons.Add ("Flash Freeze", 11);
+
+		icons.Add ("Lacerate", 12);
+		icons.Add ("Lunge", 13);
+		icons.Add ("Point Blank", 14);
+	}
 	// Update is called once per frame
 	void Update () {
 
@@ -83,6 +114,12 @@ public class PrefabLibrary : MonoBehaviour {
 		AudioClip ac = audioClips [soundEffects [s]];
 
 		return ac;
+	}
+
+	public GameObject getIcon(string s) {
+		GameObject icon = iconPrefabs [icons [s]];
+
+		return icon;
 	}
 
 	public GameObject CreateVisualEffect(string s, Vector3 pos, bool flip = false, bool infront = true) {

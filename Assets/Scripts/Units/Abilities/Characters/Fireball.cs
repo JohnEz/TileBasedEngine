@@ -6,6 +6,7 @@ public class Fireball : Ability
 {
 	public Fireball (Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
+		Name = "Fireball";
 		damage = 30;
 		manaCost = 15;
 		duration = 3;
@@ -21,7 +22,7 @@ public class Fireball : Ability
 		base.UseAbility (target);
 
 		myCaster.GetComponent<AudioSource> ().PlayOneShot (effectLib.getSoundEffect ("Fireball Cast"));
-		myProjectiles.Add(effectLib.CreateProjectile("Fireball", myCaster.transform.position, target.transform.position, 8).GetComponent<ProjectileController>());
+		myProjectiles.Add(effectLib.CreateProjectile("Fireball", myCaster.transform.position, target.transform.position, 10).GetComponent<ProjectileController>());
 	}
 
 
@@ -31,9 +32,7 @@ public class Fireball : Ability
 
 		int dmg = (int)(damage * myCaster.damageDealtMod);
 
-		myCaster.GetComponent<AudioSource> ().PlayOneShot (effectLib.getSoundEffect ("Fireball Hit"));
-
-		myTarget.TakeDamage (dmg);
+		myTarget.TakeDamage (dmg, effectLib.getSoundEffect ("Fireball Hit"));
 		myTarget.ApplyEffect (new Dot ("Burning", duration, 10));
 
 		Vector3 pos = map.TileCoordToWorldCoord (myTarget.tileX, myTarget.tileY);

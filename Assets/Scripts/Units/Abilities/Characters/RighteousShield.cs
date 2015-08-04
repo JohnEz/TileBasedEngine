@@ -7,9 +7,10 @@ public class RighteousShield : Ability
 
 	public RighteousShield (Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
+		Name = "Righteous Shield";
 		shield = 50;
 		manaCost = 20;
-		maxCooldown = 3;
+		maxCooldown = 2;
 		duration = 1;
 		range = 6;
 		area = AreaType.Single;

@@ -6,6 +6,7 @@ public class CripplingShot : Ability
 {
 	public CripplingShot (Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
+		Name = "Crippling Shot";
 		damage = 10;
 		manaCost = 20;
 		duration = 2;

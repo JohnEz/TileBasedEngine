@@ -7,6 +7,7 @@ public class TripleShot : Ability
 
 	public TripleShot (Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
+		Name = "Triple Shot";
 		damage = 10;
 		range = 7;
 		maxCooldown = 1;
@@ -38,8 +39,7 @@ public class TripleShot : Ability
 
 		myCaster.AddRemoveMana (5);
 		
-		myTarget.TakeDamage (dmg);
-		myCaster.GetComponent<AudioSource> ().PlayOneShot (effectLib.getSoundEffect ("TripleShot Hit"));
+		myTarget.TakeDamage (dmg, effectLib.getSoundEffect ("TripleShot Hit"));
 
 		if (firstHit) {
 			Vector3 pos = map.TileCoordToWorldCoord (myTarget.tileX, myTarget.tileY);
