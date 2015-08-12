@@ -101,6 +101,9 @@ public class UnitManager : MonoBehaviour {
 		spawnEnemy (17, 1, EnemyClass.Goblin);
 		spawnEnemy (15, 8, EnemyClass.GoblinAxeThrower);
 
+		spawnEnemy (25, 8, EnemyClass.GoblinAxeThrower);
+		spawnEnemy (26, 1, EnemyClass.GoblinAxeThrower);
+
 		activeUnits.Sort(CompareListByInitiative);
 		currentQueue = activeUnits;
 
@@ -232,7 +235,7 @@ public class UnitManager : MonoBehaviour {
 			//is it a character or ai
 			if (sUnit.playable) {
 				ShowMovement ();
-				GetComponentInChildren<UIManager>().DrawAbilities(3, currentQueue [turn].GetComponent<Unit>());
+				GetComponentInChildren<UIManager>().DrawAbilities(4, currentQueue [turn].GetComponent<Unit>());
 			} else {
 				//run the AIs turn
 				currentQueue [turn].GetComponent<AIBehaviours> ().FSM ();
@@ -347,7 +350,7 @@ public class UnitManager : MonoBehaviour {
 					// if the ability isnt on cooldown
 					if (sUnit.myAbilities[a].cooldown < 1) {
 						// check if the user has any combo if it needs it
-						if ((sUnit.myAbilities[a].usesCombo && sUnit.comboPoints > 1) || !sUnit.myAbilities[a].usesCombo) {
+						if ((sUnit.myAbilities[a].usesCombo && sUnit.comboPoints > 0) || !sUnit.myAbilities[a].usesCombo) {
 
 							//highlight icon
 							GetComponentInChildren<UIManager>().HighlightIcon(a);
@@ -599,6 +602,7 @@ public class UnitManager : MonoBehaviour {
 		case CharacterClass.Elementalist: u.myAbilities[0] = new ArcanePulse(u, map, effectLibrary);
 			u.myAbilities[1] = new Fireball(u, map, effectLibrary);
 			u.myAbilities[2] = new FlashFreeze(u, map, effectLibrary);
+			u.myAbilities[3] = new DeepSlumber(u, map, effectLibrary);
 			break;
 		case CharacterClass.Ranger: u.myAbilities[0] = new TripleShot(u, map, effectLibrary);
 			u.myAbilities[1] = new CripplingShot(u, map, effectLibrary);

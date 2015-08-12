@@ -35,6 +35,7 @@ public class Ability{
 	public int range;
 	public int AOERange = 2;
 	public bool usesCombo = false;
+	public bool canTargetSelf = true;
 
     public Unit myCaster = null;
 	public Unit myTarget = null;

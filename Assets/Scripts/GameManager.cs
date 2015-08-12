@@ -6,11 +6,11 @@ public class GameManager : MonoBehaviour {
 	public GameObject UI;
 	public Camera cam;
 
-
 	// Use this for initialization
 	void Start () {
+		transform.position = new Vector3 (0, GetComponentInChildren<UIManager> ().GetComponent<RectTransform>().rect.height / 2, 0);
 		GetComponent<PrefabLibrary> ().Initialise ();
-		GetComponentInChildren<UIManager>().prefabs = GetComponent<PrefabLibrary> ();
+		UI.GetComponent<UIManager>().prefabs = GetComponent<PrefabLibrary> ();
 		GetComponent<TileMap> ().Initialise ();
 		GetComponent<UnitManager> ().Initialise ();
 	}

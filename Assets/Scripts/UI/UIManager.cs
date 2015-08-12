@@ -7,8 +7,6 @@ public class UIManager : MonoBehaviour {
 	public GameObject[] AbilityNumbers;
 	public GameObject errorText;
 
-	List<GameObject> currentObjects = new List<GameObject> ();
-
 	List<GameObject> currentIcons = new List<GameObject> ();
 	List<GameObject> currentIconFrames = new List<GameObject> ();
 
@@ -36,8 +34,10 @@ public class UIManager : MonoBehaviour {
 			Vector3 pos = new Vector3(startX + (32*i)+16, -y, 0);
 
 			CreateIconFrame(i, pos);
-			if (u.myAbilities[i].Name != "") {
-				CreateIcon(u.myAbilities[i], pos);
+			if (u.myAbilities[i] != null) {
+				if (u.myAbilities[i].Name != "") {
+					CreateIcon(u.myAbilities[i], pos, i);
+				}
 			}
 		}
 
@@ -72,7 +72,7 @@ public class UIManager : MonoBehaviour {
 	}
 
 	//creates an icon at the location, s looks for a prefab
-	void CreateIcon(Ability abil, Vector3 pos) {
+	void CreateIcon(Ability abil, Vector3 pos, int slot) {
 		Vector3 position = pos + new Vector3 (0, 32, 0);
 
 		GameObject go = (GameObject)Instantiate (prefabs.getIcon(abil.Name), position, transform.rotation);
@@ -95,7 +95,7 @@ public class UIManager : MonoBehaviour {
 			go.transform.FindChild ("CooldownText").GetComponent<Text>().text = "";
 		}
 
-
+		go.GetComponent<IconController> ().slot = slot;
 
 		currentIcons.Add(go);
 	}

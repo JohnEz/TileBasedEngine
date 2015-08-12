@@ -111,6 +111,13 @@ public class Unit : MonoBehaviour {
 	//when a unit starts a new turn, this function is ran
     public void StartTurn()
     {
+		//remove expired effects
+		foreach (Effect eff in expiredEffects) {
+			myEffects.Remove(eff);
+		}
+
+		expiredEffects = new List<Effect> ();
+
 		UpdateStats ();
 
 		for(int i=0; i < myAbilities.Length; ++i) {
@@ -140,7 +147,7 @@ public class Unit : MonoBehaviour {
 		ShowDebuffs ();
 	}
 
-	void UpdateStats() {
+	void UpdateStats(bool reapply = false) {
 		//set each stat to its base then apply effects
 		maxHP = baseHP;
 		maxMana = baseMana;
@@ -154,7 +161,8 @@ public class Unit : MonoBehaviour {
 		shield = 0;
 		dodgeChance = baseDodge;
 		blockChance = baseBlock;
-		
+
+
 		//apply the effects
 		foreach (Effect eff in myEffects)
 		{
@@ -163,13 +171,6 @@ public class Unit : MonoBehaviour {
 				expiredEffects.Add(eff);
 			}
 		}
-		
-		//remove expired effects
-		foreach (Effect eff in expiredEffects) {
-			myEffects.Remove(eff);
-		}
-		
-		expiredEffects = new List<Effect> ();
 		
 		// if maxhp is now lower than current hp
 		if (hp > maxHP)
@@ -494,6 +495,10 @@ public class Unit : MonoBehaviour {
 		if (IsSnared()) {
 			displayedEffects.Add(uManager.GetComponent<PrefabLibrary>().CreateBuffVisual("Snared", transform));
 		}
+
+		if (IsAsleep ()) {
+			displayedEffects.Add(uManager.GetComponent<PrefabLibrary>().CreateBuffVisual("Sleep", transform));
+		}
 	}
 
 	// unit takes parameter damage and shows in combat text, returns if the dmg was dodged(-1), blocked(0) or hit(1)
@@ -679,24 +684,54 @@ public class Unit : MonoBehaviour {
 
     }
 
+	public void RemoveEffect(Effect eff) {
+		//need to reaply all the buffs
+
+		myEffects.Remove (eff);
+
+		//set each stat to its base then apply effects
+		maxHP = baseHP;
+		maxMana = baseMana;
+		movespeed = baseMove;
+		armourDamageReduction = baseArmour;
+		init = baseInit;
+		maxAP = baseAP;
+		damageDealtMod = 1;
+		damageRecievedMod = 1;
+		healingRecievedMod = 1;
+		shield = 0;
+		dodgeChance = baseDodge;
+		blockChance = baseBlock;
+
+		foreach (Effect currentEffect in myEffects) {
+			currentEffect.RunEffect(this, true);
+		}
+
+		ShowDebuffs ();
+
+	}
+
 	public void AddTrigger(Trigger trig) {
 		myTriggers.Add (trig);
 	}
 
 	// finds if the unit is stunned
 	public bool IsStunned() {
-		foreach (Effect eff in myEffects) {
-			if (eff.description.Equals("Stun")) {
-				return true;
-			}
-		}
-		return false;
+		return HasDebuff("Stun");
 	}
 
 	// finds if the unit is snared
 	public bool IsSnared() {
+		return HasDebuff("Snare");
+	}
+
+	public bool IsAsleep() {
+		return HasDebuff("Sleep");
+	}
+
+	public bool HasDebuff(string n) {
 		foreach (Effect eff in myEffects) {
-			if (eff.description.Equals("Snare")) {
+			if (eff.description.Equals(n)) {
 				return true;
 			}
 		}

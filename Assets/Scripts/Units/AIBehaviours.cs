@@ -47,8 +47,8 @@ public class AIBehaviours : MonoBehaviour {
 		case Behaviour.Dumb: FindTargetClosest(myManager.playerUnitObjects, false);
 			Dumb ();
 			break;
-		case Behaviour.DumbRanged: FindTargetClosest(myManager.playerUnitObjects, true);
-			FindClosestLoS();
+		case Behaviour.DumbRanged: //FindTargetClosest(myManager.playerUnitObjects, true);
+			FindClosestLoS(myManager.playerUnitObjects);
 			DumbRanged();
 			break;
 		}
@@ -58,6 +58,7 @@ public class AIBehaviours : MonoBehaviour {
 	//find target closest to the unit, from array
 	void FindTargetClosest(GameObject[] targets, bool ignoreUnits) {
 
+		//if stunned
 		if (myUnit.remainingMove <= 0 && myUnit.actionPoints <= 0 && myUnit.movespeed == 0) {
 			return;
 		}
@@ -102,8 +103,9 @@ public class AIBehaviours : MonoBehaviour {
 
 	//find target closest to the unit, from array
 	void FindTargetClosestAllyInMelee() {
-		
-		if (myUnit.remainingMove <= 0 && (myUnit.actionPoints <= 0 || myUnit.movespeed == 0)) {
+
+		//if stunned
+		if (myUnit.remainingMove <= 0 && myUnit.actionPoints <= 0 && myUnit.movespeed == 0) {
 			return;
 		}
 		
@@ -181,117 +183,131 @@ public class AIBehaviours : MonoBehaviour {
 	}
 
 	void DumbRanged() {
-		// if the ai is stunned, or didnt have a path for some reason
-		if (myUnit.currentPath == null) {
-			return;
-		}
-
 		//if no path could be found, look for an ally i can support
-		if (myUnit.currentPath.Count == 0) {
+		if (myUnit.currentPath == null) {
 			//pass go
 			myUnit.ShowCombatText ("Passed", myUnit.statusCombatText);
+			return;
 		}
 
 		BasicTurn ();
 
 	}
 
-	void FindClosestLoS() {
-		List<Node> shortestPath = new List<Node> ();
-		myUnit.currentPath = new List<Node> ();
-		float currentPathLength = Mathf.Infinity;
+	void FindClosestLoS(GameObject[] targets) {
 
-		List<Node> losNodes = myMap.FindSingleRangedTargets (myUnit.myAbilities [0], target.myUnit);
-				
-		//each tile in los of target
-		foreach (Node n in losNodes) {
-		myMap.GeneratePathTo (n.x, n.y);
-				
-			//if the new path is shorter
-			if (myUnit.currentPath.Count < currentPathLength && myUnit.currentPath.Count > 0) {
-				shortestPath = myUnit.currentPath;
-				currentPathLength = myUnit.currentPath.Count;
-			}
+		//if stunned return null
+		if (myUnit.remainingMove <= 0 && myUnit.actionPoints <= 0 && myUnit.movespeed == 0) {
+			return;
 		}
-
 		
-		//set the target
-		myUnit.currentPath = shortestPath;
-		
-	}
-
-	void FindClosestLoS2(GameObject[] targets) {
-		List<Node> shortestPath = new List<Node> ();
-		myUnit.currentPath = new List<Node> ();
+		List<Node> shortestPath = null;
+		myUnit.currentPath = null;
 		float currentPathLength = Mathf.Infinity;
-		int tx = 0;
-		int ty = 0;
+		
 
-		//loop for every targget
+		
+		//check each unit
 		foreach (GameObject go in targets) {
-			Unit u = go.GetComponent<Unit>();
-			//only look at alive targets
-			if (!u.isDead) {
-				List<Node> losNodes = myMap.FindSingleRangedTargets (myUnit.myAbilities [0], u);
-
-				//each tile in los of target
-				foreach (Node n in losNodes) {
-					myMap.GeneratePathTo (n.x, n.y);
-
-					//if the new path is shorter
-					if (myUnit.currentPath.Count < currentPathLength && myUnit.currentPath.Count > 0) {
+			Unit sUnit = go.GetComponent<Unit>();
+			List<Node> losNodes = myMap.FindSingleRangedTargets (myUnit.myAbilities [0], sUnit);
+			if (!sUnit.isDead) {
+				if (myMap.AIFindClosestTile(sUnit.tileX, sUnit.tileY, losNodes)) {
+					if (myUnit.currentPath.Count < currentPathLength) {
 						shortestPath = myUnit.currentPath;
 						currentPathLength = myUnit.currentPath.Count;
-						tx = u.tileX;
-						ty = u.tileY;
+						target = myMap.GetNode (sUnit.tileX, sUnit.tileY);
 					}
 				}
 			}
+
 		}
 
 		//set the target
-		target = myMap.GetNode (tx, ty);
 		myUnit.currentPath = shortestPath;
 
+		
 	}
 
 	//Basic turn - attack if in range or move and attack, or dash
 	void BasicTurn(){
 
+		myUnit.currentPath.Remove (target);
+
 		// is it already in melee?
-		if (myUnit.currentPath.Count == 1) {
+		if (myUnit.currentPath.Count == 0) {
 			myStrat = AIStrategy.Attack;
 			myUnit.attacking = true;
 			hasAttacked = false;
 			inCloseCombat = true;
 		} 
 		// if target is in first move range, move and attack
-		else if (myUnit.currentPath.Count <= myUnit.movespeed) {
-			myStrat = AIStrategy.MoveAttack;
-			myUnit.moving = true;
-			myUnit.attacking = true;
-			myUnit.remainingMove -= (int)myUnit.currentPath.Last().cost;
-			hasAttacked = false;
-			inCloseCombat = true;
-		} 
-		// if the unit is really far away, dash
-		else{
-			//check to see if it is now in melee
-			if (myUnit.currentPath.Count <= myUnit.movespeed*2) {
+		else if (myUnit.remainingMove > 0 || myUnit.movespeed > 0) {
+			if (myUnit.currentPath.Count <= myUnit.movespeed) {
+				myStrat = AIStrategy.MoveAttack;
+				myUnit.moving = true;
+				myUnit.attacking = true;
+				myUnit.remainingMove -= (int)myUnit.currentPath.Last().cost;
+				hasAttacked = false;
 				inCloseCombat = true;
-			} else {
-				inCloseCombat = false;
+			} 
+			// if the unit is really far away, dash
+			else{
+				//check to see if it is now in melee
+				if (myUnit.currentPath.Count <= myUnit.movespeed*2) {
+					inCloseCombat = true;
+				} else {
+					inCloseCombat = false;
+				}
+				myStrat = AIStrategy.Dash;
+				myUnit.moving = true;
+				FindFurthestTileInPath();
+				myUnit.remainingMove += myUnit.movespeed - (int)myUnit.currentPath.Last().cost;
+				--myUnit.actionPoints;
+				hasAttacked = true;
 			}
-			myStrat = AIStrategy.Dash;
-			myUnit.moving = true;
-			FindFurthestTileInPath();
-			myUnit.remainingMove += myUnit.movespeed - (int)myUnit.currentPath.Last().cost;
-			--myUnit.actionPoints;
-			hasAttacked = true;
 		}
 
-		myUnit.currentPath.Remove (target);
 
+		if (myUnit.moving) {
+			myMap.CullPath ();
+			myMap.GetNode (myUnit.tileX, myUnit.tileY).myUnit = null;
+			myUnit.currentPath.Last ().myUnit = myUnit;
+		}
+	}
+
+	//Basic turn - attack if in range or move and attack, or dash
+	void BasicTurnRanged(){
+		
+		myUnit.currentPath.Remove (target);
+		
+		// is it already in melee?
+		if (myUnit.currentPath.Count == 0) {
+			myStrat = AIStrategy.Attack;
+			myUnit.attacking = true;
+			hasAttacked = false;
+		} 
+		// if target is in first move range, move and attack
+		else if (myUnit.remainingMove > 0 || myUnit.movespeed > 0) {
+			if (myUnit.currentPath.Count <= myUnit.movespeed) {
+				myStrat = AIStrategy.MoveAttack;
+				myUnit.moving = true;
+				myUnit.attacking = true;
+				myUnit.remainingMove -= (int)myUnit.currentPath.Last().cost;
+				hasAttacked = false;
+			} 
+			// if the unit is really far away, dash
+			else{
+				myStrat = AIStrategy.Dash;
+				myUnit.moving = true;
+				FindFurthestTileInPath();
+				myUnit.remainingMove += myUnit.movespeed - (int)myUnit.currentPath.Last().cost;
+				--myUnit.actionPoints;
+				hasAttacked = true;
+			}
+		}
+		
+		
 		if (myUnit.moving) {
 			myMap.CullPath ();
 			myMap.GetNode (myUnit.tileX, myUnit.tileY).myUnit = null;

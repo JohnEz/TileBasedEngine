@@ -11,6 +11,7 @@ public class Node {
 	public Trigger myTrigger = null;
 	public Vector2 directionToParent;
 	public float cost = Mathf.Infinity;
+	public float dist = 0;
 	public List<Node> reachableNodes = null;
 	
 	public Node() {

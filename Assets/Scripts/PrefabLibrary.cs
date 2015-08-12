@@ -46,6 +46,7 @@ public class PrefabLibrary : MonoBehaviour {
 		visualEffects.Add ("Exploit Weakness Hit", 12);
 		visualEffects.Add ("Stunned", 13);
 		visualEffects.Add ("Snared", 14);
+		visualEffects.Add ("Sleep", 15);
 	}
 
 	void AttachAudioEffects() {
@@ -108,6 +109,8 @@ public class PrefabLibrary : MonoBehaviour {
 		icons.Add ("Lacerate", 12);
 		icons.Add ("Lunge", 13);
 		icons.Add ("Point Blank", 14);
+
+		icons.Add ("Deep Slumber", 15);
 	}
 	// Update is called once per frame
 	void Update () {

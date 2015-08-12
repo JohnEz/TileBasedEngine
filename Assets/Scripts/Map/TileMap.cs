@@ -69,8 +69,8 @@ public class TileMap : MonoBehaviour {
 		graph = new Node[currentLevel.maxSizeX * currentLevel.maxSizeY];
 
 		//create nodes in array
-		for (int y=0; y < currentLevel.maxSizeY; ++y) {
-			for (int x=0; x < currentLevel.maxSizeX; ++x) {
+		for (int x=0; x < currentLevel.maxSizeX; ++x) {
+			for (int y=0; y < currentLevel.maxSizeY; ++y) {
 				graph [y * currentLevel.maxSizeX + x] = new Node ();
 				graph [y * currentLevel.maxSizeX + x].x = x;
 				graph [y * currentLevel.maxSizeX + x].y = y;
@@ -78,8 +78,8 @@ public class TileMap : MonoBehaviour {
 		}
 
 		//find neighbours
-		for (int y=0; y < currentLevel.maxSizeY; ++y) {
-			for (int x=0; x < currentLevel.maxSizeX; ++x) {
+		for (int x=0; x < currentLevel.maxSizeX; ++x) {
+			for (int y=0; y < currentLevel.maxSizeY; ++y) {
 
 				//set all neighbours
 				if (x > 0) {
@@ -106,8 +106,8 @@ public class TileMap : MonoBehaviour {
 		tileObjects = new GameObject[currentLevel.maxSizeY * currentLevel.maxSizeX];
 
 		//initialize map tiles
-		for (int y=0; y < currentLevel.maxSizeY; ++y) {
-			for (int x=0; x < currentLevel.maxSizeX; ++x) {
+		for (int x=0; x < currentLevel.maxSizeX; ++x) {
+			for (int y=0; y < currentLevel.maxSizeY; ++y) {
 				TileType tt = tileTypes[(int)currentLevel.tiles[y * currentLevel.maxSizeX + x]];
 
 				int z = 0;
@@ -136,127 +136,43 @@ public class TileMap : MonoBehaviour {
 	public void GeneratePathTo(int x, int y, bool ignoreUnits = false) {
 		List<Node> currentPath = null;
 		Unit sUnit = selectedUnit.GetComponent<Unit> ();
-
-		List<Node> unvisited = new List<Node> ();
-
+		
+		List<Node> openList = new List<Node> ();
+		
 		Node source = graph [sUnit.tileY * currentLevel.maxSizeX + sUnit.tileX];
 		Node target = graph [y * currentLevel.maxSizeX + x];
 		
-
+		
 		source.cost = 0;
 		source.previous = null;
-
+		source.dist = 0;
+		
 		// Initialize everything to have inf distance
 		foreach(Node n in graph) {
 			if (n != source) {
 				n.cost = Mathf.Infinity;
 				n.previous = null;
+				n.dist = Math.Abs(n.x - target.x) + Math.Abs(n.y - target.y);
 			}
-			unvisited.Add(n);
 		}
 
+		openList.Add (source);
+		
 		// look through all unvisited nodes
-		while (unvisited.Count > 0) {
+		while (openList.Count > 0) {
 			//find current lowest cost tile
 			Node u = null;
-			foreach (Node n in unvisited) {
-				if ((u == null || n.cost < u.cost) && ((n.myUnit == null || ignoreUnits) || n == source || n == target)){
+			foreach (Node n in openList) {
+				if ((u == null || ( (n.cost + n.dist) < (u.cost + u.dist) ) ) && ((n.myUnit == null || ignoreUnits) || n == source || n == target)){
 					u = n;
 				}
 			}
-
-			if (u == target) {
-				break; // found the end, exit
+			
+			if (u == target || u == null) {
+				break; //either no path or full path found
 			}
-
-			unvisited.Remove(u);
-
-			// look through the neibours and set the shortest path
-			foreach(Node n in u.neighbours) {
-				if (n != null)
-				{
-					//float alt = dist[u] + u.distanceTo(n);
-					float alt = u.cost + CostToEnterTile(n.x, n.y);
-					if (alt < n.cost) {
-						n.cost = alt;
-						n.previous = u;
-						n.directionToParent = new Vector2(u.x - n.x, u.y - n.y);
-					}
-				}
-			}
-		}
-
-		//was there no possible path
-		if (target.previous == null) {
-			return;
-		}
-
-		//must have a path
-		currentPath = new List<Node> ();
-		Node curr = target;
-
-		//loop through the chain and add to path
-		while (curr != null) {
-			if (curr != source){
-				currentPath.Add(curr);
-			}
-			curr = curr.previous;
-		}
-
-		//reverse the path as its backwards
-		currentPath.Reverse();
-
-		sUnit.currentPath = currentPath;
-	}
-
-	//using dijkstra's algorithm it finds every tile that can be reached
-	public void FinReachableTilesUnit() {
-		Unit sUnit = selectedUnit.GetComponent<Unit> ();
-		bool canDash = sUnit.actionPoints > 0;
-
-		List<Node> reachableTiles = new List<Node> ();
-		List<Node> reachableTilesDash = new List<Node> ();
-
-		List<Node> unvisited = new List<Node> ();
-
-		Node source = graph [sUnit.tileY * currentLevel.maxSizeX + sUnit.tileX];
-
-		source.previous = null;
-		source.cost = 0;
-
-		// Initialize everything to have inf distance
-		foreach(Node n in graph) {
-			if (n != source) {
-				n.cost = Mathf.Infinity;
-				n.previous = null;
-			}
-			unvisited.Add(n);
-		}
-
-
-
-		// look through all unvisited nodes
-		while (unvisited.Count > 0) {
-			//find current lowest cost tile
-			Node u = null;
-			foreach (Node n in unvisited) {
-				if (u == null || (n.cost < u.cost && (!n.myUnit || n == source))){
-					u = n;
-				}
-			}
-
-			//if the lowest cost is higher than the max move exit
-			if (u.cost <= sUnit.remainingMove) {
-				reachableTiles.Add(u);
-			}
-			else if (canDash && u.cost <= sUnit.remainingMove + sUnit.movespeed) {
-				reachableTilesDash.Add(u);
-			}
-			else {
-				break;
-			}
-
-			unvisited.Remove(u);
+			
+			openList.Remove(u);
 			
 			// look through the neibours and set the shortest path
 			foreach(Node n in u.neighbours) {
@@ -267,17 +183,142 @@ public class TileMap : MonoBehaviour {
 						n.cost = alt;
 						n.previous = u;
 						n.directionToParent = new Vector2(u.x - n.x, u.y - n.y);
+						openList.Add(n);
 					}
 				}
 			}
 		}
-
-		sUnit.reachableTiles = reachableTiles;
-		sUnit.reachableTiles.RemoveAt (0);
-		sUnit.reachableTilesWithDash = reachableTilesDash;
-
+		
+		//was there no possible path
+		if (target.previous == null) {
+			return;
+		}
+		
+		//must have a path
+		currentPath = new List<Node> ();
+		Node curr = target;
+		
+		//loop through the chain and add to path
+		while (curr != null) {
+			if (curr != source){
+				currentPath.Add(curr);
+			}
+			curr = curr.previous;
+		}
+		
+		//reverse the path as its backwards
+		currentPath.Reverse();
+		
+		sUnit.currentPath = currentPath;
 	}
 
+	//runs until it finds any target tile or runs out of possible tiles
+	public bool AIFindClosestTile(int x, int y, List<Node> targetNodes) {
+		List<Node> currentPath = null;
+		Unit sUnit = selectedUnit.GetComponent<Unit> ();
+		List<Node> openList = new List<Node> ();
+
+		Node target = graph [y * currentLevel.maxSizeX + x];
+		Node source = graph [sUnit.tileY * currentLevel.maxSizeX + sUnit.tileX];
+			
+		source.cost = 0;
+		source.previous = null;
+
+		if (targetNodes.Contains (source)) {
+			sUnit.currentPath = new List<Node> ();
+			return true;
+		}
+
+		// Initialize everything to have inf distance
+		foreach(Node n in graph) {
+			if (n != source) {
+				n.cost = Mathf.Infinity;
+				n.dist = Math.Abs(n.x - target.x) + Math.Abs(n.y - target.y);
+				n.previous = null;
+			}
+		}
+
+		// set the starting tiles
+		foreach(Node n in source.neighbours) {
+			if (n != null)
+			{
+				n.cost = CostToEnterTile(n.x, n.y);
+				n.previous = source;
+				n.directionToParent = new Vector2(source.x - n.x, source.y - n.y);
+				openList.Add(n);
+			}
+
+		}
+
+		//while there are nodes still active
+		while (openList.Count > 0) {
+
+			//find the current lowest Cost
+			Node u = null;
+			foreach (Node n in openList) {
+				// may not need the source bit
+				if ( (u == null || ( (n.cost + n.dist) < (u.cost + u.dist) ) ) && (n.myUnit == null || n == source || n == target)){
+					u = n;
+				}
+			}
+
+			//no new node was found
+			if (u == null) {
+				sUnit.currentPath = null;
+				return false;
+			}
+
+			//if the current lowest cost is in target nodes then we can stop
+			if (targetNodes.Contains(u)) {
+				target = u;
+				break;
+			}
+
+			openList.Remove(u);
+
+			// set the starting tiles
+			foreach(Node n in u.neighbours) {
+				if (n != null)
+				{
+					float alt = u.cost + CostToEnterTile(n.x, n.y);
+					if (alt < n.cost) {
+						n.cost = alt;
+						n.previous = u;
+						n.directionToParent = new Vector2(u.x - n.x, u.y - n.y);
+						openList.Add(n);
+					}
+				}
+			}
+
+		}    
+
+		//no path was found
+		if (target.previous == null) {
+			sUnit.currentPath = null;
+			return false;
+		}
+		
+		//must have a path
+		currentPath = new List<Node> ();
+		Node curr = target;
+		
+		//loop through the chain and add to path
+		while (curr != null) {
+			if (curr != source){
+				currentPath.Add(curr);
+			}
+			curr = curr.previous;
+		}
+		
+		//reverse the path as its backwards
+		currentPath.Reverse();
+		
+		sUnit.currentPath = currentPath;
+
+		return true;
+	}
+
+	//using dijkstra's algorithm it finds every tile that can be reached
 	public void FindReachableTilesUnit() {
 		Unit sUnit = selectedUnit.GetComponent<Unit> ();
 		bool canDash = sUnit.actionPoints > 0;
@@ -479,7 +520,9 @@ public class TileMap : MonoBehaviour {
 		List<Node> targetableNodes = new List<Node> ();
 
 		//remove the tile the unit is stood on
-		reachNodes.RemoveAt(0);
+		if (!abil.canTargetSelf) {
+			reachNodes.RemoveAt (0);
+		}
 
 		//check line of site for each tile
 		foreach (Node n in reachNodes) {

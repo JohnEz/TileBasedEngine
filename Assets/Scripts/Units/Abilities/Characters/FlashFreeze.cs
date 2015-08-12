@@ -19,7 +19,10 @@ public class FlashFreeze : Ability
 	
 	public override void UseAbility (Unit target)
 	{
-		base.UseAbility (target);
+		cooldown = maxCooldown;
+		AbilityFinished = false;
+		myTarget = target;
+
 		int dmg = (int)(damage * myCaster.damageDealtMod);
 
 		//deal damage, if not dodged, apply effect

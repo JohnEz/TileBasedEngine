@@ -19,7 +19,7 @@ public class Stun : Effect
         u.movespeed = 0;
         u.maxAP = 0;
 		if (!reapply) {
-			u.ShowCombatText ("Stunned", u.statusCombatText);
+			u.ShowCombatText ("Stunned " + duration.ToString(), u.statusCombatText);
 		}
     }
 

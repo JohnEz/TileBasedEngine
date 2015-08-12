@@ -14,7 +14,7 @@ public class Fireball : Ability
 		range = 6;
 		AOERange = 2;
 		area = AreaType.Single;
-		targets = TargetType.All;
+		targets = TargetType.Enemy;
 	}
 
 	public override void UseAbility (Unit target)

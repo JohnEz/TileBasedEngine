@@ -8,8 +8,6 @@ public class ProjectileController : MonoBehaviour {
 	Vector3 direction;
 	float speed;
 
-	int id;
-
 	static int projectileCounter = -1;
 
 	public bool reachedTarget = false;
@@ -17,8 +15,6 @@ public class ProjectileController : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		startPos = transform.position;
-
-		id = ++projectileCounter;
 	}
 
 	public void Initialise(Vector3 target, float spd) {
