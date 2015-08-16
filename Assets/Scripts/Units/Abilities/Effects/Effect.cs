@@ -11,6 +11,7 @@ public class Effect
 	public int stack = 1;
     public string name = "NAME THIS EFFECT SILLY";
 	public string description = "description";
+	public int targets = -1;
 
     public Effect(string n, int dur, int mStack)
     {
@@ -42,6 +43,10 @@ public class Effect
 
 	public virtual void AddStack() {
 		RefreshEffect ();
+	}
+
+	public virtual void OnExpire() {
+
 	}
 
 }

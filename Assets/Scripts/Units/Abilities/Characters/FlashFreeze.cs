@@ -26,7 +26,7 @@ public class FlashFreeze : Ability
 		int dmg = (int)(damage * myCaster.damageDealtMod);
 
 		//deal damage, if not dodged, apply effect
-		if (target.TakeDamage (dmg) != -1) {
+		if (target.TakeDamage (dmg, null, true, myCaster) != -1) {
 			target.ApplyEffect (new Stun ("Frozen", duration));
 			target.ShowCombatText ("Stunned", target.statusCombatText);
 		}

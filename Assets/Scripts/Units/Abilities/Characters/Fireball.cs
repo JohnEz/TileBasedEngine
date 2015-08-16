@@ -33,7 +33,7 @@ public class Fireball : Ability
 		int dmg = (int)(damage * myCaster.damageDealtMod);
 
 		//deal damage, if not dodged, apply effect
-		if (myTarget.TakeDamage (dmg, effectLib.getSoundEffect ("Fireball Hit")) != -1) {
+		if (myTarget.TakeDamage (dmg, effectLib.getSoundEffect ("Fireball Hit"), true, myCaster) != -1) {
 			myTarget.ApplyEffect (new Dot ("Burning", duration, 10));
 			myTarget.ShowCombatText ("Burning", myTarget.statusCombatText);
 		}

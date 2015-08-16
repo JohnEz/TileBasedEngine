@@ -37,7 +37,7 @@ public class AxeThrow : Ability
 		int dmg = (int)(damage * myCaster.damageDealtMod);
 		
 		// deal damage, if not dodged apply cripple
-		if (myTarget.TakeDamage (dmg, effectLib.getSoundEffect ("Blunt1")) != -1) {
+		if (myTarget.TakeDamage (dmg, effectLib.getSoundEffect ("Blunt1"), true, myCaster) != -1) {
 			myTarget.ApplyEffect (new Dot("Axe Bleed", 2, 5, 3));
 			myTarget.ShowCombatText ("Bleeding", myTarget.statusCombatText);
 		}

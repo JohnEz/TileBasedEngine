@@ -54,7 +54,7 @@ public class PointBlank : Ability
 		}
 
 		//cant dodge or block this finisher
-		target.TakeDamage (dmg * combo, null, false);
+		target.TakeDamage (dmg * combo, null, false, myCaster);
 
 
 	}

@@ -24,9 +24,10 @@ public class DeepSlumber : Ability
 		target.ApplyEffect(eff1);
 		target.ApplyEffect(eff2);
 
-		target.AddTrigger (new RemoveEffect (myCaster, TriggerType.Hit, eff1));
-		target.AddTrigger (new RemoveEffect (myCaster, TriggerType.Hit, eff2));
+		target.AddTrigger (new RemoveEffect (myCaster, TriggerType.Hit, eff1, effectLib));
+		target.AddTrigger (new RemoveEffect (myCaster, TriggerType.Hit, eff2, effectLib));
 
+		myCaster.GetComponent<AudioSource> ().PlayOneShot (effectLib.getSoundEffect ("Deep Slumber"));
 	}
 }
 

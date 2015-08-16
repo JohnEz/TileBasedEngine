@@ -21,7 +21,7 @@ public class CripplingStrike : Ability
         int dmg = (int)(damage * myCaster.damageDealtMod);
 
 		//deal damage, if not dodged, apply effect
-		if (target.TakeDamage (dmg, effectLib.getSoundEffect ("Crippling Strike")) != -1) {
+		if (target.TakeDamage (dmg, effectLib.getSoundEffect ("Crippling Strike"), true, myCaster) != -1) {
 			target.ApplyEffect (new DamageDealtEffect ("Cripple", duration, -0.1f));
 		}
 

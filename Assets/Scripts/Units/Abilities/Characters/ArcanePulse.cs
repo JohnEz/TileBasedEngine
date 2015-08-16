@@ -31,7 +31,7 @@ public class ArcanePulse : Ability
 		dmg = (int)(dmg * mod);
 
 		//deal damage, if it was not dodged
-		if (target.TakeDamage (dmg, effectLib.getSoundEffect ("Arcane Pulse")) != -1) {
+		if (target.TakeDamage (dmg, effectLib.getSoundEffect ("Arcane Pulse"), true, myCaster) != -1) {
 			myCaster.AddRemoveMana(manaGain);
 		}
 		

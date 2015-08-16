@@ -5,7 +5,7 @@ public class WordOfHealing : Ability
 	public WordOfHealing (Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
 		Name = "Word Of Healing";
-		healing = 30;
+		healing = 40;
 		manaCost = 10;
 		maxCooldown = 1;
 		duration = 2;

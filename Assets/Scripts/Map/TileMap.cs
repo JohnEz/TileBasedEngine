@@ -33,13 +33,17 @@ public class TileMap : MonoBehaviour {
 
 	public float CostToEnterTile (int x, int y)
 	{
-		TileType tt = tileTypes[(int)currentLevel.tiles[y * currentLevel.maxSizeX + x]];
+		//TileType tt = tileTypes[(int)currentLevel.tiles[y * currentLevel.maxSizeX + x]];
 
-		if (!tt.isWalkable) { // || graph [y * currentLevel.maxSizeX + x].occupied) {
-			return Mathf.Infinity;
-		}
+		//if (!tt.isWalkable) {
+			//return Mathf.Infinity;
+		//}
 
-		return tt.movementCost;
+		return graph [y * currentLevel.maxSizeX + x].moveCost + graph [y * currentLevel.maxSizeX + x].moveMod;
+	}
+
+	public float CostToLookThroughTile(int x, int y) {
+		return graph [y * currentLevel.maxSizeX + x].LOSCost + graph [y * currentLevel.maxSizeX + x].LOSMod;
 	}
 
 	public Vector3 TileCoordToWorldCoord(int x, int y) {
@@ -74,6 +78,19 @@ public class TileMap : MonoBehaviour {
 				graph [y * currentLevel.maxSizeX + x] = new Node ();
 				graph [y * currentLevel.maxSizeX + x].x = x;
 				graph [y * currentLevel.maxSizeX + x].y = y;
+				
+				if (!tileTypes[(int)currentLevel.tiles[y * currentLevel.maxSizeX + x]].isWalkable) {
+					graph [y * currentLevel.maxSizeX + x].moveCost = Mathf.Infinity;
+				} else {
+					graph [y * currentLevel.maxSizeX + x].moveCost = tileTypes[(int)currentLevel.tiles[y * currentLevel.maxSizeX + x]].movementCost;
+				}
+
+				if (tileTypes [(int)currentLevel.tiles [y * currentLevel.maxSizeX + x]].blocksVision) {
+					graph [y * currentLevel.maxSizeX + x].LOSCost = Mathf.Infinity;
+				} else {
+					graph [y * currentLevel.maxSizeX + x].LOSCost = tileTypes[(int)currentLevel.tiles[y * currentLevel.maxSizeX + x]].LosCost;
+				}
+
 			}
 		}
 
@@ -513,7 +530,7 @@ public class TileMap : MonoBehaviour {
 		sUnit.currentPath = culledList;
 	}
 
-	public List<Node> FindSingleRangedTargets(Ability abil, Unit u) {
+	public List<Node> FindSingleRangedTargets(Ability abil, Unit u, bool reverseLOS = false) {
 		Unit sUnit = u;
 
 		List<Node> reachNodes = FindReachableTiles (sUnit.tileX, sUnit.tileY, abil.range, true);
@@ -526,8 +543,14 @@ public class TileMap : MonoBehaviour {
 
 		//check line of site for each tile
 		foreach (Node n in reachNodes) {
-			if (HasLineOfSight(GetNode(sUnit.tileX, sUnit.tileY), n)) {
-				targetableNodes.Add(n);
+			if (reverseLOS) {
+				if (HasLineOfSight(n, GetNode(sUnit.tileX, sUnit.tileY), abil.myCaster.sight)) {
+					targetableNodes.Add(n);
+				}
+			} else {
+				if (HasLineOfSight(GetNode(sUnit.tileX, sUnit.tileY), n, abil.myCaster.sight)) {
+					targetableNodes.Add(n);
+				}
 			}
 		}
 
@@ -542,8 +565,9 @@ public class TileMap : MonoBehaviour {
 		return targetableNodes;
 	}
 
-	public List<Node> FindLineTargets(Ability abil) {
+	public List<Node> FindLineTargets(Ability abil, bool ignoreUnits = false, bool checkLos = false) {
 		Unit sUnit = selectedUnit.GetComponent<Unit>();
+		List<Node> reachableNodes = new List<Node> ();
 		List<Node> targetableNodes = new List<Node> ();
 		bool[] hitwall = new bool[4];
 
@@ -571,9 +595,9 @@ public class TileMap : MonoBehaviour {
 						GetNode(sUnit.tileX+i, sUnit.tileY).previous = null;
 					}
 					GetNode(sUnit.tileX+i, sUnit.tileY).directionToParent = new Vector2(-1, 0);
-					targetableNodes.Add(GetNode(sUnit.tileX+i, sUnit.tileY));
+					reachableNodes.Add(GetNode(sUnit.tileX+i, sUnit.tileY));
 
-					if (GetNode(sUnit.tileX+i, sUnit.tileY).myUnit != null) {
+					if (GetNode(sUnit.tileX+i, sUnit.tileY).myUnit != null && !ignoreUnits) {
 						hitwall[0] = true;
 					}
 				}
@@ -594,9 +618,9 @@ public class TileMap : MonoBehaviour {
 						GetNode(sUnit.tileX-i, sUnit.tileY).previous = null;
 					}
 					GetNode(sUnit.tileX-i, sUnit.tileY).directionToParent = new Vector2(1, 0);
-					targetableNodes.Add(GetNode(sUnit.tileX-i, sUnit.tileY));
+					reachableNodes.Add(GetNode(sUnit.tileX-i, sUnit.tileY));
 
-					if (GetNode(sUnit.tileX-i, sUnit.tileY).myUnit != null) {
+					if (GetNode(sUnit.tileX-i, sUnit.tileY).myUnit != null && !ignoreUnits) {
 						hitwall[1] = true;
 					}
 				}
@@ -617,9 +641,9 @@ public class TileMap : MonoBehaviour {
 						GetNode(sUnit.tileX, sUnit.tileY+i).previous = null;
 					}
 					GetNode(sUnit.tileX, sUnit.tileY+i).directionToParent = new Vector2(0, -1);
-					targetableNodes.Add(GetNode(sUnit.tileX, sUnit.tileY+i));
+					reachableNodes.Add(GetNode(sUnit.tileX, sUnit.tileY+i));
 
-					if (GetNode(sUnit.tileX, sUnit.tileY+i).myUnit != null) {
+					if (GetNode(sUnit.tileX, sUnit.tileY+i).myUnit != null && !ignoreUnits) {
 						hitwall[2] = true;
 					}
 				}
@@ -641,9 +665,9 @@ public class TileMap : MonoBehaviour {
 					}
 
 					GetNode(sUnit.tileX, sUnit.tileY-i).directionToParent = new Vector2(0, 1);
-					targetableNodes.Add(GetNode(sUnit.tileX, sUnit.tileY-i));
+					reachableNodes.Add(GetNode(sUnit.tileX, sUnit.tileY-i));
 
-					if (GetNode(sUnit.tileX, sUnit.tileY-i).myUnit != null) {
+					if (GetNode(sUnit.tileX, sUnit.tileY-i).myUnit != null && !ignoreUnits) {
 						hitwall[3] = true;
 					}
 				}
@@ -652,7 +676,18 @@ public class TileMap : MonoBehaviour {
 
 		}
 
-		return targetableNodes;
+		if (checkLos) {
+			//check line of site for each tile
+			foreach (Node n in reachableNodes) {
+				if (HasLineOfSight (GetNode (sUnit.tileX, sUnit.tileY), n, abil.myCaster.sight)) {
+					targetableNodes.Add (n);
+				}
+			}
+
+			return targetableNodes;
+		} else {
+			return reachableNodes;
+		}
 	}
 
 	//TODO YEAH DO THIS WHEN HELL FREEZES OVER
@@ -662,7 +697,7 @@ public class TileMap : MonoBehaviour {
 		return targetableNodes;
 	}
 
-	public bool HasLineOfSight(Node start, Node end) {
+	public bool HasLineOfSight(Node start, Node end, float sight) {
 		int deltaX = Math.Abs (end.x - start.x);
 		int deltaY = Math.Abs (end.y - start.y);
 		int stepX = -1;
@@ -684,8 +719,9 @@ public class TileMap : MonoBehaviour {
 
 		//temp
 		int count = 0;
+		float cost = 0;
 
-		while (!(x == end.x && y == end.y) && count < deltaX + deltaY) {
+		while (!(x == end.x && y == end.y) && count < deltaX + deltaY && cost <= sight) {
 			float twoError = 2* error;
 			if (twoError > (-1*deltaY)) {
 				error -= deltaY;
@@ -698,10 +734,18 @@ public class TileMap : MonoBehaviour {
 
 			if (TileBlocksVision(x, y)) {
 				return false;
+			} else {
+				cost += CostToLookThroughTile(x,y);
+				if (cost > sight) {
+					return false;
+				}
+
 			}
 			count++;
 		}
+
 		return true;
+
 	}
 
 

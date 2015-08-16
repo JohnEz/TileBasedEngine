@@ -6,14 +6,15 @@ public class DivineSacrificeTrigger : Trigger
 {
 
 
-	public DivineSacrificeTrigger (Unit caster) : base(TriggerType.Death, caster)
+	public DivineSacrificeTrigger (Unit caster, int dur, PrefabLibrary el) : base(TriggerType.Death, caster, el)
 	{
 		maxTriggers = 1;
+		maxDuration = dur;
 	}
 
-	public override void RunTrigger (Unit host)
+	public override void RunTrigger (Unit host, Unit attacker = null)
 	{
-		base.RunTrigger (host);
+		base.RunTrigger (host, attacker);
 
 		myCaster.AddRemoveMana (20);
 	}

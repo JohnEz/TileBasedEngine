@@ -10,5 +10,6 @@ public class TileType {
 	public bool isWalkable = true;
 	public bool blocksVision = false;
 	public float movementCost = 1;
+	public float LosCost = 1;
 
 }

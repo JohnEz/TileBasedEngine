@@ -6,6 +6,7 @@ public enum TriggerType {
 	Hit,
 	Healed,
 	Dodge,
+	Block,
 	Use_Ability,
 	Move,
 	Floor
@@ -20,23 +21,25 @@ public class Trigger
 	public int maxDuration = 1;
 	public int duration = 0;
 	public TargetType myTargets = TargetType.All;
+	public PrefabLibrary effectLib = null;
 
 
-	public Trigger (TriggerType tt, Unit caster)
+	public Trigger (TriggerType tt, Unit caster, PrefabLibrary el)
 	{
 		myTrigger = tt;
 		myCaster = caster;
+		effectLib = el;
 	}
 
-	public void CheckTrigger(TriggerType tt, Unit host) {
+	public void CheckTrigger(TriggerType tt, Unit host, Unit attacker = null) {
 		// if the trigger type is same as mine
-		if (myTrigger == tt && triggerCount < maxTriggers) {
+		if (myTrigger == tt && (triggerCount < maxTriggers || maxTriggers == -1)) {
 			//TRIGGERED O.O
-			RunTrigger(host);
+			RunTrigger(host, attacker);
 		}
 	}
 
-	public virtual void RunTrigger(Unit host) {
+	public virtual void RunTrigger(Unit host, Unit attacker = null) {
 		++triggerCount;
 	}
 }

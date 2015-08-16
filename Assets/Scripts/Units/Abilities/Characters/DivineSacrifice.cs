@@ -20,9 +20,9 @@ public class DivineSacrifice : Ability
 		int dmg = (int)(damage * myCaster.damageDealtMod);
 
 		//deal damage, if not dodged, apply effect
-		if (target.TakeDamage (dmg, effectLib.getSoundEffect ("Divine Sacrifice")) != -1) {
+		if (target.TakeDamage (dmg, effectLib.getSoundEffect ("Divine Sacrifice"), true, myCaster) != -1) {
 			//apply an on death trigger
-			target.AddTrigger (new DivineSacrificeTrigger (myCaster));
+			target.AddTrigger (new DivineSacrificeTrigger (myCaster, duration, effectLib));
 		}
 
 		Vector3 pos = map.TileCoordToWorldCoord (target.tileX, target.tileY);

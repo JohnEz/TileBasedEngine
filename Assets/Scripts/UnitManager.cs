@@ -228,9 +228,7 @@ public class UnitManager : MonoBehaviour {
 			waitingForCamera = false;
 
 			Unit sUnit = currentQueue [turn].GetComponent<Unit>();
-			map.selectedUnit = currentQueue [turn];
-			
-			sUnit.StartTurn ();
+
 
 			//is it a character or ai
 			if (sUnit.playable) {
@@ -276,7 +274,7 @@ public class UnitManager : MonoBehaviour {
 				} else if (ind < turn) {
 					--turn;
 				}
-				currentQueue.Remove(go);
+				//currentQueue.Remove(go);
 
 
 			}
@@ -293,6 +291,9 @@ public class UnitManager : MonoBehaviour {
 
 	public void NextUnitsTurn() {
 		Unit sUnit = currentQueue [turn].GetComponent<Unit> ();
+		map.selectedUnit = currentQueue [turn];
+		
+		sUnit.StartTurn ();
 		if (!sUnit.isDead) {
 
 			//move camera to unit's position
@@ -308,6 +309,18 @@ public class UnitManager : MonoBehaviour {
 	public void EndTurn() {
 		map.UnhighlightTiles ();
 		map.selectedUnit.GetComponent<Unit> ().currentPath = null;
+
+		//find which effects are on the tile and apply them to the unit
+		Unit sUnit = map.selectedUnit.GetComponent<Unit> ();
+		Node unitsNode = map.GetNode (sUnit.tileX, sUnit.tileY);
+
+		foreach (Effect eff in unitsNode.myEffects) {
+			if (eff.targets == -1 || eff.targets == sUnit.team) {
+				sUnit.ApplyEffect(eff);
+			}
+		}
+
+
 		++turn;
 
 		if (turn >= currentQueue.Count) {
@@ -366,12 +379,21 @@ public class UnitManager : MonoBehaviour {
 							case AreaType.AOE: targetableTiles = map.FindSingleRangedTargets(sUnit.myAbilities[a], sUnit);
 								map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), 1);
 								break;
+							case AreaType.LineAOE:targetableTiles = map.FindLineTargets(sUnit.myAbilities[a], true, true);
+								map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), 1);
+								break;
 							case AreaType.Line: targetableTiles = map.FindLineTargets(sUnit.myAbilities[a]);
 								map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), 1);
 								break;
 							case AreaType.Floor : targetableTiles = map.FindSingleRangedTargets(sUnit.myAbilities[a], sUnit);
 								map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f, 0.3f, 0.3f), 1);
 								ShowFloorTargets(targetableTiles, sUnit.myAbilities[a]);
+								break;
+							case AreaType.Self : targetableTiles.Add(map.GetNode(sUnit.tileX, sUnit.tileY));
+								map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f, 0.3f, 0.3f), 1);
+								break;
+							case AreaType.All : targetableTiles = FindAllTargets(sUnit.myAbilities[a]);
+								map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f, 0.3f, 0.3f), 1);
 								break;
 							}
 						} else {
@@ -406,6 +428,25 @@ public class UnitManager : MonoBehaviour {
 		}
 
 
+	}
+
+	List<Node> FindAllTargets(Ability abil) {
+		List<Node> targetNodes = new List<Node> ();
+
+		//loop through all active units
+		foreach (GameObject go in activeUnits) {
+			Unit sUnit = go.GetComponent<Unit>();
+
+			//if the unit is not dead
+			if (!sUnit.isDead) {
+				//check if the unit is the correct type and add it
+				if (abil.targets == TargetType.All || (abil.targets == TargetType.Enemy && sUnit.team != abil.myCaster.team) || (abil.targets == TargetType.Ally && sUnit.team == abil.myCaster.team)) {
+					targetNodes.Add(map.GetNode(sUnit.tileX, sUnit.tileY));
+				}
+			}
+		}
+
+		return targetNodes;
 	}
 
 	void ShowFloorTargets(List<Node> tiles, Ability abil) {
@@ -468,7 +509,7 @@ public class UnitManager : MonoBehaviour {
 	void AbilityTileEnter(int x, int y) {
 		Unit sUnit = currentQueue [turn].GetComponent<Unit> ();
 		if (map.GetClickableTile (x, y).targetable) {
-			if (sUnit.myAbilities [(int)currentDisplaying - 1].area == AreaType.AOE) {
+			if (sUnit.myAbilities [(int)currentDisplaying - 1].area == AreaType.AOE || sUnit.myAbilities [(int)currentDisplaying - 1].area == AreaType.LineAOE) {
 
 				List<Node> aoeTiles = map.FindReachableTiles (x, y, sUnit.myAbilities [(int)currentDisplaying - 1].AOERange, true);
 				map.HighlightTiles (aoeTiles, new Color(0.85f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), -2);
@@ -504,35 +545,37 @@ public class UnitManager : MonoBehaviour {
 
 				map.HighlightTiles (lineTiles, new Color(0.85f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), -2);
 				map.GetNode (x, y).reachableNodes = lineTiles;
+			} else if (sUnit.myAbilities [(int)currentDisplaying - 1].area == AreaType.All) {
+				Node target = map.GetNode(x, y);
+				target.reachableNodes = FindAllTargets(sUnit.myAbilities [(int)currentDisplaying - 1]);
+				map.HighlightTiles (target.reachableNodes, new Color(0.85f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), -2);
 			}
-		}
+		} 
 	}
 
 
 	void AbilityTileExit(int x, int y) {
 		Unit sUnit = currentQueue [turn].GetComponent<Unit> ();
 		
-		if (sUnit.myAbilities[(int)currentDisplaying-1].area == AreaType.AOE) {
-			if (map.GetClickableTile(x, y).targetable && map.GetNode(x,y).reachableNodes != null) {
+		if (sUnit.myAbilities [(int)currentDisplaying - 1].area == AreaType.AOE || sUnit.myAbilities [(int)currentDisplaying - 1].area == AreaType.LineAOE) {
+			if (map.GetClickableTile (x, y).targetable && map.GetNode (x, y).reachableNodes != null) {
 				foreach (Node n in map.GetNode(x,y).reachableNodes) {
-					ClickableTile ct = map.GetClickableTile(n.x, n.y);
+					ClickableTile ct = map.GetClickableTile (n.x, n.y);
 					if (ct.targetable) {
-						ct.HighlightTile(new Color(0.6f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), -2);
-					}
-					else {
-						ct.UnhighlightTile();
+						ct.HighlightTile (new Color (0.6f, 0.3f, 0.3f), new Color (0.85f, 0.4f, 0.4f), -2);
+					} else {
+						ct.UnhighlightTile ();
 					}
 				}
-				map.GetNode(x,y).reachableNodes = null;
+				map.GetNode (x, y).reachableNodes = null;
 
 			}
-		}
-		else if (sUnit.myAbilities[(int)currentDisplaying-1].area == AreaType.Line) {
-			if (map.GetClickableTile(x, y).targetable && map.GetNode(x,y).reachableNodes != null) {
+		} else if (sUnit.myAbilities [(int)currentDisplaying - 1].area == AreaType.Line || sUnit.myAbilities [(int)currentDisplaying - 1].area == AreaType.All) {
+			if (map.GetClickableTile (x, y).targetable && map.GetNode (x, y).reachableNodes != null) {
 				foreach (Node n in map.GetNode(x,y).reachableNodes) {
-					map.GetClickableTile(n.x, n.y).HighlightTile(new Color(0.6f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), -2);
+					map.GetClickableTile (n.x, n.y).HighlightTile (new Color (0.6f, 0.3f, 0.3f), new Color (0.85f, 0.4f, 0.4f), -2);
 				}
-				map.GetNode(x,y).reachableNodes = null;
+				map.GetNode (x, y).reachableNodes = null;
 				
 			}
 		}
@@ -566,6 +609,9 @@ public class UnitManager : MonoBehaviour {
 			break;
 		case AreaType.AOE:
 		case AreaType.Line:
+		case AreaType.Self:
+		case AreaType.LineAOE:
+		case AreaType.All:
 		case AreaType.Floor: sUnit.myAbilities[a].UseAbility(map.GetNode(x,y));
 			map.UnhighlightTiles();
 			break;
@@ -590,14 +636,17 @@ public class UnitManager : MonoBehaviour {
 		case CharacterClass.Warrior: u.myAbilities[0] = new CripplingStrike(u, map, effectLibrary);
 			u.myAbilities[1] = new ShieldSlam(u, map, effectLibrary);
 			u.myAbilities[2] = new Charge(u, map, effectLibrary);
+			u.myAbilities[3] = new CounterAttack(u, map, effectLibrary);
             break;
 		case CharacterClass.Acolyte: u.myAbilities[0] = new WordOfHealing(u, map, effectLibrary);
 			u.myAbilities[1] = new RighteousShield(u, map, effectLibrary);
 			u.myAbilities[2] = new DivineSacrifice(u, map, effectLibrary);
+			u.myAbilities[3] = new TheLordsProtection(u, map, effectLibrary);
 			break;
 		case CharacterClass.Highwayman: u.myAbilities[0] = new Lacerate(u, map, effectLibrary);
 			u.myAbilities[1] = new Lunge(u, map, effectLibrary);
 			u.myAbilities[2] = new PointBlank(u, map, effectLibrary);
+			u.myAbilities[3] = new SmokeBomb(u, map, effectLibrary);
 			break;
 		case CharacterClass.Elementalist: u.myAbilities[0] = new ArcanePulse(u, map, effectLibrary);
 			u.myAbilities[1] = new Fireball(u, map, effectLibrary);
@@ -607,6 +656,7 @@ public class UnitManager : MonoBehaviour {
 		case CharacterClass.Ranger: u.myAbilities[0] = new TripleShot(u, map, effectLibrary);
 			u.myAbilities[1] = new CripplingShot(u, map, effectLibrary);
 			u.myAbilities[2] = new ExploitWeakness(u, map, effectLibrary);
+			u.myAbilities[3] = new CracklingArrow(u, map, effectLibrary);
 			break;
         }
     }
@@ -614,8 +664,6 @@ public class UnitManager : MonoBehaviour {
 	void GiveEnemyAbilities(Unit u, EnemyClass e) {
 		switch (e) {
 		case EnemyClass.Goblin: u.myAbilities[0] = new Clobber(u, map, effectLibrary);
-			u.myAbilities[1] = new Clobber(u, map, effectLibrary);
-			u.myAbilities[2] = new Clobber(u, map, effectLibrary);
 			break;
 		case EnemyClass.GoblinAxeThrower: u.myAbilities[0] = new AxeThrow(u, map, effectLibrary);
 			break;

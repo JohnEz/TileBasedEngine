@@ -35,7 +35,7 @@ public class CripplingShot : Ability
 		int dmg = (int)(damage * myCaster.damageDealtMod);
 
 		// deal damage, if not dodged apply cripple
-		if (myTarget.TakeDamage (dmg, effectLib.getSoundEffect ("Crippling Shot Hit")) != -1) {
+		if (myTarget.TakeDamage (dmg, effectLib.getSoundEffect ("Crippling Shot Hit"), true, myCaster) != -1) {
 			myTarget.ApplyEffect (new Snare ("Crippled", duration));
 			myTarget.ShowCombatText ("Snared", myTarget.statusCombatText);
 		}

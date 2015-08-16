@@ -9,6 +9,7 @@ public enum AreaType {
 	Self,
 	SelfAOE,
 	Floor,
+	LineAOE,
 	All
 }
 

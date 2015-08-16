@@ -26,25 +26,27 @@ public class ShieldSlam : Ability
 			Vector3 pos = map.TileCoordToWorldCoord (target.tileX, target.tileY);
 			myVisualEffects.Add (effectLib.CreateVisualEffect ("Hit1", pos).GetComponent<EffectController> ());
 
-			if (map.UnitCanEnterTile(myCaster.tileX+(diffX*2), myCaster.tileY+(diffY*2))) {
-				target.SlideToTile(myCaster.tileX+(diffX*2), myCaster.tileY+(diffY*2));
-			}
+
 			//deal damage, if not dodged, apply effect
-			if (target.TakeDamage(dmg, effectLib.getSoundEffect ("Shield Slam")) != -1) {
+			if (target.TakeDamage(dmg, effectLib.getSoundEffect ("Shield Slam"), true, myCaster) != -1) {
 				target.ApplyEffect(new Stun("Shield Slammed", duration));
 				target.ShowCombatText ("Stunned", target.statusCombatText);
+				if (map.UnitCanEnterTile(myCaster.tileX+(diffX*2), myCaster.tileY+(diffY*2))) {
+					target.SlideToTile(myCaster.tileX+(diffX*2), myCaster.tileY+(diffY*2));
+				}
 			}
 		} else {
 			int dmg = (int)(damage * myCaster.damageDealtMod);
 
-			target.TakeDamage(dmg*3, effectLib.getSoundEffect ("Shield Slam"));
+			target.TakeDamage(dmg*3, effectLib.getSoundEffect ("Shield Slam"), true, myCaster);
+			myCaster.ApplyEffect(new BlockEffect("Shield Slam", 2, 15));
 		}
 
 	}
 
 	public override void UpdateAbility ()
 	{
-		if (!myTarget.moving) {
+		if (!myTarget.moving || myTarget.isDead) {
 			AbilityFinished = true;
 		}
 	}

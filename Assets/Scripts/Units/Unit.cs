@@ -35,6 +35,7 @@ public class Unit : MonoBehaviour {
 	public UnitSize mySize = UnitSize.Normal;
 	public int baseDodge = 5;
 	public int baseBlock = 0;
+	public float baseSight = 1;
 
     //Max - current maximum stats after effects
 	public int maxHP = 100;
@@ -46,6 +47,7 @@ public class Unit : MonoBehaviour {
 	public int teir = 1;
 	public int dodgeChance = 5;
 	public int blockChance = 0;
+	public float sight = 1;
 
     //current - the current value of the stats
     public int shield = 0;
@@ -70,6 +72,7 @@ public class Unit : MonoBehaviour {
     public List<Effect> myEffects = new List<Effect>();
 	public List<Effect> expiredEffects = new List<Effect> ();
 	public List<Trigger> myTriggers = new List<Trigger> ();
+	public List<Trigger> finishedTriggers = new List<Trigger> ();
 	public int comboPoints = 0;
 	public int team = 1;
 
@@ -111,14 +114,41 @@ public class Unit : MonoBehaviour {
 	//when a unit starts a new turn, this function is ran
     public void StartTurn()
     {
-		//remove expired effects
-		foreach (Effect eff in expiredEffects) {
-			myEffects.Remove(eff);
+		//find ended effects
+		foreach (Effect eff in myEffects) {
+			if (eff.duration <= 0) {
+				expiredEffects.Add(eff);
+			}
 		}
 
+		//find ended triggers
+		foreach (Trigger trig in myTriggers) {
+			if (trig.duration <= 0) {
+				finishedTriggers.Add (trig);
+			}
+		}
+
+		//remove expired effects
+		foreach (Effect eff in expiredEffects) {
+			eff.OnExpire();
+			myEffects.Remove(eff);
+		}
+		
+		//remove finished triggers
+		foreach (Trigger trig in finishedTriggers) {
+			myTriggers.Remove(trig);
+		}
+		
+		finishedTriggers = new List<Trigger> ();
 		expiredEffects = new List<Effect> ();
 
+		//apply effects and reduce their duration
 		UpdateStats ();
+
+		//reduce duration of triggers
+		foreach (Trigger trig in myTriggers) {
+			--trig.duration;
+		}
 
 		for(int i=0; i < myAbilities.Length; ++i) {
 			if (myAbilities[i] != null) {
@@ -126,19 +156,11 @@ public class Unit : MonoBehaviour {
 			}
 		}
 
-		List<Trigger> finishedTriggers = new List<Trigger> ();
-		
 		//check all triggers to see if this is their event
-		foreach (Trigger trig in myTriggers) {
-			--trig.duration;
-			if (trig.duration < 0) {
-				finishedTriggers.Add (trig);
+		foreach (Effect eff in myEffects) {
+			if (eff.duration < 0) {
+				expiredEffects.Add (eff);
 			}
-		}
-		
-		//remove finished triggers
-		foreach (Trigger trig in finishedTriggers) {
-			myTriggers.Remove(trig);
 		}
 
 		//update status bars
@@ -161,15 +183,13 @@ public class Unit : MonoBehaviour {
 		shield = 0;
 		dodgeChance = baseDodge;
 		blockChance = baseBlock;
+		sight = baseSight;
 
 
 		//apply the effects
 		foreach (Effect eff in myEffects)
 		{
 			eff.RunEffect(this);
-			if (eff.duration <= 0) {
-				expiredEffects.Add(eff);
-			}
 		}
 		
 		// if maxhp is now lower than current hp
@@ -183,6 +203,15 @@ public class Unit : MonoBehaviour {
 		{
 			mana = maxMana;
 		}
+
+		//stop the unit gaining hp
+		if (damageDealtMod < 0) {
+			damageDealtMod = 0;
+		}
+		//stop the unit gaining hp
+		if (damageRecievedMod < 0) {
+			damageRecievedMod = 0;
+		}
 		
 		// reset move and action
 		remainingMove = movespeed;
@@ -191,11 +220,14 @@ public class Unit : MonoBehaviour {
 
 	void Update() {
 		//call the correct update method depending on unit
-		if (playable) {
-			PlayerUpdate();
-		} else {
-			AIUpdate();
+		if (!isDead) {
+			if (playable) {
+				PlayerUpdate ();
+			} else {
+				AIUpdate ();
+			}
 		}
+
 	}
 
 	//update for playable characters
@@ -316,9 +348,10 @@ public class Unit : MonoBehaviour {
 				}
 			}
 		}
-		else {
+		else if (GetComponent<AIBehaviours>().turnPlanned) {
 			remainingMove = 0;
 			actionPoints = 0;
+			GetComponent<AIBehaviours>().turnPlanned = false;
 		}
 	}
 
@@ -502,7 +535,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	// unit takes parameter damage and shows in combat text, returns if the dmg was dodged(-1), blocked(0) or hit(1)
-	public int TakeDamage(int dmg, AudioClip sound = null, bool canBeEvaded = true)
+	public int TakeDamage(int dmg, AudioClip sound = null, bool canBeEvaded = true, Unit attacker = null)
     {
 		// 1 if hit, 0 if blocked, -1 is dodged
 		int outcome = 1;
@@ -517,6 +550,7 @@ public class Unit : MonoBehaviour {
 			int dodge = Random.Range (1, 100);
 			if (dodge <= dodgeChance) {
 				ShowCombatText ("Dodged", statusCombatText);
+				CheckTriggers (TriggerType.Dodge, attacker);
 				GetComponent<AudioSource> ().PlayOneShot (uManager.GetComponent<PrefabLibrary> ().getSoundEffect ("Dodge"));
 				return -1;
 			}
@@ -527,6 +561,7 @@ public class Unit : MonoBehaviour {
 				//dmg was blocked, reduce damage and display block
 				ShowCombatText ("Blocked", statusCombatText);
 				damage = (int)(damage * 0.25f);
+				CheckTriggers (TriggerType.Block, attacker);
 				GetComponent<AudioSource> ().PlayOneShot (uManager.GetComponent<PrefabLibrary> ().getSoundEffect ("Block"));
 
 				outcome = 0; // show the dmg was blocked
@@ -547,7 +582,7 @@ public class Unit : MonoBehaviour {
 		}
 
         hp -= currentDamage;
-		CheckTriggers (TriggerType.Hit);
+		CheckTriggers (TriggerType.Hit, attacker);
         ShowCombatText(damage.ToString(), damageCombatText);
 
 		if (hp < 0) {
@@ -666,6 +701,7 @@ public class Unit : MonoBehaviour {
 		shield = 0;
 		dodgeChance = baseDodge;
 		blockChance = baseBlock;
+		sight = baseSight;
 
 		foreach (Effect currentEffect in myEffects) {
 			if (currentEffect.name.Contains(eff.name)) {
@@ -678,6 +714,15 @@ public class Unit : MonoBehaviour {
 		if (!alreadyHad) {
 			myEffects.Add(eff);
 			eff.RunEffect(this, true);
+		}
+
+		//stop the unit gaining hp
+		if (damageDealtMod < 0) {
+			damageDealtMod = 0;
+		}
+		//stop the unit gaining hp
+		if (damageRecievedMod < 0) {
+			damageRecievedMod = 0;
 		}
 
 		ShowDebuffs ();
@@ -808,22 +853,18 @@ public class Unit : MonoBehaviour {
 		return cp;
 	}
 
-	public void CheckTriggers(TriggerType tt) {
-		List<Trigger> finishedTriggers = new List<Trigger> ();
+	public void CheckTriggers(TriggerType tt, Unit attacker = null) {
+
 
 		//check all triggers to see if this is their event
 		foreach (Trigger trig in myTriggers) {
-			trig.CheckTrigger(tt, this);
+			if (trig.maxTriggers == -1 || trig.triggerCount < trig.maxTriggers) {
+				trig.CheckTrigger(tt, this, attacker);
+			}
 			// if the trigger has finished add it to the remove list
-			if (trig.triggerCount >= trig.maxTriggers) {
+			if (trig.maxTriggers != -1 && trig.triggerCount >= trig.maxTriggers) {
 				finishedTriggers.Add(trig);
 			}
 		}
-
-		//remove finished triggers
-		foreach (Trigger trig in finishedTriggers) {
-			myTriggers.Remove(trig);
-		}
-
 	}
 }

@@ -39,7 +39,7 @@ public class TripleShot : Ability
 		int dmg = (int)(damage * myCaster.damageDealtMod);
 
 		//deal damage, if not dodged, gain mana
-		if (myTarget.TakeDamage (dmg, effectLib.getSoundEffect ("TripleShot Hit")) != -1) {
+		if (myTarget.TakeDamage (dmg, effectLib.getSoundEffect ("TripleShot Hit"), true, myCaster) != -1) {
 			myCaster.AddRemoveMana (manaGain);
 		}
 

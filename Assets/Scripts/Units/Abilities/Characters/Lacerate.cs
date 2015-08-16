@@ -22,7 +22,7 @@ public class Lacerate : Ability
 
 		myCaster.AddComboPoints (2);
 		//deal damage, if not dodged, apply effect
-		if (target.TakeDamage (dmg, effectLib.getSoundEffect ("Lacerate")) != -1) {
+		if (target.TakeDamage (dmg, effectLib.getSoundEffect ("Lacerate"), true, myCaster) != -1) {
 			target.ApplyEffect (new DamageRecievedEffect ("Lacerate", duration, 0.1f, stacks));
 		}
 

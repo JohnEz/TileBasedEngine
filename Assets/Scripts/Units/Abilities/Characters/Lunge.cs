@@ -52,12 +52,12 @@ public class Lunge : Ability
 		//if there was a target in either first or second tile, take damage
 		if (targetSquares [0].myUnit != null) {
 			if (targetSquares [0].myUnit.team != myCaster.team) {
-				targetSquares [0].myUnit.TakeDamage (dmg);
+				targetSquares [0].myUnit.TakeDamage (dmg, null, true, myCaster);
 				++count; // add another combo as we skiped this tile before
 			}
 		} else if (targetSquares [1].myUnit != null) {
 			if (targetSquares [1].myUnit.team != myCaster.team) {
-				targetSquares [1].myUnit.TakeDamage (dmg);
+				targetSquares [1].myUnit.TakeDamage (dmg, null, true, myCaster);
 			}
 		}
 

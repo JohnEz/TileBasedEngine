@@ -20,12 +20,17 @@ public class PrefabLibrary : MonoBehaviour {
 	public GameObject[] iconPrefabs;
 	public Dictionary<string, int> icons = new Dictionary<string, int>();
 
+	//particle Effects
+	public GameObject[] particleSystems;
+	public Dictionary<string, int> particleEffects = new Dictionary<string, int>();
+
 	// Use this for initialization
 	public void Initialise () {
 		AttachAudioEffects ();
 		AttachVisualEffects ();
 		AttachProjectiles ();
 		AttachIcons ();
+		AttachParticleEffects ();
 	}
 
 	void AttachVisualEffects() {
@@ -47,6 +52,9 @@ public class PrefabLibrary : MonoBehaviour {
 		visualEffects.Add ("Stunned", 13);
 		visualEffects.Add ("Snared", 14);
 		visualEffects.Add ("Sleep", 15);
+		visualEffects.Add ("The Lords Protection", 16);
+		visualEffects.Add ("Crackle", 17);
+		visualEffects.Add ("Counter Attack", 18);
 	}
 
 	void AttachAudioEffects() {
@@ -78,7 +86,11 @@ public class PrefabLibrary : MonoBehaviour {
 		soundEffects.Add ("Exploit Weakness Crit", 25);
 		soundEffects.Add ("Exploit Weakness Fire", 26);
 		soundEffects.Add ("Crippling Shot Hit", 27);
-
+		soundEffects.Add ("Crackling Arrow Hit", 28);
+		soundEffects.Add ("Crackling Arrow Pop", 29);
+		soundEffects.Add ("Counter Attack", 30);
+		soundEffects.Add ("Deep Slumber", 31);
+		soundEffects.Add ("Smoke Bomb", 32);
 	}
 
 	void AttachProjectiles() {
@@ -86,6 +98,7 @@ public class PrefabLibrary : MonoBehaviour {
 		projectiles.Add ("Crippling Shot", 1);
 		projectiles.Add ("Fireball", 2);
 		projectiles.Add ("Axe", 3);
+		projectiles.Add ("Crackling Arrow", 4);
 	}
 
 
@@ -111,7 +124,16 @@ public class PrefabLibrary : MonoBehaviour {
 		icons.Add ("Point Blank", 14);
 
 		icons.Add ("Deep Slumber", 15);
+		icons.Add ("Counter Attack", 16);
+		icons.Add ("Crackling Arrow", 17);
+		icons.Add ("The Lords Protection", 18);
+		icons.Add ("Smoke Bomb", 19);
 	}
+
+	void AttachParticleEffects() {
+		particleEffects.Add ("Smoke Bomb", 0);
+	}
+
 	// Update is called once per frame
 	void Update () {
 
@@ -157,7 +179,7 @@ public class PrefabLibrary : MonoBehaviour {
 	}
 
 	public GameObject CreateProjectile(string s, Vector3 pos, Vector3 target, float speed, bool flip = false) {
-		GameObject go = (GameObject)Instantiate (projPrefabs[projectiles[s]], pos, Quaternion.identity);;
+		GameObject go = (GameObject)Instantiate (projPrefabs[projectiles[s]], pos, Quaternion.identity);
 
 		go.GetComponent<ProjectileController> ().Initialise (target, speed);
 
@@ -179,6 +201,15 @@ public class PrefabLibrary : MonoBehaviour {
 		go.transform.SetParent (t);
 		go.transform.localPosition = pos;
 		
+		return go;
+	}
+
+	public GameObject CreateParticleEffect(string s, Vector3 pos) {
+
+		Vector3 position = new Vector3(pos.x, pos.y, particleSystems[particleEffects[s]].transform.position.z);
+
+		GameObject go = (GameObject)Instantiate (particleSystems[particleEffects[s]], position, Quaternion.identity);
+
 		return go;
 	}
 }

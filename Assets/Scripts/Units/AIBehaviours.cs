@@ -31,6 +31,7 @@ public class AIBehaviours : MonoBehaviour {
 
 	public bool hasAttacked = false; // if the unit is meant to attack only allow it to once
 	public bool inCloseCombat = false; // if the unit is in melee with another
+	public bool turnPlanned = false;
 
 	// Use this for initialization
 	public void Initialise () {
@@ -47,12 +48,11 @@ public class AIBehaviours : MonoBehaviour {
 		case Behaviour.Dumb: FindTargetClosest(myManager.playerUnitObjects, false);
 			Dumb ();
 			break;
-		case Behaviour.DumbRanged: //FindTargetClosest(myManager.playerUnitObjects, true);
-			FindClosestLoS(myManager.playerUnitObjects);
+		case Behaviour.DumbRanged: FindClosestLoS(myManager.playerUnitObjects);
 			DumbRanged();
 			break;
 		}
-
+		turnPlanned = true;
 	}
 	
 	//find target closest to the unit, from array
@@ -210,8 +210,8 @@ public class AIBehaviours : MonoBehaviour {
 		//check each unit
 		foreach (GameObject go in targets) {
 			Unit sUnit = go.GetComponent<Unit>();
-			List<Node> losNodes = myMap.FindSingleRangedTargets (myUnit.myAbilities [0], sUnit);
 			if (!sUnit.isDead) {
+				List<Node> losNodes = myMap.FindSingleRangedTargets (myUnit.myAbilities [0], sUnit, true);
 				if (myMap.AIFindClosestTile(sUnit.tileX, sUnit.tileY, losNodes)) {
 					if (myUnit.currentPath.Count < currentPathLength) {
 						shortestPath = myUnit.currentPath;
@@ -358,7 +358,7 @@ public class AIBehaviours : MonoBehaviour {
 	}
 	
 	public void Attack() {
-		//temp
+		//temp needs to have weighted priority
 		if (!hasAttacked) {
 			myUnit.myAbilities[0].UseAbility(target.myUnit);
 			hasAttacked = true;
