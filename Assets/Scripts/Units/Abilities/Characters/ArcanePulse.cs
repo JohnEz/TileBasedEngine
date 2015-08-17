@@ -12,6 +12,9 @@ public class ArcanePulse : Ability
 		range = 5;
 		area = AreaType.Single;
 		targets = TargetType.Enemy;
+		description = "Cooldown: " + maxCooldown.ToString () +
+			"\nDeals increased damage the lower the units mana. If the target doesn't use mana, deals " + damage.ToString () + 
+				" damage. The caster gains " + manaGain.ToString() + " mana if the attack hits.";
 	}
 
 	public override void UseAbility (Unit target)

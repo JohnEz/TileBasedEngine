@@ -13,6 +13,10 @@ public class PointBlank : Ability
 		targets = TargetType.Enemy;
 		maxCooldown = 1;
 		usesCombo = true;
+
+		description = "Cooldown: " + maxCooldown.ToString () +
+			"\nUses all the combo points and deals " + damage.ToString () + 
+				" damage, per combo point, to the target. The caster is also pushed back equal to the number of combo points.";
 	}
 
 	public override void UseAbility (Unit target)

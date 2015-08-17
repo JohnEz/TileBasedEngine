@@ -5,18 +5,18 @@ using System;
 public class DivineSacrificeTrigger : Trigger
 {
 
-
-	public DivineSacrificeTrigger (Unit caster, int dur, PrefabLibrary el) : base(TriggerType.Death, caster, el)
+	int manaGain = 0;
+	public DivineSacrificeTrigger (string name, Unit caster, int dur, PrefabLibrary el, int mGain) : base(name, TriggerType.Death, caster, el, dur)
 	{
 		maxTriggers = 1;
-		maxDuration = dur;
+		manaGain = mGain;
 	}
 
 	public override void RunTrigger (Unit host, Unit attacker = null)
 	{
 		base.RunTrigger (host, attacker);
 
-		myCaster.AddRemoveMana (20);
+		myCaster.AddRemoveMana (manaGain);
 	}
 }
 

@@ -4,18 +4,18 @@ using System;
 
 public class CounterAttackTrigger : Trigger
 {
-	
-	public CounterAttackTrigger (Unit caster, int dur, PrefabLibrary el) : base(TriggerType.Block, caster, el)
+	int damage = 0;
+	public CounterAttackTrigger (string name, Unit caster, int dur, PrefabLibrary el, int dmg) : base(name, TriggerType.Block, caster, el, dur)
 	{
-		maxTriggers = 50;
-		maxDuration = dur;
+		maxTriggers = -1;
+		damage = dmg;
 	}
 	
 	public override void RunTrigger (Unit host, Unit attacker = null)
 	{
 		base.RunTrigger (host, attacker);
 
-		int dmg = (int)(20 * myCaster.damageDealtMod);
+		int dmg = (int)(damage * myCaster.damageDealtMod);
 
 		attacker.TakeDamage (dmg, effectLib.getSoundEffect("Sword1"), false, myCaster);
 

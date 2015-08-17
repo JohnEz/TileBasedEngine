@@ -14,6 +14,10 @@ public class Lunge : Ability
 		area = AreaType.Line;
 		targets = TargetType.Enemy;
 		maxCooldown = 4;
+
+		description = "Cooldown: " + maxCooldown.ToString () +
+			"\nAfter a single square dash, jumps over all units until it finds an empty square. Deals " + damage.ToString () + 
+				" damage to the first target if its an enemy and gains 1 combo point per enemy leaped over.";
 	}
 
 	public override void UseAbility (Node n)

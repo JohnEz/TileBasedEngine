@@ -8,13 +8,15 @@ public class FlashFreeze : Ability
 	{
 		Name = "Flash Freeze";
 		damage = 20;
-		manaCost = 20;
+		manaCost = 30;
 		duration = 1;
 		maxCooldown = 3;
 		range = 5;
 		AOERange = 2;
 		area = AreaType.AOE;
 		targets = TargetType.All;
+		description = "Cooldown: " + maxCooldown.ToString () + " Mana: " + manaCost.ToString () +
+			"\nDeals " + damage.ToString () + " damage to both allies and enemies and stuns them for " + duration.ToString() + " turns.";
 	}
 	
 	public override void UseAbility (Unit target)

@@ -55,6 +55,7 @@ public class PrefabLibrary : MonoBehaviour {
 		visualEffects.Add ("The Lords Protection", 16);
 		visualEffects.Add ("Crackle", 17);
 		visualEffects.Add ("Counter Attack", 18);
+		visualEffects.Add ("Crackle Debuff", 19);
 	}
 
 	void AttachAudioEffects() {

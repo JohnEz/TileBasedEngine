@@ -17,7 +17,8 @@ public class GameManager : MonoBehaviour {
 
 	void Update() {
 		if (Input.GetKeyDown(KeyCode.Escape)) {
-			//TODO quit the game
+			//TEMP
+			Application.Quit();
 		}
 
 		if (Input.GetKeyDown(KeyCode.Alpha1)) {

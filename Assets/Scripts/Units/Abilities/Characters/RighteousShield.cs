@@ -11,10 +11,14 @@ public class RighteousShield : Ability
 		shield = 50;
 		manaCost = 20;
 		maxCooldown = 2;
-		duration = 1;
+		duration = 3;
 		range = 6;
 		area = AreaType.Single;
 		targets = TargetType.Ally;
+
+		description = "Cooldown: " + maxCooldown.ToString () + " Mana: " + manaCost.ToString () +
+			"\nShields the target against " + shield.ToString () + 
+				" points of damage and increases movespeed by 1 square, lasting " + duration.ToString() + " turns.";
 	}
 
 	public override void UseAbility (Unit target)

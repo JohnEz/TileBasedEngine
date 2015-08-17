@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
@@ -131,16 +131,16 @@ public class UnitManager : MonoBehaviour {
 			u.hp = u.maxHP;
 			u.mana = u.maxMana;
 
-			//add a healthbar
-			AddUnitUIElement (healthBar, u);
-			AddUnitUIElement (hpText, u);
-			
+			//add a shieldbar
+			AddUnitUIElement (shieldBar, u);
+
 			//add a manabar
 			AddUnitUIElement (manaBar, u);
 			AddUnitUIElement (manaText, u);
 
-			//add a shieldbar
-			AddUnitUIElement (shieldBar, u);
+			//add a healthbar
+			AddUnitUIElement (healthBar, u);
+			AddUnitUIElement (hpText, u);
 
             //give the unit its spells TODO find a better way of doing this instead of hardcoding
             GiveCharacterAbilities(u, c);
@@ -184,16 +184,16 @@ public class UnitManager : MonoBehaviour {
 		ai.Initialise ();
 		++enemyCount;
 
-		//add a healthbar
-		AddUnitUIElement (healthBar, u);
-		AddUnitUIElement (hpText, u);
+		//add a shieldbar
+		AddUnitUIElement (shieldBar, u);
 		
 		//add a manabar
 		AddUnitUIElement (manaBar, u);
 		AddUnitUIElement (manaText, u);
 
-		//add a shieldbar
-		AddUnitUIElement (shieldBar, u);
+		//add a healthbar
+		AddUnitUIElement (healthBar, u);
+		AddUnitUIElement (hpText, u);
 
 		//give the enemy their abilities
 		GiveEnemyAbilities (u, e);
@@ -270,9 +270,9 @@ public class UnitManager : MonoBehaviour {
 				
 				if (ind == turn) {
 					EndTurn ();
-					--turn;
+					//--turn;
 				} else if (ind < turn) {
-					--turn;
+					//--turn;
 				}
 				//currentQueue.Remove(go);
 

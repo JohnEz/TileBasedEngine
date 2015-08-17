@@ -12,6 +12,10 @@ public class ShieldSlam : Ability
 		area = AreaType.Single;
 		targets = TargetType.Enemy;
 		maxCooldown = 3;
+
+		description = "Cooldown: " + maxCooldown.ToString () +
+			"\nSlams the target for " + damage.ToString () + 
+				" damage, pushes them back 1 square and stuns them for 1 turn. If the target is larger than the caster, it is not pushed back or stunned but takes 3x damage.";
 	}
 
 	public override void UseAbility (Unit target)

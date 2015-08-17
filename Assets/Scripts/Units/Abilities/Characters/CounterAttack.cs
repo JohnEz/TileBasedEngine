@@ -3,6 +3,7 @@ using System;
 
 public class CounterAttack : Ability
 {
+	int blockIncrease = 75;
 	public CounterAttack (Unit u, TileMap m, PrefabLibrary el)  : base(u, m , el)
 	{
 		Name = "Counter Attack";
@@ -11,6 +12,8 @@ public class CounterAttack : Ability
 		area = AreaType.Self;
 		targets = TargetType.Enemy;
 		maxCooldown = 6;
+		description = "Cooldown: " + maxCooldown.ToString () +
+			"\nIncreases block chance by " + blockIncrease.ToString() + "% for "  + duration.ToString() + " turns and deals " + damage.ToString() + " damage to attackers after blocking.";
 	}
 
 	public override void UseAbility (Node n)
@@ -20,8 +23,8 @@ public class CounterAttack : Ability
 		Vector3 pos = map.TileCoordToWorldCoord (myCaster.tileX, myCaster.tileY);
 		myVisualEffects.Add (effectLib.CreateVisualEffect ("Counter Attack", pos).GetComponent<EffectController> ());
 
-		myCaster.ApplyEffect(new BlockEffect("Counter Attack", duration, 100, 1));
-		myCaster.AddTrigger (new CounterAttackTrigger (myCaster, duration, effectLib));
+		myCaster.ApplyEffect(new BlockEffect("Counter Attack", duration, blockIncrease, 1));
+		myCaster.AddTrigger (new CounterAttackTrigger ("Counter Attack", myCaster, duration, effectLib, damage));
 
 		myCaster.GetComponent<AudioSource> ().PlayOneShot (effectLib.getSoundEffect ("Counter Attack"));
 	}

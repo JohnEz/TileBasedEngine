@@ -14,6 +14,9 @@ public class TripleShot : Ability
 		maxCooldown = 1;
 		area = AreaType.Single;
 		targets = TargetType.Enemy;
+
+		description = "Cooldown: " + maxCooldown.ToString () +
+			"\nFires 3 arrows that deal " + damage.ToString () + " damage each to the target and the caster gains " + manaGain.ToString() + " mana per arrow hit.";
 	}
 
 	public override void UseAbility (Unit target)

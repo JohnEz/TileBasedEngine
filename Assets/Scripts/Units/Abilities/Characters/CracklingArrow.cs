@@ -5,6 +5,7 @@ using System;
 public class CracklingArrow : Ability
 {
 	Node targetNode = null;
+	int popDamage = 15;
 
 	public CracklingArrow (Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
@@ -17,6 +18,10 @@ public class CracklingArrow : Ability
 		targets = TargetType.Enemy;
 		range = 7;
 		maxCooldown = 1;
+		description = "Cooldown: " + maxCooldown.ToString () + " Mana: " + manaCost.ToString () +
+			"\nDeals " + damage.ToString() + " damage where it lands and applys Crackle to all units lasting "  + duration.ToString () +  
+				" turns. The next time the unit takes damage, it takes an additional " 
+				+ popDamage.ToString() + " damage and is stunned for 1 turn.";
 	}
 	
 	public override void UseAbility (Node n)
@@ -44,7 +49,7 @@ public class CracklingArrow : Ability
 		if (targetNode.myUnit != null && targetNode.myUnit.team != myCaster.team) {
 			targetNode.myUnit.TakeDamage(dmg);
 			if (targetNode.myUnit != null && targetNode.myUnit.team != myCaster.team) {
-				targetNode.myUnit.AddTrigger(new CracklingArrowTrigger(myCaster, duration, effectLib));
+				targetNode.myUnit.AddTrigger(new CracklingArrowTrigger("Crackle", myCaster, duration, effectLib, popDamage));
 			}
 		}
 
@@ -55,7 +60,7 @@ public class CracklingArrow : Ability
 				pos = map.TileCoordToWorldCoord (n.x, n.y);
 				myVisualEffects.Add (effectLib.CreateVisualEffect ("Crackle", pos).GetComponent<EffectController> ());
 				if (n.myUnit != null && n.myUnit.team != myCaster.team) {
-					n.myUnit.AddTrigger(new CracklingArrowTrigger(myCaster, duration, effectLib));
+					n.myUnit.AddTrigger(new CracklingArrowTrigger("Crackle", myCaster, duration, effectLib, popDamage));
 				}
 			}
 		}

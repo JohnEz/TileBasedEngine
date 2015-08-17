@@ -4,6 +4,7 @@ using System.Collections.Generic;
 public class SmokeBomb : Ability
 {
 	int losMod = 5;
+	float damageMod = 0.25f;
 	public SmokeBomb(Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
 		Name = "Smoke Bomb";
@@ -13,6 +14,11 @@ public class SmokeBomb : Ability
 		area = AreaType.Self;
 		targets = TargetType.Ally;
 		maxCooldown = 10;
+
+		int percentageMod = (int)(damageMod * 100);
+
+		description = "Cooldown: " + maxCooldown.ToString () +
+			"\nDrops a smoke bomb that reduces vision in the area and reduces the damage allies take by " + percentageMod.ToString () + "% lasting " + duration.ToString() + " turns.";
 	}
 	
 	public override void UseAbility(Node target)
@@ -40,7 +46,7 @@ public class SmokeBomb : Ability
 		foreach (Node n in targetNodes) {
 			n.LOSMod += losMod;
 
-			Effect eff = new DamageRecievedEffect("Smokey", 0, -0.25f);
+			Effect eff = new DamageRecievedEffect("Smokey", 0, -damageMod);
 			eff.targets = myCaster.team;
 
 			n.myEffects.Add(eff); 

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.UI;
 
@@ -12,9 +12,21 @@ public class UIManager : MonoBehaviour {
 
 	public PrefabLibrary prefabs;
 
+	public Image descriptionBox;
+	public Text abilityNameText;
+	public Text abilityDescText;
+
 	// Use this for initialization
 	void Start () {
+		descriptionBox = transform.FindChild ("AbilityDescriptionBox").GetComponent<Image>();
+		abilityNameText = descriptionBox.transform.FindChild ("AbilityName").GetComponent<Text>();
+		abilityDescText = descriptionBox.transform.FindChild ("AbilityDescription").GetComponent<Text>();
 
+		float y = GetComponent<RectTransform>().rect.height / 2 - 130;
+		Vector3 pos = new Vector3(0, -y, 0);
+		descriptionBox.transform.localPosition = pos;
+
+		HideDescription ();
 	}
 	
 	// Update is called once per frame
@@ -95,21 +107,27 @@ public class UIManager : MonoBehaviour {
 			go.transform.FindChild ("CooldownText").GetComponent<Text>().text = "";
 		}
 
-		go.GetComponent<IconController> ().slot = slot;
+		AbilityButtonController controller = go.GetComponent<AbilityButtonController> ();
+
+		controller.slot = slot;
+		controller.abilName = abil.Name;
+		controller.AbilDescription = abil.description;
 
 		currentIcons.Add(go);
 	}
 
 	public void HighlightIcon(int ind) {
+
+		AbilityButtonController controller;
+
 		for (int i = 0; i < currentIcons.Count; ++i) {
+			controller = currentIcons[i].GetComponent<AbilityButtonController>();
+
 			//if its not the selected icon
 			if (i != ind) {
-				if (currentIcons[i].GetComponent<Image>().color == new Color(1, 1, 1)) {
-					currentIcons[i].GetComponent<Image>().color = new Color(0.75f, 0.75f, 0.75f);
-				}
+				controller.UnSelectButton();
 			} else {
-				//highlight icon
-				currentIcons[i].GetComponent<Image>().color = new Color(1, 1, 1);
+				controller.SelectButton();
 			}
 		}
 	}
@@ -128,6 +146,21 @@ public class UIManager : MonoBehaviour {
 		
 		temp.GetComponent<Text> ().text = s;
 		Destroy(temp.gameObject, 2); 
+	}
+
+	public void HideDescription() {
+		descriptionBox.enabled = false;
+		abilityNameText.enabled = false;
+		abilityDescText.enabled = false;
+	}
+
+	public void ShowDescription(string name, string desc) {
+		descriptionBox.enabled = true;
+		abilityNameText.enabled = true;
+		abilityDescText.enabled = true;
+		abilityNameText.text = name;
+		abilityDescText.text = desc;
+
 	}
 
 }

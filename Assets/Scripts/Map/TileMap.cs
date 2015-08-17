@@ -170,6 +170,7 @@ public class TileMap : MonoBehaviour {
 				n.cost = Mathf.Infinity;
 				n.previous = null;
 				n.dist = Math.Abs(n.x - target.x) + Math.Abs(n.y - target.y);
+				n.directionToParent = new Vector2(0, 0);
 			}
 		}
 

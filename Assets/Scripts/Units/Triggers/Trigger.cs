@@ -14,6 +14,7 @@ public enum TriggerType {
 
 public class Trigger
 {
+	public string triggerName;
 	public TriggerType myTrigger;
 	public int maxTriggers = 1;
 	public int triggerCount = 0;
@@ -24,11 +25,14 @@ public class Trigger
 	public PrefabLibrary effectLib = null;
 
 
-	public Trigger (TriggerType tt, Unit caster, PrefabLibrary el)
+	public Trigger (string name, TriggerType tt, Unit caster, PrefabLibrary el, int dur)
 	{
+		triggerName = name;
 		myTrigger = tt;
 		myCaster = caster;
 		effectLib = el;
+		maxDuration = dur;
+		duration = maxDuration;
 	}
 
 	public void CheckTrigger(TriggerType tt, Unit host, Unit attacker = null) {

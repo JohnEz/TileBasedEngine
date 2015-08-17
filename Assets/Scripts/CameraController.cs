@@ -3,18 +3,22 @@ using System.Collections;
 
 public class CameraController : MonoBehaviour {
 
-	const float MOVESPEED = 12;
-	const float ZOOMSPEED = 0.5f;
-	const float MINZOOM = 2f;
-	const float MAXZOOM = 8f;
+	const float MOVESPEED = 12; //speed the camera moves
+	const float ZOOMSPEED = 0.5f; //speed the camera zooms
+	const float MINZOOM = 2f; //minimum zoom value
+	const float MAXZOOM = 8f; //maximum zoom value
+	const float BOUNDARY = 5; //distance from edge of screen that the camera starts to move
 
-	
+	public float screenWidth = 0;
+	public float screenHeight = 0;
+
 	public bool movingToDestination = false;
 	Vector3 targetLocation;
 
 	// Use this for initialization
 	void Start () {
-	
+		screenWidth = Screen.width;
+		screenHeight = Screen.height;
 	}
 	
 	// Update is called once per frame
@@ -38,16 +42,16 @@ public class CameraController : MonoBehaviour {
 			Vector3 move = new Vector3 (0, 0, 0);
 			
 			
-			if (Input.GetKey(KeyCode.W)) {
+			if (Input.GetKey(KeyCode.W) || Input.mousePosition.y > screenHeight - BOUNDARY) {
 				move += new Vector3(0, 1, 0);
 			}
-			if (Input.GetKey(KeyCode.A)) {
+			if (Input.GetKey(KeyCode.A) || Input.mousePosition.x < BOUNDARY) {
 				move -= new Vector3(1, 0, 0);
 			}
-			if (Input.GetKey(KeyCode.S)) {
+			if (Input.GetKey(KeyCode.S) || Input.mousePosition.y < BOUNDARY) {
 				move -= new Vector3(0, 1, 0);
 			}
-			if (Input.GetKey(KeyCode.D)) {
+			if (Input.GetKey(KeyCode.D) || Input.mousePosition.x > screenWidth - BOUNDARY) {
 				move += new Vector3(1, 0, 0);
 			}
 			

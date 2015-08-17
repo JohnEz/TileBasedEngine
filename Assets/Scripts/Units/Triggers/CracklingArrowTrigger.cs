@@ -4,12 +4,11 @@ using System;
 
 public class CracklingArrowTrigger : Trigger
 {
-	int damage = 15;
-	public CracklingArrowTrigger (Unit caster, int dur, PrefabLibrary el) : base(TriggerType.Hit, caster, el)
+	int damage = 0;
+	public CracklingArrowTrigger (string name, Unit caster, int dur, PrefabLibrary el, int dmg) : base(name, TriggerType.Hit, caster, el, dur)
 	{
 		maxTriggers = 1;
-		maxDuration = dur;
-
+		damage = dmg;
 	}
 	
 	public override void RunTrigger (Unit host, Unit attacker = null)

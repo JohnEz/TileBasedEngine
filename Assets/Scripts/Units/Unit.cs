@@ -348,7 +348,7 @@ public class Unit : MonoBehaviour {
 				}
 			}
 		}
-		else if (GetComponent<AIBehaviours>().turnPlanned) {
+		else if (myAI.turnPlanned) {
 			remainingMove = 0;
 			actionPoints = 0;
 			GetComponent<AIBehaviours>().turnPlanned = false;
@@ -531,6 +531,10 @@ public class Unit : MonoBehaviour {
 
 		if (IsAsleep ()) {
 			displayedEffects.Add(uManager.GetComponent<PrefabLibrary>().CreateBuffVisual("Sleep", transform));
+		}
+
+		if (HasTrigger ("Crackle")) {
+			displayedEffects.Add(uManager.GetComponent<PrefabLibrary>().CreateBuffVisual("Crackle Debuff", transform));
 		}
 	}
 
@@ -758,6 +762,7 @@ public class Unit : MonoBehaviour {
 
 	public void AddTrigger(Trigger trig) {
 		myTriggers.Add (trig);
+		ShowDebuffs ();
 	}
 
 	// finds if the unit is stunned
@@ -777,6 +782,15 @@ public class Unit : MonoBehaviour {
 	public bool HasDebuff(string n) {
 		foreach (Effect eff in myEffects) {
 			if (eff.description.Equals(n)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public bool HasTrigger(string n) {
+		foreach (Trigger trig in myTriggers) {
+			if (trig.triggerName.Equals(n) && (trig.triggerCount < trig.maxTriggers || trig.maxTriggers == -1)) {
 				return true;
 			}
 		}
@@ -866,5 +880,7 @@ public class Unit : MonoBehaviour {
 				finishedTriggers.Add(trig);
 			}
 		}
+
+		ShowDebuffs ();
 	}
 }

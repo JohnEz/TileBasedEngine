@@ -17,7 +17,7 @@ public class ManaTrap : Ability
 	{
 		base.UseAbility (n);
 
-		n.myTrigger = new ManaTrapTrigger (myCaster, effectLib);
+		n.myTrigger = new ManaTrapTrigger ("Mana Trap", myCaster, effectLib, duration);
 		n.myTrigger.myTargets = targets;
 	}
 }

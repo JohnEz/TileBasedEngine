@@ -14,6 +14,8 @@ public class Charge : Ability
 		area = AreaType.Line;
 		targets = TargetType.Enemy;
 		maxCooldown = 3;
+		description = "Cooldown: " + maxCooldown.ToString () +
+			"\nCharges in a direction until she hits a wall or unit. Deals " + damage.ToString() + " damage and snares the target for " + duration.ToString() + " turns.";
 	}
 
 	public override void UseAbility (Node n)

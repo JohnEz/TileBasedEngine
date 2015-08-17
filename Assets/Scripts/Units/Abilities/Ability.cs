@@ -21,6 +21,7 @@ public enum TargetType {
 
 public class Ability{
 	public string Name = "";
+	public string description = "I was too lazy to write this ability description for some reason ¯|_(ツ)_|¯ ";
     public int spellID;
 
 	public int damage = 0;

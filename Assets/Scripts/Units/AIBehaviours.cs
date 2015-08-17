@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 
 public enum Behaviour {
@@ -32,6 +33,7 @@ public class AIBehaviours : MonoBehaviour {
 	public bool hasAttacked = false; // if the unit is meant to attack only allow it to once
 	public bool inCloseCombat = false; // if the unit is in melee with another
 	public bool turnPlanned = false;
+	public bool foundTarget = false;
 
 	// Use this for initialization
 	public void Initialise () {
@@ -58,6 +60,8 @@ public class AIBehaviours : MonoBehaviour {
 	//find target closest to the unit, from array
 	void FindTargetClosest(GameObject[] targets, bool ignoreUnits) {
 
+		foundTarget = false;
+
 		//if stunned
 		if (myUnit.remainingMove <= 0 && myUnit.actionPoints <= 0 && myUnit.movespeed == 0) {
 			return;
@@ -65,7 +69,7 @@ public class AIBehaviours : MonoBehaviour {
 
 		List<Node> shortestPath = new List<Node> ();
 		myUnit.currentPath = new List<Node> ();
-		float currentPathLength = Mathf.Infinity;
+		float currentPathCost = Mathf.Infinity;
 		int tx = 0;
 		int ty = 0;
 
@@ -81,14 +85,32 @@ public class AIBehaviours : MonoBehaviour {
 
 					//find the path to the target
 					myMap.GeneratePathTo(targetUnit.tileX, targetUnit.tileY, ignoreUnits);
+					//if a path was found
+					if (myUnit.currentPath.Count > 0) {
+						//remove the targets node
+						myUnit.currentPath.Remove(myMap.GetNode (targetUnit.tileX, targetUnit.tileY));
+						//remove all unreachable tiles
+						FindFurthestTileInPath();
+						//cull the path to reduce size
+						myMap.CullPath();
 
-					// if the path is shorter than current path
-					if (myUnit.currentPath.Count < currentPathLength && myUnit.currentPath.Count > 0) {
-						// set shortest path
-						shortestPath = myUnit.currentPath;
-						currentPathLength = myUnit.currentPath.Count;
-						tx = targetUnit.tileX;
-						ty = targetUnit.tileY;
+						// if the target is next to the unit
+						if (myUnit.currentPath.Count == 0) {
+							foundTarget = true;
+							// set shortest path
+							shortestPath = myUnit.currentPath;
+							currentPathCost = 0;
+							tx = targetUnit.tileX;
+							ty = targetUnit.tileY;
+						} //else if the target is closer than the previous
+						else if (myUnit.currentPath.Last().cost < currentPathCost) {
+							// set shortest path
+							foundTarget = true;
+							shortestPath = myUnit.currentPath;
+							currentPathCost = myUnit.currentPath.Last().cost;
+							tx = targetUnit.tileX;
+							ty = targetUnit.tileY;
+						}
 					}
 				}
 			}
@@ -104,6 +126,8 @@ public class AIBehaviours : MonoBehaviour {
 	//find target closest to the unit, from array
 	void FindTargetClosestAllyInMelee() {
 
+		foundTarget = false;
+
 		//if stunned
 		if (myUnit.remainingMove <= 0 && myUnit.actionPoints <= 0 && myUnit.movespeed == 0) {
 			return;
@@ -111,9 +135,7 @@ public class AIBehaviours : MonoBehaviour {
 		
 		List<Node> shortestPath = new List<Node> ();
 		myUnit.currentPath = new List<Node> ();
-		float currentPathLength = Mathf.Infinity;
-		int tx = 0;
-		int ty = 0;
+		float currentPathCost = Mathf.Infinity;
 		
 		
 		// for each character, find path
@@ -129,25 +151,41 @@ public class AIBehaviours : MonoBehaviour {
 					
 						//find the path to the target
 						myMap.GeneratePathTo(targetUnit.tileX, targetUnit.tileY);
-					
-						// if the path is shorter than current path
-						if (myUnit.currentPath.Count < currentPathLength && myUnit.currentPath.Count > 0) {
-							// set shortest path
-							shortestPath = myUnit.currentPath;
-							currentPathLength = myUnit.currentPath.Count;
-							tx = targetUnit.tileX;
-							ty = targetUnit.tileY;
+
+						//if a path was found
+						if (myUnit.currentPath.Count > 0) {
+							//remove the targets node
+							myUnit.currentPath.Remove(myMap.GetNode (targetUnit.tileX, targetUnit.tileY));
+							//remove all unreachable tiles
+							FindFurthestTileInPath();
+							//cull the path to reduce size
+							myMap.CullPath();
+							
+							// if the target is next to the unit
+							if (myUnit.currentPath.Count == 0) {
+								// set shortest path
+								foundTarget = true;
+								shortestPath = myUnit.currentPath;
+								currentPathCost = 0;
+								//set the target
+								target = myMap.GetNode (targetUnit.tileX, targetUnit.tileY);
+							} //else if the target is closer than the previous
+							else if (myUnit.currentPath.Last().cost < currentPathCost) {
+								// set shortest path
+								foundTarget = true;
+								shortestPath = myUnit.currentPath;
+								currentPathCost = myUnit.currentPath.Last().cost;
+								//set the target
+								target = myMap.GetNode (targetUnit.tileX, targetUnit.tileY);
+							}
 						}
 					}
 				}
 			}
 		}
 		
-		//set the target
-		target = myMap.GetNode (tx, ty);
+
 		myUnit.currentPath = shortestPath;
-		
-		
 	}
 
 	void SupportAllyInMelee() {
@@ -163,11 +201,11 @@ public class AIBehaviours : MonoBehaviour {
 		}
 
 		//if no path could be found, look for an ally i can support
-		if (myUnit.currentPath.Count == 0) {
+		if (!foundTarget) {
 			SupportAllyInMelee ();
 
 			//if no path could be found still, there isnt even an ally to support
-			if (myUnit.currentPath.Count == 0) {
+			if (!foundTarget) {
 				//pass go
 				myUnit.ShowCombatText("Passed", myUnit.statusCombatText);
 			} else {
@@ -203,7 +241,8 @@ public class AIBehaviours : MonoBehaviour {
 		
 		List<Node> shortestPath = null;
 		myUnit.currentPath = null;
-		float currentPathLength = Mathf.Infinity;
+		float currentPathCost = Mathf.Infinity;
+		int currentDist = 0;
 		
 
 		
@@ -213,10 +252,37 @@ public class AIBehaviours : MonoBehaviour {
 			if (!sUnit.isDead) {
 				List<Node> losNodes = myMap.FindSingleRangedTargets (myUnit.myAbilities [0], sUnit, true);
 				if (myMap.AIFindClosestTile(sUnit.tileX, sUnit.tileY, losNodes)) {
-					if (myUnit.currentPath.Count < currentPathLength) {
+
+					myUnit.currentPath.Remove(myMap.GetNode (sUnit.tileX, sUnit.tileY));
+					FindFurthestTileInPath();
+					myMap.CullPath();
+
+					// if the path is shorter than current path
+					if (myUnit.currentPath.Count == 0) {
+
+						//if there was already a target check this one is closer
+						if (foundTarget && currentPathCost == 0){
+							//if the manhattan distance is closer
+							if (currentDist > FindManDistance(myUnit.tileX, myUnit.tileY, sUnit.tileX, sUnit.tileY)) {
+								// set shortest path
+								shortestPath = myUnit.currentPath;
+								target = myMap.GetNode(sUnit.tileX, sUnit.tileY);
+								currentDist = FindManDistance(myUnit.tileX, myUnit.tileY, target.x, target.y);
+							}
+						} else {
+							foundTarget = true;
+							// set shortest path
+							shortestPath = myUnit.currentPath;
+							currentPathCost = 0;
+							target = myMap.GetNode(sUnit.tileX, sUnit.tileY);
+							currentDist = FindManDistance(myUnit.tileX, myUnit.tileY, target.x, target.y);
+						}
+					} else if (myUnit.currentPath.Last().cost < currentPathCost) {
+						// set shortest path
+						foundTarget = true;
 						shortestPath = myUnit.currentPath;
-						currentPathLength = myUnit.currentPath.Count;
-						target = myMap.GetNode (sUnit.tileX, sUnit.tileY);
+						currentPathCost = myUnit.currentPath.Last().cost;
+						target = myMap.GetNode(sUnit.tileX, sUnit.tileY);
 					}
 				}
 			}
@@ -229,10 +295,14 @@ public class AIBehaviours : MonoBehaviour {
 		
 	}
 
+	int FindManDistance(int x1, int y1, int x2, int y2) {
+		int dist = Math.Abs(x1 - x2) + Math.Abs(y1 - y2);
+
+		return dist;
+	}
+
 	//Basic turn - attack if in range or move and attack, or dash
 	void BasicTurn(){
-
-		myUnit.currentPath.Remove (target);
 
 		// is it already in melee?
 		if (myUnit.currentPath.Count == 0) {
@@ -243,7 +313,7 @@ public class AIBehaviours : MonoBehaviour {
 		} 
 		// if target is in first move range, move and attack
 		else if (myUnit.remainingMove > 0 || myUnit.movespeed > 0) {
-			if (myUnit.currentPath.Count <= myUnit.movespeed) {
+			if (myUnit.currentPath.Last().cost <= myUnit.movespeed) {
 				myStrat = AIStrategy.MoveAttack;
 				myUnit.moving = true;
 				myUnit.attacking = true;
@@ -254,14 +324,13 @@ public class AIBehaviours : MonoBehaviour {
 			// if the unit is really far away, dash
 			else{
 				//check to see if it is now in melee
-				if (myUnit.currentPath.Count <= myUnit.movespeed*2) {
+				if (myUnit.currentPath.Last().cost <= myUnit.movespeed*2) {
 					inCloseCombat = true;
 				} else {
 					inCloseCombat = false;
 				}
 				myStrat = AIStrategy.Dash;
 				myUnit.moving = true;
-				FindFurthestTileInPath();
 				myUnit.remainingMove += myUnit.movespeed - (int)myUnit.currentPath.Last().cost;
 				--myUnit.actionPoints;
 				hasAttacked = true;
@@ -270,46 +339,6 @@ public class AIBehaviours : MonoBehaviour {
 
 
 		if (myUnit.moving) {
-			myMap.CullPath ();
-			myMap.GetNode (myUnit.tileX, myUnit.tileY).myUnit = null;
-			myUnit.currentPath.Last ().myUnit = myUnit;
-		}
-	}
-
-	//Basic turn - attack if in range or move and attack, or dash
-	void BasicTurnRanged(){
-		
-		myUnit.currentPath.Remove (target);
-		
-		// is it already in melee?
-		if (myUnit.currentPath.Count == 0) {
-			myStrat = AIStrategy.Attack;
-			myUnit.attacking = true;
-			hasAttacked = false;
-		} 
-		// if target is in first move range, move and attack
-		else if (myUnit.remainingMove > 0 || myUnit.movespeed > 0) {
-			if (myUnit.currentPath.Count <= myUnit.movespeed) {
-				myStrat = AIStrategy.MoveAttack;
-				myUnit.moving = true;
-				myUnit.attacking = true;
-				myUnit.remainingMove -= (int)myUnit.currentPath.Last().cost;
-				hasAttacked = false;
-			} 
-			// if the unit is really far away, dash
-			else{
-				myStrat = AIStrategy.Dash;
-				myUnit.moving = true;
-				FindFurthestTileInPath();
-				myUnit.remainingMove += myUnit.movespeed - (int)myUnit.currentPath.Last().cost;
-				--myUnit.actionPoints;
-				hasAttacked = true;
-			}
-		}
-		
-		
-		if (myUnit.moving) {
-			myMap.CullPath ();
 			myMap.GetNode (myUnit.tileX, myUnit.tileY).myUnit = null;
 			myUnit.currentPath.Last ().myUnit = myUnit;
 		}
@@ -325,7 +354,7 @@ public class AIBehaviours : MonoBehaviour {
 			myUnit.ShowCombatText("Passed", myUnit.statusCombatText);
 		} 
 		//the unit is in normal move range
-		else if (myUnit.currentPath.Count <= myUnit.movespeed) {
+		else if (myUnit.currentPath.Last().cost <= myUnit.movespeed) {
 			myUnit.moving = true;
 			myUnit.remainingMove -= (int)myUnit.currentPath.Last().cost;  // there may not be a 
 			hasAttacked = true;
@@ -334,7 +363,7 @@ public class AIBehaviours : MonoBehaviour {
 		// if the unit is really far away, dash
 		else{
 			//check to see if it is now in melee
-			if (myUnit.currentPath.Count <= myUnit.movespeed*2) {
+			if (myUnit.currentPath.Last().cost <= myUnit.movespeed*2) {
 				inCloseCombat = true;
 			} else {
 				inCloseCombat = false;
@@ -342,14 +371,12 @@ public class AIBehaviours : MonoBehaviour {
 
 			myStrat = AIStrategy.Dash;
 			myUnit.moving = true;
-			FindFurthestTileInPath();
 			myUnit.remainingMove += myUnit.movespeed - (int)myUnit.currentPath.Last().cost;
 			--myUnit.actionPoints;
 			hasAttacked = true;
 		}
 
 		if (myUnit.moving) {
-			myMap.CullPath ();
 			myMap.GetNode (myUnit.tileX, myUnit.tileY).myUnit = null;
 			myUnit.currentPath.Last ().myUnit = myUnit;
 		}
@@ -366,11 +393,13 @@ public class AIBehaviours : MonoBehaviour {
 	}
 
 	void FindFurthestTileInPath() {
-		Node curr = myUnit.currentPath.Last ();
+		if (myUnit.currentPath.Count > 0) {
+			Node curr = myUnit.currentPath.Last ();
 
-		while (curr.cost > myUnit.remainingMove + myUnit.movespeed) {
-			myUnit.currentPath.Remove(curr);
-			curr = myUnit.currentPath.Last ();
+			while (curr.cost > myUnit.remainingMove + myUnit.movespeed) {
+				myUnit.currentPath.Remove (curr);
+				curr = myUnit.currentPath.Last ();
+			}
 		}
 	}
 

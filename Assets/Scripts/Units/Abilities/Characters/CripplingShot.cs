@@ -7,13 +7,15 @@ public class CripplingShot : Ability
 	public CripplingShot (Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
 		Name = "Crippling Shot";
-		damage = 10;
+		damage = 20;
 		manaCost = 20;
 		duration = 2;
 		area = AreaType.Single;
 		targets = TargetType.Enemy;
 		range = 5;
 		maxCooldown = 1;
+		description = "Cooldown: " + maxCooldown.ToString () + " Mana: " + manaCost.ToString () +
+			"\nDeals " + damage.ToString () + " damage to the target and applies a snare for " + duration.ToString() + " turns.";
 	}
 
 	public override void UseAbility (Unit target)
