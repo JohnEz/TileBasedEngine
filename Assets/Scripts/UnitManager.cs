@@ -21,6 +21,7 @@ public enum CharacterClass {
 public enum EnemyClass {
 	Goblin,
 	GoblinAxeThrower,
+	GoblinDrummer,
 	MAXCLASSES
 }
 
@@ -101,11 +102,15 @@ public class UnitManager : MonoBehaviour {
 		spawnEnemy (17, 1, EnemyClass.Goblin);
 		spawnEnemy (15, 8, EnemyClass.GoblinAxeThrower);
 
+		spawnEnemy (21, 4, EnemyClass.GoblinDrummer);
+
 		spawnEnemy (25, 8, EnemyClass.GoblinAxeThrower);
 		spawnEnemy (26, 1, EnemyClass.GoblinAxeThrower);
 
 		activeUnits.Sort(CompareListByInitiative);
 		currentQueue = activeUnits;
+
+		GetComponentInChildren<UIManager> ().ChangeRound (currentQueue);
 
 		NextUnitsTurn ();
 	}
@@ -323,11 +328,15 @@ public class UnitManager : MonoBehaviour {
 
 		++turn;
 
+		GetComponentInChildren<UIManager> ().ChangeTurn (turn);
+
 		if (turn >= currentQueue.Count) {
 			turn = 0;
 			activeUnits.Sort(CompareListByInitiative);
 
 			currentQueue = activeUnits;
+
+			GetComponentInChildren<UIManager> ().ChangeRound (currentQueue);
 		}
 
 		NextUnitsTurn ();
@@ -355,59 +364,71 @@ public class UnitManager : MonoBehaviour {
 	public void ShowAbility(int a) {
 		Unit sUnit = currentQueue [turn].GetComponent<Unit> ();
 		//check to see if the current character is playable
-		if (sUnit.playable && sUnit.actionPoints > 0 && !sUnit.UnitBusy()) {
-			// dont try to reload the same ability
-			if ((int)currentDisplaying != a+1 && sUnit.myAbilities[a] != null) {
-				//if the unit has mana
-				if (sUnit.mana >= sUnit.myAbilities[a].manaCost) {
-					// if the ability isnt on cooldown
-					if (sUnit.myAbilities[a].cooldown < 1) {
-						// check if the user has any combo if it needs it
-						if ((sUnit.myAbilities[a].usesCombo && sUnit.comboPoints > 0) || !sUnit.myAbilities[a].usesCombo) {
+		if (sUnit.playable && !sUnit.UnitBusy ()) {
+			if (sUnit.actionPoints > 0) {
+				// dont try to reload the same ability
+				if ((int)currentDisplaying != a + 1 && sUnit.myAbilities [a] != null) {
+					//if the unit has mana
+					if (sUnit.mana >= sUnit.myAbilities [a].manaCost) {
+						// if the ability isnt on cooldown
+						if (sUnit.myAbilities [a].cooldown < 1) {
+							// check if the user has any combo if it needs it
+							if ((sUnit.myAbilities [a].usesCombo && sUnit.comboPoints > 0) || !sUnit.myAbilities [a].usesCombo) {
 
-							//highlight icon
-							GetComponentInChildren<UIManager>().HighlightIcon(a);
+								//highlight icon
+								GetComponentInChildren<UIManager> ().HighlightIcon (a);
 
-							ChangeActionDisplay(a+1);
-							List<Node> targetableTiles = new List<Node>();
+								ChangeActionDisplay (a + 1);
+								List<Node> targetableTiles = new List<Node> ();
 
-							switch(sUnit.myAbilities[a].area) {
-							case AreaType.Single: targetableTiles = map.FindSingleRangedTargets(sUnit.myAbilities[a], sUnit);
-								map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), 0);
-								ShowSingleTargets(targetableTiles, sUnit.myAbilities[a]);
-								break;
-							case AreaType.AOE: targetableTiles = map.FindSingleRangedTargets(sUnit.myAbilities[a], sUnit);
-								map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), 1);
-								break;
-							case AreaType.LineAOE:targetableTiles = map.FindLineTargets(sUnit.myAbilities[a], true, true);
-								map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), 1);
-								break;
-							case AreaType.Line: targetableTiles = map.FindLineTargets(sUnit.myAbilities[a]);
-								map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), 1);
-								break;
-							case AreaType.Floor : targetableTiles = map.FindSingleRangedTargets(sUnit.myAbilities[a], sUnit);
-								map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f, 0.3f, 0.3f), 1);
-								ShowFloorTargets(targetableTiles, sUnit.myAbilities[a]);
-								break;
-							case AreaType.Self : targetableTiles.Add(map.GetNode(sUnit.tileX, sUnit.tileY));
-								map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f, 0.3f, 0.3f), 1);
-								break;
-							case AreaType.All : targetableTiles = FindAllTargets(sUnit.myAbilities[a]);
-								map.HighlightTiles(targetableTiles, new Color(0.6f, 0.3f, 0.3f), new Color(0.85f, 0.3f, 0.3f), 1);
-								break;
+								switch (sUnit.myAbilities [a].area) {
+								case AreaType.Single:
+									targetableTiles = map.FindSingleRangedTargets (sUnit.myAbilities [a], sUnit);
+									map.HighlightTiles (targetableTiles, new Color (0.6f, 0.3f, 0.3f), new Color (0.85f, 0.4f, 0.4f), 0);
+									ShowSingleTargets (targetableTiles, sUnit.myAbilities [a]);
+									break;
+								case AreaType.AOE:
+									targetableTiles = map.FindSingleRangedTargets (sUnit.myAbilities [a], sUnit);
+									map.HighlightTiles (targetableTiles, new Color (0.6f, 0.3f, 0.3f), new Color (0.85f, 0.4f, 0.4f), 1);
+									break;
+								case AreaType.LineAOE:
+									targetableTiles = map.FindLineTargets (sUnit.myAbilities [a], true, true);
+									map.HighlightTiles (targetableTiles, new Color (0.6f, 0.3f, 0.3f), new Color (0.85f, 0.4f, 0.4f), 1);
+									break;
+								case AreaType.Line:
+									targetableTiles = map.FindLineTargets (sUnit.myAbilities [a]);
+									map.HighlightTiles (targetableTiles, new Color (0.6f, 0.3f, 0.3f), new Color (0.85f, 0.4f, 0.4f), 1);
+									break;
+								case AreaType.Floor:
+									targetableTiles = map.FindSingleRangedTargets (sUnit.myAbilities [a], sUnit);
+									map.HighlightTiles (targetableTiles, new Color (0.6f, 0.3f, 0.3f), new Color (0.85f, 0.3f, 0.3f), 1);
+									ShowFloorTargets (targetableTiles, sUnit.myAbilities [a]);
+									break;
+								case AreaType.Self:
+									targetableTiles.Add (map.GetNode (sUnit.tileX, sUnit.tileY));
+									map.HighlightTiles (targetableTiles, new Color (0.6f, 0.3f, 0.3f), new Color (0.85f, 0.3f, 0.3f), 1);
+									break;
+								case AreaType.All:
+									targetableTiles = FindAllTargets (sUnit.myAbilities [a]);
+									map.HighlightTiles (targetableTiles, new Color (0.6f, 0.3f, 0.3f), new Color (0.85f, 0.3f, 0.3f), 1);
+									break;
+								}
+							} else {
+								GetComponentInChildren<UIManager> ().ShowErrorText ("Unit doesnt have any combo");
+								sUnit.GetComponent<AudioSource> ().PlayOneShot (effectLibrary.getSoundEffect ("Error"));
 							}
 						} else {
-							GetComponentInChildren<UIManager>().ShowErrorText("Unit doesnt have any combo");
+							GetComponentInChildren<UIManager> ().ShowErrorText ("Ability is on cooldown");
 							sUnit.GetComponent<AudioSource> ().PlayOneShot (effectLibrary.getSoundEffect ("Error"));
 						}
 					} else {
-						GetComponentInChildren<UIManager>().ShowErrorText("Ability is on cooldown");
+						GetComponentInChildren<UIManager> ().ShowErrorText ("Not enough mana");
 						sUnit.GetComponent<AudioSource> ().PlayOneShot (effectLibrary.getSoundEffect ("Error"));
 					}
-				} else {
-					GetComponentInChildren<UIManager>().ShowErrorText("Not enough mana");
-					sUnit.GetComponent<AudioSource> ().PlayOneShot (effectLibrary.getSoundEffect ("Error"));
 				}
+			} else {
+				GetComponentInChildren<UIManager> ().ShowErrorText ("No action points left");
+				sUnit.GetComponent<AudioSource> ().PlayOneShot (effectLibrary.getSoundEffect ("Error"));
 			}
 		}
 	}
@@ -666,6 +687,10 @@ public class UnitManager : MonoBehaviour {
 		case EnemyClass.Goblin: u.myAbilities[0] = new Clobber(u, map, effectLibrary);
 			break;
 		case EnemyClass.GoblinAxeThrower: u.myAbilities[0] = new AxeThrow(u, map, effectLibrary);
+			break;
+		case EnemyClass.GoblinDrummer: u.myAbilities[0] = new BattleRhythem(u, map, effectLibrary);
+			u.myAbilities[1] = new Inspire(u, map, effectLibrary);
+			u.myAbilities[2] = new SonicWave(u, map, effectLibrary);
 			break;
 		}
 

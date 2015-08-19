@@ -7,8 +7,8 @@ public class TheLordsProtection : Ability
 	{
 		Name = "The Lords Protection";
 		healing = 10;
-		manaCost = 25;
-		maxCooldown = 10;
+		manaCost = 30;
+		maxCooldown = 15;
 		duration = 2;
 		area = AreaType.All;
 		targets = TargetType.Ally;

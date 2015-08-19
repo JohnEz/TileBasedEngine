@@ -16,7 +16,7 @@ public class PointBlank : Ability
 
 		description = "Cooldown: " + maxCooldown.ToString () +
 			"\nUses all the combo points and deals " + damage.ToString () + 
-				" damage, per combo point, to the target. The caster is also pushed back equal to the number of combo points.";
+				" damage, per combo point, to the target. The caster is pushed back equal to the number of combo points.";
 	}
 
 	public override void UseAbility (Unit target)

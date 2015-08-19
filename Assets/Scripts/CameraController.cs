@@ -15,10 +15,22 @@ public class CameraController : MonoBehaviour {
 	public bool movingToDestination = false;
 	Vector3 targetLocation;
 
+	public float minX = 0;
+	public float minY = 0;
+	public float maxX = 10;
+	public float maxY = 10;
+
 	// Use this for initialization
 	void Start () {
-		screenWidth = Screen.width;
-		screenHeight = Screen.height;
+
+	}
+
+	public void Initialise(TileMap map) {
+		minX = map.TileCoordToWorldCoord (0, 0).x;
+		minY = map.TileCoordToWorldCoord (0, 0).y;
+
+		maxX = map.TileCoordToWorldCoord (map.currentLevel.maxSizeX, 0).x;
+		maxY = map.TileCoordToWorldCoord (0, map.currentLevel.maxSizeY).y;
 	}
 	
 	// Update is called once per frame
@@ -42,16 +54,16 @@ public class CameraController : MonoBehaviour {
 			Vector3 move = new Vector3 (0, 0, 0);
 			
 			
-			if (Input.GetKey(KeyCode.W) || Input.mousePosition.y > screenHeight - BOUNDARY) {
+			if ((Input.GetKey(KeyCode.W) || Input.mousePosition.y > Screen.height - BOUNDARY) && transform.position.y < maxY) {
 				move += new Vector3(0, 1, 0);
 			}
-			if (Input.GetKey(KeyCode.A) || Input.mousePosition.x < BOUNDARY) {
+			if ((Input.GetKey(KeyCode.A) || Input.mousePosition.x < BOUNDARY) && transform.position.x > minX) {
 				move -= new Vector3(1, 0, 0);
 			}
-			if (Input.GetKey(KeyCode.S) || Input.mousePosition.y < BOUNDARY) {
+			if ((Input.GetKey(KeyCode.S) || Input.mousePosition.y < BOUNDARY) && transform.position.y > minY) {
 				move -= new Vector3(0, 1, 0);
 			}
-			if (Input.GetKey(KeyCode.D) || Input.mousePosition.x > screenWidth - BOUNDARY) {
+			if ((Input.GetKey(KeyCode.D) || Input.mousePosition.x > Screen.width - BOUNDARY) && transform.position.x < maxX) {
 				move += new Vector3(1, 0, 0);
 			}
 			

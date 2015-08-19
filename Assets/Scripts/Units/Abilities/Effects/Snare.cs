@@ -14,8 +14,8 @@ public class Snare : Effect
     {
         base.RunEffect(u, reapply);
 
-        u.movespeed = 0;
-		u.remainingMove = 0;
+        u.movespeed = -100;
+		u.remainingMove = -100;
 		if (!reapply) {
 			u.ShowCombatText ("Snared", u.statusCombatText);
 		}

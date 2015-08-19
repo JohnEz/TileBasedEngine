@@ -52,6 +52,12 @@ public class Ability{
 	public List<EffectController> myVisualEffects = new List<EffectController> ();
 	public List<ProjectileController> myProjectiles = new List<ProjectileController> ();
 
+	//ai information
+	public int AIPriority = 5;
+	public bool AIRanged = false;
+	public bool AISupportsAlly = false;
+
+
 
     public Ability(Unit u, TileMap m, PrefabLibrary el)
     {

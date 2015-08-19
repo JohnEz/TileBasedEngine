@@ -16,8 +16,15 @@ public class UIManager : MonoBehaviour {
 	public Text abilityNameText;
 	public Text abilityDescText;
 
+	public Image turnOrderFrame;
+	public Image currentTurnFrame;
+	public GameObject portaitPrefab;
+
+	public List<GameObject> currentPortaits = new List<GameObject>();
+
 	// Use this for initialization
-	void Start () {
+	public void Initialise () {
+		//set the position of the description box and text
 		descriptionBox = transform.FindChild ("AbilityDescriptionBox").GetComponent<Image>();
 		abilityNameText = descriptionBox.transform.FindChild ("AbilityName").GetComponent<Text>();
 		abilityDescText = descriptionBox.transform.FindChild ("AbilityDescription").GetComponent<Text>();
@@ -26,7 +33,20 @@ public class UIManager : MonoBehaviour {
 		Vector3 pos = new Vector3(0, -y, 0);
 		descriptionBox.transform.localPosition = pos;
 
+		//hide the box until it needs to be seen
 		HideDescription ();
+
+		//set the position of the turn order frame
+		turnOrderFrame = transform.FindChild ("TurnOrderFrame").GetComponent<Image>();
+		currentTurnFrame = transform.FindChild ("CurrentTurnFrame").GetComponent<Image>();
+
+		y = GetComponent<RectTransform>().rect.height / 2- 32;
+		pos = new Vector3(0, y, 0);
+
+		turnOrderFrame.transform.localPosition = pos;
+		currentTurnFrame.transform.localPosition = pos;
+
+
 	}
 	
 	// Update is called once per frame
@@ -162,5 +182,59 @@ public class UIManager : MonoBehaviour {
 		abilityDescText.text = desc;
 
 	}
+	
+	public void ChangeRound(List<GameObject> currentTurnOrder) {
+		//delete old portaits
+		foreach (GameObject go in currentPortaits) {
+			go.GetComponent<PortraitController>().targetAlpha = 0;
+			Destroy(go, 1f);
+		}
+
+		currentPortaits = new List<GameObject> ();
+
+		//create new portraits
+		for (int i = 0; i < currentTurnOrder.Count; ++i) {
+
+			// find the position
+			Vector3 pos = new Vector3(i * 48, 1, 0);
+
+			//create the object
+			GameObject go = (GameObject)Instantiate(portaitPrefab, new Vector3(0, 0, 0), Quaternion.identity);
+
+			//set the image and position
+			go.transform.SetParent(turnOrderFrame.transform);
+			go.transform.localPosition = pos;
+			go.GetComponent<Image>().sprite = currentTurnOrder[i].GetComponent<Unit>().portait;
+
+			//find alpha depending distance from the current turn
+			float alpha = Mathf.Max(0, 1-(i*0.25f));
+
+			go.GetComponent<Image>().color = new Color(1, 1, 1 , 0);
+			go.GetComponent<PortraitController>().targetAlpha = alpha;
+			go.GetComponent<PortraitController>().targetPos = pos;
+
+			currentPortaits.Add(go);
+
+		}
+
+	}
+
+	public void ChangeTurn(int turn) {
+
+		for (int i = 0; i < currentPortaits.Count; ++i) {
+			int diff = i - turn;
+
+			// find the position
+			Vector3 pos = new Vector3(diff * 48, 1, 0);
+
+			//find alpha depending distance from the current turn
+			float alpha = Mathf.Max(0, 1-(Mathf.Abs(diff)*0.25f));
+
+			currentPortaits[i].GetComponent<PortraitController>().targetPos = pos;
+			currentPortaits[i].GetComponent<PortraitController>().targetAlpha = alpha;
+		}
+
+	}
+
 
 }

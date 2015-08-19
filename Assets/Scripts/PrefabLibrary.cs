@@ -56,6 +56,7 @@ public class PrefabLibrary : MonoBehaviour {
 		visualEffects.Add ("Crackle", 17);
 		visualEffects.Add ("Counter Attack", 18);
 		visualEffects.Add ("Crackle Debuff", 19);
+		visualEffects.Add ("Drum1", 20);
 	}
 
 	void AttachAudioEffects() {
@@ -92,6 +93,7 @@ public class PrefabLibrary : MonoBehaviour {
 		soundEffects.Add ("Counter Attack", 30);
 		soundEffects.Add ("Deep Slumber", 31);
 		soundEffects.Add ("Smoke Bomb", 32);
+		soundEffects.Add ("Drum Double", 33);
 	}
 
 	void AttachProjectiles() {

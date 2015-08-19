@@ -1,7 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.EventSystems;
 
-public class ClickableTile : MonoBehaviour {
+public class ClickableTile : MonoBehaviour, IPointerClickHandler {
+
 
 	public int tileX;
 	public int tileY;
@@ -13,11 +15,16 @@ public class ClickableTile : MonoBehaviour {
 	public Color storedColour = Color.white;
 	public Color mOverColour;
 
-	void OnMouseUp() {
-		if (targetable) {
-			uManager.TileClicked(tileX, tileY);
+	#region IPointerClickHandler implementation
+	public void OnPointerClick (PointerEventData eventData)
+	{
+		if (eventData.button == PointerEventData.InputButton.Left) {
+			if (targetable) {
+				uManager.TileClicked(tileX, tileY);
+			}
 		}
 	}
+	#endregion
 
 	void OnMouseEnter() {
 		if (highlighted) {

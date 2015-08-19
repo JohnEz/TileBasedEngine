@@ -16,8 +16,8 @@ public class Stun : Effect
     {
         base.RunEffect(u, reapply);
 
-        u.movespeed = 0;
-        u.maxAP = 0;
+        u.movespeed = -100;
+        u.maxAP = -100;
 		if (!reapply) {
 			u.ShowCombatText ("Stunned " + duration.ToString(), u.statusCombatText);
 		}

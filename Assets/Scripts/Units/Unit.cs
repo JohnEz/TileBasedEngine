@@ -23,6 +23,8 @@ public class Unit : MonoBehaviour {
 	public List<Node> reachableTiles;
 	public List<Node> reachableTilesWithDash;
 
+	public bool isActive = true; //if the unit is currently in combat
+
     //Stats
 
     //Base - stats that the max should return to with no modifications
@@ -60,6 +62,7 @@ public class Unit : MonoBehaviour {
     public float damageDealtMod = 1;
     public float damageRecievedMod = 1;
     public float healingRecievedMod = 1;
+	public int cooldownSpeed = 1;
 
 	//logic bools
 	public bool isDead = false;
@@ -91,6 +94,7 @@ public class Unit : MonoBehaviour {
 	public GameObject manaCombatText;
 	public GameObject comboPoint;
 
+	public Sprite portait;
 
 
 	void Start() {
@@ -152,7 +156,7 @@ public class Unit : MonoBehaviour {
 
 		for(int i=0; i < myAbilities.Length; ++i) {
 			if (myAbilities[i] != null) {
-				myAbilities[i].ReduceCooldown(1);
+				myAbilities[i].ReduceCooldown(cooldownSpeed);
 			}
 		}
 
@@ -180,6 +184,7 @@ public class Unit : MonoBehaviour {
 		damageDealtMod = 1;
 		damageRecievedMod = 1;
 		healingRecievedMod = 1;
+		cooldownSpeed = 1;
 		shield = 0;
 		dodgeChance = baseDodge;
 		blockChance = baseBlock;
@@ -701,6 +706,7 @@ public class Unit : MonoBehaviour {
 		damageDealtMod = 1;
 		damageRecievedMod = 1;
 		healingRecievedMod = 1;
+		cooldownSpeed = 1;
 		bool alreadyHad = false;
 		shield = 0;
 		dodgeChance = baseDodge;

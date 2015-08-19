@@ -8,6 +8,7 @@ public enum Behaviour {
 	Dumb,
 	Scared,
 	DumbRanged,
+	Support,
 	Taunted,
 	MAXBEHAVIOURS
 }
@@ -29,11 +30,13 @@ public class AIBehaviours : MonoBehaviour {
 	Unit myUnit;
 
 	public Node target;
-
+	
 	public bool hasAttacked = false; // if the unit is meant to attack only allow it to once
 	public bool inCloseCombat = false; // if the unit is in melee with another
 	public bool turnPlanned = false;
 	public bool foundTarget = false;
+
+	int selectedAbility = 0;
 
 	// Use this for initialization
 	public void Initialise () {
@@ -45,18 +48,90 @@ public class AIBehaviours : MonoBehaviour {
 		
 	}
 
+	void PickAbility() {
+		int total = 0;
+
+		//loop through every ability and add their priorities
+		foreach (Ability abil in myUnit.myAbilities) {
+			if (CanUseAbility(abil)) {
+				total += abil.AIPriority;
+			}
+		}
+
+		int roll = UnityEngine.Random.Range (1, total);
+		int count = 0;
+
+		for (int i = 0; i < myUnit.myAbilities.Count(); ++i) {
+			if (CanUseAbility(myUnit.myAbilities[i])) {
+				count += myUnit.myAbilities[i].AIPriority;
+				if (count >= roll) {
+					selectedAbility = i;
+					break;
+				}
+			}
+		}
+	}
+
+	bool CanUseAbility(Ability abil) {
+		if (abil != null && abil.cooldown < 1 && abil.manaCost < myUnit.mana) {
+			return true;
+		}
+		return false;
+	}
+
 	public void FSM() {
+
+		GameObject[] targets;
+
+		if (myUnit.actionPoints < 1 && myUnit.remainingMove < 1) {
+			turnPlanned = true;
+			return;
+		}
+
+		PickAbility ();
+
+		//does it target ally or enemy
+		if (myUnit.myAbilities [selectedAbility].AISupportsAlly) {
+			targets = myManager.enemies;
+		} else {
+			targets = myManager.playerUnitObjects;
+		}
+
+		//is it a ranged or melee move?
+		if (myUnit.myAbilities [selectedAbility].area == AreaType.Self) {
+			target = myMap.GetNode (myUnit.tileX, myUnit.tileY);
+			myUnit.currentPath = new List<Node>();
+
+			target.reachableNodes = new List<Node>();
+
+			//add all allies to reachable nodes
+			foreach (GameObject go in myManager.enemies) {
+				if (go != null) {
+					Unit sUnit = go.GetComponent<Unit>();
+
+					if (sUnit != null && sUnit.isActive && !sUnit.isDead) {
+						target.reachableNodes.Add(myMap.GetNode(sUnit.tileX, sUnit.tileY));
+					}
+				}
+			}
+		} else if (myUnit.myAbilities [selectedAbility].AIRanged) {
+			FindClosestLoS(myManager.playerUnitObjects);
+		} else {
+			FindTargetClosest(myManager.playerUnitObjects, false);
+		}
+
 		switch (myBehaviour) {
-		case Behaviour.Dumb: FindTargetClosest(myManager.playerUnitObjects, false);
-			Dumb ();
+		case Behaviour.Dumb: Dumb ();
 			break;
-		case Behaviour.DumbRanged: FindClosestLoS(myManager.playerUnitObjects);
-			DumbRanged();
+		case Behaviour.DumbRanged: DumbRanged();
+			break;
+		case Behaviour.Support: DumbRanged();
 			break;
 		}
+
 		turnPlanned = true;
 	}
-	
+
 	//find target closest to the unit, from array
 	void FindTargetClosest(GameObject[] targets, bool ignoreUnits) {
 
@@ -81,7 +156,7 @@ public class AIBehaviours : MonoBehaviour {
 			Unit targetUnit = targets[i].GetComponent<Unit>();
 			if (targetUnit != null) {
 				//if the target is alive
-				if (!targetUnit.isDead && targetUnit != myUnit) {
+				if (!targetUnit.isDead && targetUnit != myUnit && targetUnit.isActive) {
 
 					//find the path to the target
 					myMap.GeneratePathTo(targetUnit.tileX, targetUnit.tileY, ignoreUnits);
@@ -124,7 +199,7 @@ public class AIBehaviours : MonoBehaviour {
 	}
 
 	//find target closest to the unit, from array
-	void FindTargetClosestAllyInMelee() {
+	void FindClosestAllyInMelee() {
 
 		foundTarget = false;
 
@@ -189,7 +264,7 @@ public class AIBehaviours : MonoBehaviour {
 	}
 
 	void SupportAllyInMelee() {
-		FindTargetClosestAllyInMelee();
+		FindClosestAllyInMelee();
 	}
 
 	// run to and attack closest target
@@ -249,8 +324,8 @@ public class AIBehaviours : MonoBehaviour {
 		//check each unit
 		foreach (GameObject go in targets) {
 			Unit sUnit = go.GetComponent<Unit>();
-			if (!sUnit.isDead) {
-				List<Node> losNodes = myMap.FindSingleRangedTargets (myUnit.myAbilities [0], sUnit, true);
+			if (!sUnit.isDead && sUnit.isActive && sUnit != myUnit) {
+				List<Node> losNodes = myMap.FindSingleRangedTargets (myUnit.myAbilities [selectedAbility], sUnit, true);
 				if (myMap.AIFindClosestTile(sUnit.tileX, sUnit.tileY, losNodes)) {
 
 					myUnit.currentPath.Remove(myMap.GetNode (sUnit.tileX, sUnit.tileY));
@@ -337,7 +412,6 @@ public class AIBehaviours : MonoBehaviour {
 			}
 		}
 
-
 		if (myUnit.moving) {
 			myMap.GetNode (myUnit.tileX, myUnit.tileY).myUnit = null;
 			myUnit.currentPath.Last ().myUnit = myUnit;
@@ -387,7 +461,7 @@ public class AIBehaviours : MonoBehaviour {
 	public void Attack() {
 		//temp needs to have weighted priority
 		if (!hasAttacked) {
-			myUnit.myAbilities[0].UseAbility(target.myUnit);
+			myUnit.myAbilities[selectedAbility].UseAbility(target.myUnit);
 			hasAttacked = true;
 		}
 	}
@@ -396,7 +470,7 @@ public class AIBehaviours : MonoBehaviour {
 		if (myUnit.currentPath.Count > 0) {
 			Node curr = myUnit.currentPath.Last ();
 
-			while (curr.cost > myUnit.remainingMove + myUnit.movespeed) {
+			while (curr.cost > myUnit.remainingMove + myUnit.movespeed && myUnit.currentPath.Count > 1) {
 				myUnit.currentPath.Remove (curr);
 				curr = myUnit.currentPath.Last ();
 			}

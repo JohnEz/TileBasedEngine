@@ -5,11 +5,13 @@ public class AxeThrow : Ability
 {
 	public AxeThrow (Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
-		damage = 20;
+		damage = 25;
 		range = 5;
 		area = AreaType.Single;
 		targets = TargetType.Enemy;
 		maxCooldown = 1;
+
+		AIRanged = true;
 	}
 
 	public override void UseAbility (Unit target)
