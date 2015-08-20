@@ -1,15 +1,15 @@
 fileFormatVersion: 2
-guid: 322246226095fe0438244739928fc43f
-timeCreated: 1440072981
+guid: a196de16532aedd41a516e4589446c3f
+timeCreated: 1440023039
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
-    21300000: warrior1Strip_0
-    21300002: warrior1Strip_1
-    21300004: warrior1Strip_2
-    21300006: warrior1Strip_3
-    21300008: warrior1Strip_4
-    21300010: warrior1Strip_5
+    21300000: elementalist1Strip_0
+    21300002: elementalist1Strip_1
+    21300004: elementalist1Strip_2
+    21300006: elementalist1Strip_3
+    21300008: elementalist1Strip_4
+    21300010: elementalist1Strip_5
   serializedVersion: 2
   mipmaps:
     mipMapMode: 0
@@ -55,7 +55,7 @@ TextureImporter:
   buildTargetSettings: []
   spriteSheet:
     sprites:
-    - name: warrior1Strip_0
+    - name: elementalist1Strip_0
       rect:
         serializedVersion: 2
         x: 0
@@ -65,7 +65,7 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: warrior1Strip_1
+    - name: elementalist1Strip_1
       rect:
         serializedVersion: 2
         x: 32
@@ -75,7 +75,7 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: warrior1Strip_2
+    - name: elementalist1Strip_2
       rect:
         serializedVersion: 2
         x: 64
@@ -85,7 +85,7 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: warrior1Strip_3
+    - name: elementalist1Strip_3
       rect:
         serializedVersion: 2
         x: 96
@@ -95,7 +95,7 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: warrior1Strip_4
+    - name: elementalist1Strip_4
       rect:
         serializedVersion: 2
         x: 128
@@ -105,7 +105,7 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: warrior1Strip_5
+    - name: elementalist1Strip_5
       rect:
         serializedVersion: 2
         x: 160

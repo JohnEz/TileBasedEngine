@@ -749,5 +749,13 @@ public class TileMap : MonoBehaviour {
 
 	}
 
+	public void SwitchColours(List<Node> nodes) {
+		if (nodes != null) {
+			foreach (Node n in nodes) {
+				GetClickableTile (n.x, n.y).SwitchColours ();
+			}
+		}
+	}
+
 
 }

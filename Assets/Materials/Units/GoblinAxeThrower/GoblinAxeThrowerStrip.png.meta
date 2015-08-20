@@ -1,15 +1,17 @@
 fileFormatVersion: 2
-guid: 322246226095fe0438244739928fc43f
-timeCreated: 1440072981
+guid: c768a77d80dd9ca4a8fac7870228d0f4
+timeCreated: 1440099230
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
-    21300000: warrior1Strip_0
-    21300002: warrior1Strip_1
-    21300004: warrior1Strip_2
-    21300006: warrior1Strip_3
-    21300008: warrior1Strip_4
-    21300010: warrior1Strip_5
+    21300000: GoblinAxeThrowerStrip_0
+    21300002: GoblinAxeThrowerStrip_1
+    21300004: GoblinAxeThrowerStrip_2
+    21300006: GoblinAxeThrowerStrip_3
+    21300008: GoblinAxeThrowerStrip_4
+    21300010: GoblinAxeThrowerStrip_5
+    21300012: GoblinAxeThrowerStrip_6
+    21300014: GoblinAxeThrowerStrip_7
   serializedVersion: 2
   mipmaps:
     mipMapMode: 0
@@ -55,7 +57,7 @@ TextureImporter:
   buildTargetSettings: []
   spriteSheet:
     sprites:
-    - name: warrior1Strip_0
+    - name: GoblinAxeThrowerStrip_0
       rect:
         serializedVersion: 2
         x: 0
@@ -65,7 +67,7 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: warrior1Strip_1
+    - name: GoblinAxeThrowerStrip_1
       rect:
         serializedVersion: 2
         x: 32
@@ -75,7 +77,7 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: warrior1Strip_2
+    - name: GoblinAxeThrowerStrip_2
       rect:
         serializedVersion: 2
         x: 64
@@ -85,7 +87,7 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: warrior1Strip_3
+    - name: GoblinAxeThrowerStrip_3
       rect:
         serializedVersion: 2
         x: 96
@@ -95,7 +97,7 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: warrior1Strip_4
+    - name: GoblinAxeThrowerStrip_4
       rect:
         serializedVersion: 2
         x: 128
@@ -105,10 +107,30 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: warrior1Strip_5
+    - name: GoblinAxeThrowerStrip_5
       rect:
         serializedVersion: 2
         x: 160
+        y: 0
+        width: 32
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: GoblinAxeThrowerStrip_6
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 0
+        width: 32
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: GoblinAxeThrowerStrip_7
+      rect:
+        serializedVersion: 2
+        x: 224
         y: 0
         width: 32
         height: 48

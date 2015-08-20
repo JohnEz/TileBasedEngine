@@ -1,15 +1,17 @@
 fileFormatVersion: 2
-guid: 322246226095fe0438244739928fc43f
-timeCreated: 1440072981
+guid: 7392ed402380a644e932efd6a3785c01
+timeCreated: 1440096717
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
-    21300000: warrior1Strip_0
-    21300002: warrior1Strip_1
-    21300004: warrior1Strip_2
-    21300006: warrior1Strip_3
-    21300008: warrior1Strip_4
-    21300010: warrior1Strip_5
+    21300000: GoblinShieldStrip_0
+    21300002: GoblinShieldStrip_1
+    21300004: GoblinShieldStrip_2
+    21300006: GoblinShieldStrip_3
+    21300008: GoblinShieldStrip_4
+    21300010: GoblinShieldStrip_5
+    21300012: GoblinShieldStrip_6
+    21300014: GoblinShieldStrip_7
   serializedVersion: 2
   mipmaps:
     mipMapMode: 0
@@ -55,7 +57,7 @@ TextureImporter:
   buildTargetSettings: []
   spriteSheet:
     sprites:
-    - name: warrior1Strip_0
+    - name: GoblinShieldStrip_0
       rect:
         serializedVersion: 2
         x: 0
@@ -65,7 +67,7 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: warrior1Strip_1
+    - name: GoblinShieldStrip_1
       rect:
         serializedVersion: 2
         x: 32
@@ -75,7 +77,7 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: warrior1Strip_2
+    - name: GoblinShieldStrip_2
       rect:
         serializedVersion: 2
         x: 64
@@ -85,7 +87,7 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: warrior1Strip_3
+    - name: GoblinShieldStrip_3
       rect:
         serializedVersion: 2
         x: 96
@@ -95,7 +97,7 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: warrior1Strip_4
+    - name: GoblinShieldStrip_4
       rect:
         serializedVersion: 2
         x: 128
@@ -105,10 +107,30 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: warrior1Strip_5
+    - name: GoblinShieldStrip_5
       rect:
         serializedVersion: 2
         x: 160
+        y: 0
+        width: 32
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: GoblinShieldStrip_6
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 0
+        width: 32
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: GoblinShieldStrip_7
+      rect:
+        serializedVersion: 2
+        x: 224
         y: 0
         width: 32
         height: 48

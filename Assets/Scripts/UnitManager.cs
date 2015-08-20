@@ -441,7 +441,7 @@ public class UnitManager : MonoBehaviour {
 		foreach (GameObject go in currentQueue) {
 			Unit u = go.GetComponent<Unit>();
 			//check to see if the ability hits this type of unit
-			if (map.GetClickableTile(u.tileX, u.tileY).highlighted) {
+			if (map.GetClickableTile(u.tileX, u.tileY).highlighted && !u.isDead) {
 				if (abil.targets == TargetType.All || (abil.targets == TargetType.Ally && u.team == sUnit.team) || (abil.targets == TargetType.Enemy && u.team != sUnit.team)) {
 					map.GetClickableTile(u.tileX, u.tileY).HighlightTile(new Color(0.85f, 0.3f, 0.3f), new Color(0.85f,0.4f,0.4f), 1);
 				}
@@ -510,6 +510,7 @@ public class UnitManager : MonoBehaviour {
 	public void TileEnter(int x, int y) {
 		switch(currentDisplaying) {
 		case Display.Movement: map.GetPath(x, y);
+			map.SwitchColours(currentQueue [turn].GetComponent<Unit> ().currentPath);
 			break;
 		case Display.Nothing: break;
 		default: AbilityTileEnter(x, y);
@@ -520,7 +521,8 @@ public class UnitManager : MonoBehaviour {
 
 	public void TileExit(int x, int y) {
 		switch(currentDisplaying) {
-		case Display.Movement: break;
+		case Display.Movement: map.SwitchColours(currentQueue [turn].GetComponent<Unit> ().currentPath);
+			break;
 		case Display.Nothing: break;
 		default: AbilityTileExit(x, y);
 			break;

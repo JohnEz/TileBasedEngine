@@ -72,4 +72,10 @@ public class ClickableTile : MonoBehaviour, IPointerClickHandler {
 			targetable = false;
 		}
 	}
+
+	public void SwitchColours() {
+		GetComponent<Renderer> ().material.color = mOverColour;
+		mOverColour = storedColour;
+		storedColour = GetComponent<Renderer> ().material.color;
+	}
 }
