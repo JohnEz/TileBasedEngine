@@ -68,6 +68,11 @@ public class TileMap : MonoBehaviour {
 		return tileObjects [y * currentLevel.maxSizeX + x].GetComponent<ClickableTile>();
 	}
 
+	//finds the manhattan distance between two points
+	public float manhattanDistance(int x1, int x2, int y1, int y2) {
+		return Math.Abs(x1 - x2) + Math.Abs(y1 - y2);
+	}
+
 	// generates nodes for each tile
 	void GeneratePathfindingGraph() {
 		graph = new Node[currentLevel.maxSizeX * currentLevel.maxSizeY];
@@ -169,7 +174,7 @@ public class TileMap : MonoBehaviour {
 			if (n != source) {
 				n.cost = Mathf.Infinity;
 				n.previous = null;
-				n.dist = Math.Abs(n.x - target.x) + Math.Abs(n.y - target.y);
+				n.dist = manhattanDistance(n.x, target.x, n.y, target.y);
 				n.directionToParent = new Vector2(0, 0);
 			}
 		}
@@ -251,7 +256,7 @@ public class TileMap : MonoBehaviour {
 		foreach(Node n in graph) {
 			if (n != source) {
 				n.cost = Mathf.Infinity;
-				n.dist = Math.Abs(n.x - target.x) + Math.Abs(n.y - target.y);
+				n.dist = manhattanDistance(n.x, target.x, n.y, target.y);
 				n.previous = null;
 			}
 		}
@@ -457,7 +462,7 @@ public class TileMap : MonoBehaviour {
 	public void FollowPath() {
 		Unit sUnit = selectedUnit.GetComponent<Unit> ();
 
-		CullPath ();
+		//CullPath ();
 
 		sUnit.moving = true;
 		//set the node's unit
@@ -485,7 +490,7 @@ public class TileMap : MonoBehaviour {
 		}
 	}
 
-	public void CullPath() {
+	public void CullPath2() {
 		Unit sUnit = selectedUnit.GetComponent<Unit> ();
 
 		Vector2 currentDirection = new Vector2(0, 0);
@@ -699,6 +704,10 @@ public class TileMap : MonoBehaviour {
 	}
 
 	public bool HasLineOfSight(Node start, Node end, float sight) {
+		if (manhattanDistance (start.x, end.x, start.y, end.y) > sight) {
+			return false;
+		}
+
 		int deltaX = Math.Abs (end.x - start.x);
 		int deltaY = Math.Abs (end.y - start.y);
 		int stepX = -1;
@@ -747,6 +756,24 @@ public class TileMap : MonoBehaviour {
 
 		return true;
 
+	}
+
+	//detects everytile in line of sight
+	public void DetectVisability(Unit u) {
+
+
+		//there must be a smarter way to reduce using every node
+		foreach (Node n in graph) {
+			GetClickableTile (n.x, n.y).RemoveVision ();
+		}
+
+		foreach (Node n in graph) {
+			GetClickableTile(n.x, n.y).visableTo.Remove(u);
+			if (HasLineOfSight(GetNode(u.tileX, u.tileY), n, u.sight)) {
+				GetClickableTile(n.x, n.y).visableTo.Add(u);
+			}
+			GetClickableTile(n.x, n.y).UpdateVision();
+		}
 	}
 
 	public void SwitchColours(List<Node> nodes) {

@@ -81,6 +81,7 @@ public class UnitManager : MonoBehaviour {
 
 		activeUnits = new List<GameObject> ();
 		everyUnit = new List<GameObject> ();
+		currentQueue = new List<GameObject> ();
 		currentDisplaying = Display.Movement;
 
 		enemies = new GameObject[MAXENEMIES];
@@ -108,7 +109,15 @@ public class UnitManager : MonoBehaviour {
 		spawnEnemy (26, 1, EnemyClass.GoblinAxeThrower);
 
 		activeUnits.Sort(CompareListByInitiative);
-		currentQueue = activeUnits;
+
+		foreach (GameObject go in activeUnits) {
+			currentQueue.Add(go);
+		}
+
+		//set the starting vision
+		foreach (GameObject go in playerUnitObjects) {
+			map.DetectVisability(go.GetComponent<Unit>());
+		}
 
 		GetComponentInChildren<UIManager> ().ChangeRound (currentQueue);
 
@@ -205,10 +214,8 @@ public class UnitManager : MonoBehaviour {
 
 		//let the map know where the unit is
 		map.GetNode (x, y).myUnit = u;
-
-		// TODO wait until discovered 
+		 
 		// add to all the lists
-		activeUnits.Add (go);		//current active units
 		enemies [enemyCount] = go;	//enemy array
 		everyUnit.Add(go);			//every unit
 	}
@@ -286,6 +293,21 @@ public class UnitManager : MonoBehaviour {
 		}
 	}
 
+	//checks to see if the unit is spotted by any inactive AI
+	public void CheckAIVisability(Unit u) {
+		foreach (GameObject go in enemies) {
+			if (go != null) {
+				Unit enemy = go.GetComponent<Unit>();
+				//if the enemy has los on the unit
+				if (!enemy.isActive && map.HasLineOfSight(map.GetNode(enemy.tileX, enemy.tileY), map.GetNode(u.tileX, u.tileY), enemy.sight)) {
+					enemy.isActive = true;
+					activeUnits.Add(go);
+					go.GetComponent<AIBehaviours>().SpottedPlayer();
+				}
+			}
+		}
+	}
+
 	public void EndTurnButton() {
 		Unit sUnit = currentQueue [turn].GetComponent<Unit> ();
 		// if its not an ai turn and the unit isnt currently moving or attacking
@@ -332,9 +354,13 @@ public class UnitManager : MonoBehaviour {
 
 		if (turn >= currentQueue.Count) {
 			turn = 0;
-			activeUnits.Sort(CompareListByInitiative);
 
-			currentQueue = activeUnits;
+			currentQueue = new List<GameObject>();
+			activeUnits.Sort(CompareListByInitiative);
+			
+			foreach (GameObject go in activeUnits) {
+				currentQueue.Add(go);
+			}
 
 			GetComponentInChildren<UIManager> ().ChangeRound (currentQueue);
 		}

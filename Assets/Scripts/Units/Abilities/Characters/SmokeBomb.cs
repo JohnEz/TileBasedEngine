@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class SmokeBomb : Ability
 {
-	int losMod = 5;
+	int losMod = 4;
 	float damageMod = 0.25f;
 	public SmokeBomb(Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{

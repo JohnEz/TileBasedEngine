@@ -8,6 +8,7 @@ public class DamageRecievedEffect : Effect
 
     public DamageRecievedEffect(string n, int dur, float mod, int stacks = 1) : base(n, dur, stacks)
     {
+		description = "Damage Recieved Mod";
 		baseDamageRecievedMod = mod;
 		damageRecievedMod = 1 + mod;
     }

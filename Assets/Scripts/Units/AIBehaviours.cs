@@ -167,7 +167,7 @@ public class AIBehaviours : MonoBehaviour {
 						//remove all unreachable tiles
 						FindFurthestTileInPath();
 						//cull the path to reduce size
-						myMap.CullPath();
+						//myMap.CullPath();
 
 						// if the target is next to the unit
 						if (myUnit.currentPath.Count == 0) {
@@ -234,7 +234,7 @@ public class AIBehaviours : MonoBehaviour {
 							//remove all unreachable tiles
 							FindFurthestTileInPath();
 							//cull the path to reduce size
-							myMap.CullPath();
+							//myMap.CullPath();
 							
 							// if the target is next to the unit
 							if (myUnit.currentPath.Count == 0) {
@@ -303,7 +303,7 @@ public class AIBehaviours : MonoBehaviour {
 			return;
 		}
 
-		BasicTurn ();
+		BasicRangedTurn ();
 
 	}
 
@@ -330,7 +330,7 @@ public class AIBehaviours : MonoBehaviour {
 
 					myUnit.currentPath.Remove(myMap.GetNode (sUnit.tileX, sUnit.tileY));
 					FindFurthestTileInPath();
-					myMap.CullPath();
+					//myMap.CullPath();
 
 					// if the path is shorter than current path
 					if (myUnit.currentPath.Count == 0) {
@@ -413,8 +413,42 @@ public class AIBehaviours : MonoBehaviour {
 		}
 
 		if (myUnit.moving) {
-			myMap.GetNode (myUnit.tileX, myUnit.tileY).myUnit = null;
-			myUnit.currentPath.Last ().myUnit = myUnit;
+			//myMap.GetNode (myUnit.tileX, myUnit.tileY).myUnit = null;
+			//myUnit.currentPath.Last ().myUnit = myUnit;
+		}
+	}
+
+	//Basic turn - attack if in range or move and attack, or dash
+	void BasicRangedTurn(){
+		
+		// is it already in melee?
+		if (myUnit.currentPath.Count == 0) {
+			myStrat = AIStrategy.Attack;
+			myUnit.attacking = true;
+			hasAttacked = false;
+		} 
+		// if target is in first move range, move and attack
+		else if (myUnit.remainingMove > 0 || myUnit.movespeed > 0) {
+			if (myUnit.currentPath.Last().cost <= myUnit.movespeed) {
+				myStrat = AIStrategy.MoveAttack;
+				myUnit.moving = true;
+				myUnit.attacking = true;
+				myUnit.remainingMove -= (int)myUnit.currentPath.Last().cost;
+				hasAttacked = false;
+			} 
+			// if the unit is really far away, dash
+			else{
+				myStrat = AIStrategy.Dash;
+				myUnit.moving = true;
+				myUnit.remainingMove += myUnit.movespeed - (int)myUnit.currentPath.Last().cost;
+				--myUnit.actionPoints;
+				hasAttacked = true;
+			}
+		}
+		
+		if (myUnit.moving) {
+			//myMap.GetNode (myUnit.tileX, myUnit.tileY).myUnit = null;
+			//myUnit.currentPath.Last ().myUnit = myUnit;
 		}
 	}
 
@@ -475,6 +509,10 @@ public class AIBehaviours : MonoBehaviour {
 				curr = myUnit.currentPath.Last ();
 			}
 		}
+	}
+
+	public void SpottedPlayer() {
+		
 	}
 
 }

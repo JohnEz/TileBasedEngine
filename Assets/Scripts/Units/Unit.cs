@@ -13,6 +13,8 @@ public enum UnitSize {
 [System.Serializable]
 public class Unit : MonoBehaviour {
 
+	public const float SLIDESPEED = 3.5f;
+
 	public int ID;
 	public int tileX;
 	public int tileY;
@@ -23,7 +25,7 @@ public class Unit : MonoBehaviour {
 	public List<Node> reachableTiles;
 	public List<Node> reachableTilesWithDash;
 
-	public bool isActive = true; //if the unit is currently in combat
+	public bool isActive = false; //if the unit is currently in combat
 
     //Stats
 
@@ -173,6 +175,10 @@ public class Unit : MonoBehaviour {
 		ShowDebuffs ();
 	}
 
+	public bool UnitBusy() {
+		return attacking || moving;
+	}
+
 	void UpdateStats(bool reapply = false) {
 		//set each stat to its base then apply effects
 		maxHP = baseHP;
@@ -264,9 +270,11 @@ public class Unit : MonoBehaviour {
 			map.UnhighlightTiles();
 			// Have we moved our visible piece close enough to the target tile that we can
 			// advance to the next step in our pathfinding?
-			if (Vector3.Distance (transform.position, map.TileCoordToWorldCoord (tileX, tileY)) < 0.1f) {
+			if (Vector3.Distance (transform.position, map.TileCoordToWorldCoord (tileX, tileY)) < SLIDESPEED * Time.deltaTime) {
 				SlideMovement ();
-				if (Vector3.Distance (transform.position, map.TileCoordToWorldCoord (tileX, tileY)) < 0.1f) {
+				map.DetectVisability(this);
+				uManager.CheckAIVisability(this);
+				if (Vector3.Distance (transform.position, map.TileCoordToWorldCoord (tileX, tileY)) < SLIDESPEED * Time.deltaTime) {
 
 					//check to see if unit is stood on a trigger
 					if (map.GetNode(tileX, tileY).myTrigger != null) {
@@ -291,7 +299,8 @@ public class Unit : MonoBehaviour {
 			}
 			
 			// Smoothly animate towards the correct map tile.
-			transform.position = Vector3.Lerp (transform.position, map.TileCoordToWorldCoord (tileX, tileY), 5f * Time.deltaTime);
+			//transform.position = Vector3.Lerp (transform.position, map.TileCoordToWorldCoord (tileX, tileY), 5f * Time.deltaTime);
+			MovePositionTowards(map.TileCoordToWorldCoord (tileX, tileY));
 		}
 
 		//TODO Attacking shit
@@ -315,9 +324,10 @@ public class Unit : MonoBehaviour {
 		AIBehaviours myAI = GetComponent<AIBehaviours> ();
 
 		if (moving) {
-			if (Vector3.Distance (transform.position, map.TileCoordToWorldCoord (tileX, tileY)) < 0.01f) {
+			if (Vector3.Distance (transform.position, map.TileCoordToWorldCoord (tileX, tileY)) < SLIDESPEED * Time.deltaTime) {
 				SlideMovement ();
-				if (Vector3.Distance (transform.position, map.TileCoordToWorldCoord (tileX, tileY)) < 0.01f) {
+				map.GetClickableTile(tileX, tileY).UpdateVision();
+				if (Vector3.Distance (transform.position, map.TileCoordToWorldCoord (tileX, tileY)) < SLIDESPEED * Time.deltaTime) {
 
 					//check to see if unit is stood on a trigger
 					if (map.GetNode(tileX, tileY).myTrigger != null) {
@@ -338,7 +348,8 @@ public class Unit : MonoBehaviour {
 			}
 
 			// Smoothly animate towards the correct map tile.
-			transform.position = Vector3.Lerp (transform.position, map.TileCoordToWorldCoord (tileX, tileY), 5f * Time.deltaTime);
+			//transform.position = Vector3.Lerp (transform.position, map.TileCoordToWorldCoord (tileX, tileY), 5f * Time.deltaTime);
+			MovePositionTowards(map.TileCoordToWorldCoord (tileX, tileY));
 
 		} else if (attacking) {
 			myAI.Attack();
@@ -360,8 +371,17 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
-	public bool UnitBusy() {
-		return attacking || moving;
+	//moves at the slide speed towards the target
+	public void MovePositionTowards(Vector3 targetPos) {
+		//if the speed needs to be changed can be done here
+		float move = SLIDESPEED;
+
+		//find the direction vector
+		Vector3 direction = targetPos - transform.position;
+		direction.Normalize();
+
+		//update position
+		transform.position += (direction * move) * Time.deltaTime;
 	}
 
 	// sets the variables for where the unit should slide to next in its path
@@ -370,9 +390,13 @@ public class Unit : MonoBehaviour {
 		if(currentPath==null)
 			return;
 
+		map.GetNode (tileX, tileY).myUnit = null;
+
 		// get the new first node and move
 		tileX = currentPath[0].x;
 		tileY = currentPath[0].y;
+
+		map.GetNode (tileX, tileY).myUnit = this;
 
 		// remove the old tile
 		currentPath.RemoveAt (0);
@@ -456,6 +480,16 @@ public class Unit : MonoBehaviour {
 		map.HighlightTiles (reachableTilesWithDash, new Color(0.6f,0.6f,0.3f), new Color(0.85f,0.85f,0.4f), 1);
 
 		map.GetClickableTile (tileX, tileY).HighlightTile (new Color (0.75f, 0.75f, 0.75f), new Color (0.85f, 0.85f, 0.85f), 0);
+	}
+
+	public void HideUnit() {
+		gameObject.GetComponent<SpriteRenderer> ().enabled = false;
+		transform.FindChild ("UnitCanvas").gameObject.GetComponent<Canvas> ().enabled = false;
+	}
+
+	public void ShowUnit() {
+		gameObject.GetComponent<SpriteRenderer> ().enabled = true;
+		transform.FindChild ("UnitCanvas").gameObject.GetComponent<Canvas> ().enabled = true;
 	}
 
 	// updates the visual of the unit's healthbar
@@ -713,7 +747,9 @@ public class Unit : MonoBehaviour {
 		blockChance = baseBlock;
 		sight = baseSight;
 
+		//loop through all the current effects
 		foreach (Effect currentEffect in myEffects) {
+			// if the new effect already exists add a stack
 			if (currentEffect.name.Contains(eff.name)) {
 				currentEffect.AddStack();
 				alreadyHad = true;
@@ -721,8 +757,14 @@ public class Unit : MonoBehaviour {
 			currentEffect.RunEffect(this, true);
 		}
 
+		//if the unit didnt already have the effect add it
 		if (!alreadyHad) {
-			myEffects.Add(eff);
+			//if its a shield of damage recieved effect they need to be added at the start
+			if (eff.description.Contains("Damage Shield") || eff.description.Contains("Damage Recieved Mod")) {
+				myEffects.Insert(0, eff);
+			} else {
+				myEffects.Add(eff);
+			}
 			eff.RunEffect(this, true);
 		}
 
