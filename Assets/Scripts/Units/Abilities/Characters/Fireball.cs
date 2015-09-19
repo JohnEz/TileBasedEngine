@@ -9,8 +9,8 @@ public class Fireball : Ability
 	public Fireball (Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
 		Name = "Fireball";
-		damage = 30;
-		manaCost = 15;
+		damage = 40;
+		manaCost = 25;
 		duration = 3;
 		maxCooldown = 2;
 		range = 6;

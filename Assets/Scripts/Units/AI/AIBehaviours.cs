@@ -27,16 +27,17 @@ public class AIBehaviours : MonoBehaviour {
 	public AIStrategy myStrat;
 	public UnitManager myManager;
 	public TileMap myMap;
-	Unit myUnit;
+	public Unit myUnit;
 
 	public Node target;
+	public List<Unit> myGroup;
 	
 	public bool hasAttacked = false; // if the unit is meant to attack only allow it to once
 	public bool inCloseCombat = false; // if the unit is in melee with another
 	public bool turnPlanned = false;
 	public bool foundTarget = false;
 
-	int selectedAbility = 0;
+	public int selectedAbility = 0;
 
 	// Use this for initialization
 	public void Initialise () {
@@ -72,14 +73,14 @@ public class AIBehaviours : MonoBehaviour {
 		}
 	}
 
-	bool CanUseAbility(Ability abil) {
-		if (abil != null && abil.cooldown < 1 && abil.manaCost < myUnit.mana) {
+	public bool CanUseAbility(Ability abil) {
+		if (abil != null && abil.cooldown < 1 && abil.manaCost <= myUnit.mana) {
 			return true;
 		}
 		return false;
 	}
 
-	public void FSM() {
+	public virtual void FSM() {
 
 		GameObject[] targets;
 
@@ -100,24 +101,32 @@ public class AIBehaviours : MonoBehaviour {
 		//is it a ranged or melee move?
 		if (myUnit.myAbilities [selectedAbility].area == AreaType.Self) {
 			target = myMap.GetNode (myUnit.tileX, myUnit.tileY);
-			myUnit.currentPath = new List<Node>();
+			myUnit.currentPath = new List<Node> ();
 
-			target.reachableNodes = new List<Node>();
+			target.reachableNodes = new List<Node> ();
 
 			//add all allies to reachable nodes
 			foreach (GameObject go in myManager.enemies) {
 				if (go != null) {
-					Unit sUnit = go.GetComponent<Unit>();
+					Unit sUnit = go.GetComponent<Unit> ();
 
 					if (sUnit != null && sUnit.isActive && !sUnit.isDead) {
-						target.reachableNodes.Add(myMap.GetNode(sUnit.tileX, sUnit.tileY));
+						target.reachableNodes.Add (myMap.GetNode (sUnit.tileX, sUnit.tileY));
 					}
 				}
 			}
+		} else if (myUnit.myAbilities [selectedAbility].area == AreaType.SelfAOE) {
+			target = myMap.GetNode (myUnit.tileX, myUnit.tileY);
+			myUnit.currentPath = new List<Node> ();
+
+			//get aoe around myself
+			target.reachableNodes = myMap.FindReachableTiles (myUnit.tileX, myUnit.tileY, myUnit.myAbilities [selectedAbility].AOERange, true);
+
+
 		} else if (myUnit.myAbilities [selectedAbility].AIRanged) {
-			FindClosestLoS(myManager.playerUnitObjects);
+			FindClosestLoS(targets);
 		} else {
-			FindTargetClosest(myManager.playerUnitObjects, false);
+			FindTargetClosest(targets, false);
 		}
 
 		switch (myBehaviour) {
@@ -295,7 +304,7 @@ public class AIBehaviours : MonoBehaviour {
 
 	}
 
-	void DumbRanged() {
+	public void DumbRanged() {
 		//if no path could be found, look for an ally i can support
 		if (myUnit.currentPath == null) {
 			//pass go
@@ -495,7 +504,7 @@ public class AIBehaviours : MonoBehaviour {
 	public void Attack() {
 		//temp needs to have weighted priority
 		if (!hasAttacked) {
-			myUnit.myAbilities[selectedAbility].UseAbility(target.myUnit);
+			myUnit.myAbilities[selectedAbility].UseAbility(target);
 			hasAttacked = true;
 		}
 	}

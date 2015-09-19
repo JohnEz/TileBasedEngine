@@ -5,7 +5,7 @@ public class SonicWave : Ability
 {
 	public SonicWave (Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
-		damage = 15;
+		damage = 25;
 		manaGain = 15;
 		range = 6;
 		duration = 2;
@@ -18,7 +18,7 @@ public class SonicWave : Ability
 		AISupportsAlly = false;
 	}
 	
-	public override void UseAbility (Unit target)
+	public override void UseAbility (Node target)
 	{
 		base.UseAbility (target);
 		
@@ -26,7 +26,7 @@ public class SonicWave : Ability
 		myVisualEffects.Add (effectLib.CreateVisualEffect ("Drum1", pos).GetComponent<EffectController> ());
 		myCaster.GetComponent<AudioSource> ().PlayOneShot (effectLib.getSoundEffect ("Drum Double"));
 
-		target.TakeDamage (damage, null, true, myCaster);
+		target.myUnit.TakeDamage (damage, null, true, myCaster);
 		myCaster.AddRemoveMana (manaGain);
 
 	}

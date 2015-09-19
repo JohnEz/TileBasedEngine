@@ -22,6 +22,11 @@ public enum EnemyClass {
 	Goblin,
 	GoblinAxeThrower,
 	GoblinDrummer,
+	GoblinShaman,
+	EarthTotem,
+	FireTotem,
+	WaterTotem,
+	WindTotem,
 	MAXCLASSES
 }
 
@@ -73,6 +78,8 @@ public class UnitManager : MonoBehaviour {
 
 	bool waitingForCamera = false;
 
+	Unit selectedUnit = null;
+
 	Display currentDisplaying; //used so things dont get run when they dont need to
 
 	public void Initialise() {
@@ -90,23 +97,44 @@ public class UnitManager : MonoBehaviour {
 		loadCharacters ();
 
 		//temp
-		spawnUnit (1, 1, CharacterClass.Acolyte);
-		spawnUnit (2, 1, CharacterClass.Elementalist);
-		spawnUnit (3, 1, CharacterClass.Ranger);
-		spawnUnit (4, 1, CharacterClass.Highwayman);
 		spawnUnit (5, 1, CharacterClass.Warrior);
+		spawnUnit (4, 1, CharacterClass.Highwayman);
+		spawnUnit (3, 1, CharacterClass.Ranger);
+		spawnUnit (2, 1, CharacterClass.Elementalist);
+		spawnUnit (1, 1, CharacterClass.Acolyte);
+
+		GetComponent<GameManager> ().UI.GetComponent<UIManager> ().SetupUnitFrames (playerUnitObjects);
 
 		//spawnEnemy (4, 2, EnemyClass.Goblin);
+		List<Unit> squad = new List<Unit> ();
 
-		spawnEnemy (15, 4, EnemyClass.Goblin);
-		spawnEnemy (15, 5, EnemyClass.Goblin);
-		spawnEnemy (17, 1, EnemyClass.Goblin);
-		spawnEnemy (15, 8, EnemyClass.GoblinAxeThrower);
+		squad.Add(spawnEnemy (42, 4, EnemyClass.GoblinShaman));
 
-		spawnEnemy (21, 4, EnemyClass.GoblinDrummer);
+		foreach (Unit u in squad) {
+			u.GetComponent<AIBehaviours>().myGroup = squad;
+		}
 
-		spawnEnemy (25, 8, EnemyClass.GoblinAxeThrower);
-		spawnEnemy (26, 1, EnemyClass.GoblinAxeThrower);
+		squad = new List<Unit> ();
+		squad.Add(spawnEnemy (15, 4, EnemyClass.GoblinAxeThrower));
+		squad.Add(spawnEnemy (15, 5, EnemyClass.Goblin));
+		squad.Add(spawnEnemy (17, 1, EnemyClass.Goblin));
+		squad.Add(spawnEnemy (15, 8, EnemyClass.GoblinAxeThrower));
+
+		foreach (Unit u in squad) {
+			u.GetComponent<AIBehaviours>().myGroup = squad;
+		}
+
+
+		squad = new List<Unit> ();
+		squad.Add(spawnEnemy (21, 4, EnemyClass.GoblinDrummer));
+		squad.Add(spawnEnemy (25, 8, EnemyClass.GoblinAxeThrower));
+		squad.Add(spawnEnemy (26, 1, EnemyClass.GoblinAxeThrower));
+		squad.Add(spawnEnemy (26, 4, EnemyClass.Goblin));
+		squad.Add(spawnEnemy (27, 4, EnemyClass.Goblin));
+
+		foreach (Unit u in squad) {
+			u.GetComponent<AIBehaviours>().myGroup = squad;
+		}
 
 		activeUnits.Sort(CompareListByInitiative);
 
@@ -123,8 +151,7 @@ public class UnitManager : MonoBehaviour {
 
 		NextUnitsTurn ();
 	}
-
-	//temp
+	
 	void spawnUnit(int x, int y, CharacterClass c) {
 		if (characterCount < MAXCHARACTERS) {
 
@@ -173,7 +200,7 @@ public class UnitManager : MonoBehaviour {
 
 	}
 
-	void spawnEnemy(int x, int y, EnemyClass e) {
+	public Unit spawnEnemy(int x, int y, EnemyClass e, bool isAtive = false) {
 
 		//set starting position and spawn unit
 		Vector3 pos = map.TileCoordToWorldCoord (x, y);
@@ -218,6 +245,13 @@ public class UnitManager : MonoBehaviour {
 		// add to all the lists
 		enemies [enemyCount] = go;	//enemy array
 		everyUnit.Add(go);			//every unit
+
+		if (isAtive) {
+			activeUnits.Add(go);	 // list of currently active units
+			u.isActive = true;
+		}
+
+		return u;
 	}
 
 	void AddUnitUIElement(GameObject prefab, Unit u) {
@@ -233,6 +267,15 @@ public class UnitManager : MonoBehaviour {
 
 	}
 
+	public void SelectUnit(Unit u) {
+		if (selectedUnit) {
+			selectedUnit.selected = false;
+		}
+		selectedUnit = u;
+		selectedUnit.selected = true;
+		GetComponent<GameManager> ().UI.GetComponent<UIManager> ().SetSelectedFrame (selectedUnit);
+	}
+
 	void Update() {
 		if (!waitingForCamera) {
 			ManageTurn ();
@@ -244,7 +287,11 @@ public class UnitManager : MonoBehaviour {
 
 			//is it a character or ai
 			if (sUnit.playable) {
-				ShowMovement ();
+				if (sUnit.movespeed > 0) {
+					ShowMovement ();
+				} else {
+					currentDisplaying = Display.Movement;
+				}
 				GetComponentInChildren<UIManager>().DrawAbilities(4, currentQueue [turn].GetComponent<Unit>());
 			} else {
 				//run the AIs turn
@@ -300,9 +347,11 @@ public class UnitManager : MonoBehaviour {
 				Unit enemy = go.GetComponent<Unit>();
 				//if the enemy has los on the unit
 				if (!enemy.isActive && map.HasLineOfSight(map.GetNode(enemy.tileX, enemy.tileY), map.GetNode(u.tileX, u.tileY), enemy.sight)) {
-					enemy.isActive = true;
-					activeUnits.Add(go);
-					go.GetComponent<AIBehaviours>().SpottedPlayer();
+					foreach(Unit squadie in enemy.GetComponent<AIBehaviours>().myGroup) {
+						squadie.isActive = true;
+						activeUnits.Add(squadie.gameObject);
+						squadie.GetComponent<AIBehaviours>().SpottedPlayer();
+					}
 				}
 			}
 		}
@@ -347,6 +396,7 @@ public class UnitManager : MonoBehaviour {
 			}
 		}
 
+		map.DetectVisability ();
 
 		++turn;
 
@@ -464,7 +514,7 @@ public class UnitManager : MonoBehaviour {
 		Unit sUnit = currentQueue [turn].GetComponent<Unit> ();
 
 		//loop through every active unit TODO many need to add the next queue too
-		foreach (GameObject go in currentQueue) {
+		foreach (GameObject go in everyUnit) {
 			Unit u = go.GetComponent<Unit>();
 			//check to see if the ability hits this type of unit
 			if (map.GetClickableTile(u.tileX, u.tileY).highlighted && !u.isDead) {
@@ -481,7 +531,7 @@ public class UnitManager : MonoBehaviour {
 		List<Node> targetNodes = new List<Node> ();
 
 		//loop through all active units
-		foreach (GameObject go in activeUnits) {
+		foreach (GameObject go in everyUnit) {
 			Unit sUnit = go.GetComponent<Unit>();
 
 			//if the unit is not dead
@@ -719,6 +769,23 @@ public class UnitManager : MonoBehaviour {
 		case EnemyClass.GoblinDrummer: u.myAbilities[0] = new BattleRhythem(u, map, effectLibrary);
 			u.myAbilities[1] = new Inspire(u, map, effectLibrary);
 			u.myAbilities[2] = new SonicWave(u, map, effectLibrary);
+			break;
+		case EnemyClass.GoblinShaman: u.myAbilities[0] = new HammerSlam(u, map, effectLibrary);
+			u.myAbilities[1] = new FlamingAxe(u, map, effectLibrary);
+			u.myAbilities[2] = new Combustion(u, map, effectLibrary);
+			u.myAbilities[3] = new SpawnTotem(u, map, effectLibrary);
+			break;
+		case EnemyClass.EarthTotem: u.myAbilities[0] = new TotemSnare(u, map, effectLibrary);
+			u.myAbilities[1] = new TotemShield(u, map, effectLibrary);
+			break;
+		case EnemyClass.FireTotem: u.myAbilities[0] = new TotemFireball(u, map, effectLibrary);
+			u.myAbilities[1] = new TotemFlameShield(u, map, effectLibrary);
+			break;
+		case EnemyClass.WaterTotem: u.myAbilities[0] = new TotemHeal(u, map, effectLibrary);
+			u.myAbilities[1] = new TotemMist(u, map, effectLibrary);
+			break;
+		case EnemyClass.WindTotem: u.myAbilities[0] = new TotemCooldownReduction(u, map, effectLibrary);
+			u.myAbilities[1] = new TotemPushBack(u, map, effectLibrary);
 			break;
 		}
 

@@ -733,25 +733,36 @@ public class TileMap : MonoBehaviour {
 
 		while (!(x == end.x && y == end.y) && count < deltaX + deltaY && cost <= sight) {
 			float twoError = 2* error;
+			int moves = 0;
 			if (twoError > (-1*deltaY)) {
 				error -= deltaY;
 				x += stepX;
+				++moves;
 			}
 			if (twoError < deltaX) {
 				error += deltaX;
 				y += stepY;
+				++moves;
 			}
 
 			if (TileBlocksVision(x, y)) {
 				return false;
 			} else {
-				cost += CostToLookThroughTile(x,y);
+
+				//if it went diagonal increase cost
+				if (moves == 2) {
+					cost += CostToLookThroughTile(x,y) * 1.42f;
+				} else {
+					cost += CostToLookThroughTile(x,y);
+				}
+
+
 				if (cost > sight) {
 					return false;
 				}
 
 			}
-			count++;
+			++count;
 		}
 
 		return true;
@@ -759,13 +770,22 @@ public class TileMap : MonoBehaviour {
 	}
 
 	//detects everytile in line of sight
-	public void DetectVisability(Unit u) {
+	public void DetectVisability() {
+		foreach (GameObject go in GetComponent<UnitManager>().playerUnitObjects) {
+			Unit u = go.GetComponent<Unit>();
 
-
-		//there must be a smarter way to reduce using every node
-		foreach (Node n in graph) {
-			GetClickableTile (n.x, n.y).RemoveVision ();
+			foreach (Node n in graph) {
+				GetClickableTile (n.x, n.y).visableTo.Remove (u);
+				if (HasLineOfSight (GetNode (u.tileX, u.tileY), n, u.sight)) {
+					GetClickableTile (n.x, n.y).visableTo.Add (u);
+				}
+				GetClickableTile (n.x, n.y).UpdateVision ();
+			}
 		}
+	}
+
+	//detects everytile in line of sight
+	public void DetectVisability(Unit u) {
 
 		foreach (Node n in graph) {
 			GetClickableTile(n.x, n.y).visableTo.Remove(u);

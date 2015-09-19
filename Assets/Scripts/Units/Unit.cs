@@ -10,6 +10,12 @@ public enum UnitSize {
 	Giant
 }
 
+public struct Immunities {
+	public bool Stun;
+	public bool Snare;
+	public bool Sleep;
+}
+
 [System.Serializable]
 public class Unit : MonoBehaviour {
 
@@ -41,6 +47,12 @@ public class Unit : MonoBehaviour {
 	public int baseBlock = 0;
 	public float baseSight = 1;
 
+	//immunities
+	public Immunities baseImmune;
+	public bool baseImmuneStun = false;
+	public bool baseImmuneSnare = false;
+	public bool baseImmuneSleep = false;
+
     //Max - current maximum stats after effects
 	public int maxHP = 100;
 	public int maxMana = 100;
@@ -52,6 +64,7 @@ public class Unit : MonoBehaviour {
 	public int dodgeChance = 5;
 	public int blockChance = 0;
 	public float sight = 1;
+	public Immunities immune;
 
     //current - the current value of the stats
     public int shield = 0;
@@ -81,14 +94,16 @@ public class Unit : MonoBehaviour {
 	public int comboPoints = 0;
 	public int team = 1;
 
+
+	//UI
 	public List<GameObject> displayedEffects = new List<GameObject> ();
 
-	Image healthBar;
-	Text hpText;
-	Image manaBar;
-	Text manaText;
-	Image shieldBar;
-	List<GameObject> comboPointGameObjects = new List<GameObject> ();
+	public Image healthBar;
+	public Text hpText;
+	public Image manaBar;
+	public Text manaText;
+	public Image shieldBar;
+	public List<GameObject> comboPointGameObjects = new List<GameObject> ();
 
 	public GameObject damageCombatText;
 	public GameObject healingCombatText;
@@ -98,6 +113,7 @@ public class Unit : MonoBehaviour {
 
 	public Sprite portait;
 
+	public bool selected; //if the unit is the currently selected one
 
 	void Start() {
 		hp = maxHP;
@@ -115,6 +131,12 @@ public class Unit : MonoBehaviour {
 		//update status bars
 		UpdateHealthBar ();
 		UpdateManaBar();
+
+		baseImmune.Stun = baseImmuneStun;
+		baseImmune.Snare = baseImmuneSnare;
+		baseImmune.Sleep = baseImmuneSleep;
+
+		immune = baseImmune;
 	}
 
 	//when a unit starts a new turn, this function is ran
@@ -179,6 +201,10 @@ public class Unit : MonoBehaviour {
 		return attacking || moving;
 	}
 
+	void OnMouseUp() {
+		uManager.SelectUnit (this);
+	}
+
 	void UpdateStats(bool reapply = false) {
 		//set each stat to its base then apply effects
 		maxHP = baseHP;
@@ -195,6 +221,7 @@ public class Unit : MonoBehaviour {
 		dodgeChance = baseDodge;
 		blockChance = baseBlock;
 		sight = baseSight;
+		immune = baseImmune;
 
 
 		//apply the effects
@@ -508,7 +535,7 @@ public class Unit : MonoBehaviour {
 
 			if (shieldFill > 0) {
 				//how far the bar is past its mid point
-				float pastMid = ((hpFill * fullFill) - 0.5f) * hpWidth;
+				float pastMid = ((healthBar.fillAmount) - 0.5f) * hpWidth;
 
 				//calculate the position for the shield bar
 				Vector3 sPos = new Vector3(pastMid + (hpWidth * 0.5f), shieldBar.transform.localPosition.y, shieldBar.transform.localPosition.z);
@@ -531,6 +558,14 @@ public class Unit : MonoBehaviour {
 				hpText.text = "";
 			}
 		}
+
+		if (playable) {
+			uManager.GetComponent<GameManager> ().UI.GetComponent<UIManager> ().UpdateUnitFrame (ID, this);
+		}
+
+		if (selected) {
+			uManager.GetComponent<GameManager> ().UI.GetComponent<UIManager> ().UpdateUnitFrame (5, this);
+		}
 	}
 
 	// updates the visual of the unit's manabar
@@ -548,6 +583,14 @@ public class Unit : MonoBehaviour {
 			} else {
 				manaBar.fillAmount = 0;
 				manaText.text = "";
+			}
+
+			if (playable) {
+				uManager.GetComponent<GameManager> ().UI.GetComponent<UIManager> ().UpdateUnitFrame (ID, this);
+			}
+
+			if (selected) {
+				uManager.GetComponent<GameManager> ().UI.GetComponent<UIManager> ().UpdateUnitFrame (5, this);
 			}
 		}
 	}
@@ -726,10 +769,23 @@ public class Unit : MonoBehaviour {
 	}
 
 	// applies the specified effect, or stacks and refreshes it if it is already on
-    public void ApplyEffect(Effect eff)
+    public bool ApplyEffect(Effect eff)
     {
+		//first check if the unit is immune
+		if (eff.description.Contains ("Stun") && immune.Stun) {
+			ShowCombatText("Immune", statusCombatText);
+			return false;
+		} else if (eff.description.Contains ("Snare") && immune.Snare) {
+			ShowCombatText("Immune", statusCombatText);
+			return false;
+		} else if (eff.description.Contains ("Sleep") && immune.Sleep) {
+			ShowCombatText("Immune", statusCombatText);
+			return false;
+		}
+
+
 		//need to reaply all the buffs
-		
+
 		//set each stat to its base then apply effects
 		maxHP = baseHP;
 		maxMana = baseMana;
@@ -746,6 +802,7 @@ public class Unit : MonoBehaviour {
 		dodgeChance = baseDodge;
 		blockChance = baseBlock;
 		sight = baseSight;
+		immune = baseImmune;
 
 		//loop through all the current effects
 		foreach (Effect currentEffect in myEffects) {
@@ -778,6 +835,8 @@ public class Unit : MonoBehaviour {
 		}
 
 		ShowDebuffs ();
+
+		return true;
 
     }
 

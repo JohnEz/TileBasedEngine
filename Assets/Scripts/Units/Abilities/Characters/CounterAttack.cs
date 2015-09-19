@@ -24,7 +24,7 @@ public class CounterAttack : Ability
 		myVisualEffects.Add (effectLib.CreateVisualEffect ("Counter Attack", pos).GetComponent<EffectController> ());
 
 		myCaster.ApplyEffect(new BlockEffect("Counter Attack", duration, blockIncrease, 1));
-		myCaster.AddTrigger (new CounterAttackTrigger ("Counter Attack", myCaster, duration, effectLib, damage));
+		myCaster.AddTrigger (new DamageAttackerTrigger ("Counter Attack", myCaster, duration, effectLib, damage, TriggerType.Block));
 
 		myCaster.GetComponent<AudioSource> ().PlayOneShot (effectLib.getSoundEffect ("Counter Attack"));
 	}

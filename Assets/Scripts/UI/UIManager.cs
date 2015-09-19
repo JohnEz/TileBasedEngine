@@ -19,34 +19,44 @@ public class UIManager : MonoBehaviour {
 	public Image turnOrderFrame;
 	public Image currentTurnFrame;
 	public GameObject portaitPrefab;
+	public GameObject effectIconPrefab;
+
+	public GameObject[] UnitFrames = new GameObject[6];
 
 	public List<GameObject> currentPortaits = new List<GameObject>();
 
 	// Use this for initialization
 	public void Initialise () {
 		//set the position of the description box and text
-		descriptionBox = transform.FindChild ("AbilityDescriptionBox").GetComponent<Image>();
-		abilityNameText = descriptionBox.transform.FindChild ("AbilityName").GetComponent<Text>();
-		abilityDescText = descriptionBox.transform.FindChild ("AbilityDescription").GetComponent<Text>();
+		descriptionBox = transform.FindChild ("AbilityDescriptionBox").GetComponent<Image> ();
+		abilityNameText = descriptionBox.transform.FindChild ("AbilityName").GetComponent<Text> ();
+		abilityDescText = descriptionBox.transform.FindChild ("AbilityDescription").GetComponent<Text> ();
 
-		float y = GetComponent<RectTransform>().rect.height / 2 - 130;
-		Vector3 pos = new Vector3(0, -y, 0);
+		float y = GetComponent<RectTransform> ().rect.height / 2 - 130;
+		Vector3 pos = new Vector3 (0, -y, 0);
 		descriptionBox.transform.localPosition = pos;
 
 		//hide the box until it needs to be seen
 		HideDescription ();
 
 		//set the position of the turn order frame
-		turnOrderFrame = transform.FindChild ("TurnOrderFrame").GetComponent<Image>();
-		currentTurnFrame = transform.FindChild ("CurrentTurnFrame").GetComponent<Image>();
+		turnOrderFrame = transform.FindChild ("TurnOrderFrame").GetComponent<Image> ();
+		currentTurnFrame = transform.FindChild ("CurrentTurnFrame").GetComponent<Image> ();
 
-		y = GetComponent<RectTransform>().rect.height / 2- 32;
-		pos = new Vector3(0, y, 0);
+		y = GetComponent<RectTransform> ().rect.height / 2 - 32;
+		pos = new Vector3 (0, y, 0);
 
 		turnOrderFrame.transform.localPosition = pos;
 		currentTurnFrame.transform.localPosition = pos;
 
+		UnitFrames[0] = transform.FindChild ("UnitFrame1").gameObject;
+		UnitFrames[1] = transform.FindChild ("UnitFrame2").gameObject;
+		UnitFrames[2] = transform.FindChild ("UnitFrame3").gameObject;
+		UnitFrames[3] = transform.FindChild ("UnitFrame4").gameObject;
+		UnitFrames[4] = transform.FindChild ("UnitFrame5").gameObject;
 
+		UnitFrames[5] = transform.FindChild ("UnitFrameSelected").gameObject;
+		UnitFrames[5].SetActive (false);
 	}
 	
 	// Update is called once per frame
@@ -186,7 +196,7 @@ public class UIManager : MonoBehaviour {
 	public void ChangeRound(List<GameObject> currentTurnOrder) {
 		//delete old portaits
 		foreach (GameObject go in currentPortaits) {
-			go.GetComponent<PortraitController>().targetAlpha = 0;
+			go.GetComponent<TurnPortraitController>().targetAlpha = 0;
 			Destroy(go, 1f);
 		}
 
@@ -210,8 +220,8 @@ public class UIManager : MonoBehaviour {
 			float alpha = Mathf.Max(0, 1-(i*0.25f));
 
 			go.GetComponent<Image>().color = new Color(1, 1, 1 , 0);
-			go.GetComponent<PortraitController>().targetAlpha = alpha;
-			go.GetComponent<PortraitController>().targetPos = pos;
+			go.GetComponent<TurnPortraitController>().targetAlpha = alpha;
+			go.GetComponent<TurnPortraitController>().targetPos = pos;
 
 			currentPortaits.Add(go);
 
@@ -230,8 +240,67 @@ public class UIManager : MonoBehaviour {
 			//find alpha depending distance from the current turn
 			float alpha = Mathf.Max(0, 1-(Mathf.Abs(diff)*0.25f));
 
-			currentPortaits[i].GetComponent<PortraitController>().targetPos = pos;
-			currentPortaits[i].GetComponent<PortraitController>().targetAlpha = alpha;
+			currentPortaits[i].GetComponent<TurnPortraitController>().targetPos = pos;
+			currentPortaits[i].GetComponent<TurnPortraitController>().targetAlpha = alpha;
+		}
+
+	}
+
+	public void SetupUnitFrames(GameObject[] characters) {
+		for (int i = 0; i < characters.Length; ++i) {
+			SetUnitFrame(i, characters[i].GetComponent<Unit>());
+		}
+	}
+
+	public void SetSelectedFrame(Unit u) {
+		SetUnitFrame (5, u);
+		UnitFrames [5].SetActive (true);
+		UnitFrames [5].GetComponent<PortraitController>().SetUnit(u);
+	}
+
+	public void DeselectSelectedUnit() {
+		UnitFrames [5].SetActive (false);
+	}
+
+	public void SetUnitFrame(int index, Unit u) {
+		UpdateUnitFrame (index, u);
+	}
+
+	public void UpdateUnitFrame(int index, Unit u) {
+		if (index >= 0 && index < 6) {
+			GameObject go = UnitFrames [index];
+			if (u.healthBar) {
+				//set the hp
+				/////////////
+				go.transform.FindChild ("HPBar").GetComponent<Image> ().fillAmount = u.healthBar.fillAmount;
+
+				string hpText = (u.hp + u.shield).ToString () + "/" + (u.maxHP + u.shield).ToString ();
+				go.transform.FindChild ("HPBar").FindChild ("Text").GetComponent<Text> ().text = hpText;
+
+				//set the shield
+				////////////////
+				Image shieldBar = go.transform.FindChild ("ShieldBar").GetComponent<Image> ();
+				shieldBar.fillAmount = u.shieldBar.fillAmount;
+
+				//find the position of the shield
+				float hpWidth = go.transform.FindChild ("HPBar").GetComponent<Image> ().rectTransform.rect.width;
+
+				//how far the bar is past its mid point
+				float pastMid = ((u.healthBar.fillAmount) - 0.5f) * hpWidth;
+			
+				//calculate the position for the shield bar
+				Vector3 sPos = new Vector3 ((74 + pastMid + (hpWidth * 0.5f)) * (shieldBar.fillOrigin *-1), shieldBar.transform.localPosition.y, shieldBar.transform.localPosition.z);
+				shieldBar.transform.localPosition = sPos;
+			}
+
+			//if the unit uses mana
+			///////////////////////
+			if (u.manaBar) {
+				go.transform.FindChild ("ManaBar").GetComponent<Image> ().fillAmount = u.manaBar.fillAmount;
+
+				string manaText = u.mana.ToString () + "/" + u.maxMana.ToString ();
+				go.transform.FindChild ("ManaBar").FindChild ("Text").GetComponent<Text> ().text = manaText;
+			}
 		}
 
 	}

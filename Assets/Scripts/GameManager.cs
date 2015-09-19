@@ -18,10 +18,6 @@ public class GameManager : MonoBehaviour {
 	}
 
 	void Update() {
-		if (Input.GetKeyDown(KeyCode.Escape)) {
-			//TEMP
-			Application.Quit();
-		}
 
 		if (Input.GetKeyDown(KeyCode.Alpha1)) {
 			GetComponent<UnitManager> ().ShowAbility(0);
@@ -41,7 +37,7 @@ public class GameManager : MonoBehaviour {
 		if (Input.GetKeyDown(KeyCode.Alpha6)) {
 			GetComponent<UnitManager> ().ShowAbility(5);
 		}
-		if (Input.GetKeyDown(KeyCode.Mouse1)) {
+		if (Input.GetKeyDown(KeyCode.Mouse1) || Input.GetKeyDown(KeyCode.Escape)) {
 			//Show movement
 			GetComponent<UnitManager> ().ShowMovement();
 			//unhighlight icons

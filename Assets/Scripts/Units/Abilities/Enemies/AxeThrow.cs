@@ -5,7 +5,7 @@ public class AxeThrow : Ability
 {
 	public AxeThrow (Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
-		damage = 25;
+		damage = 30;
 		range = 5;
 		area = AreaType.Single;
 		targets = TargetType.Enemy;
@@ -14,19 +14,19 @@ public class AxeThrow : Ability
 		AIRanged = true;
 	}
 
-	public override void UseAbility (Unit target)
+	public override void UseAbility (Node target)
 	{
 		base.UseAbility (target);
 		
-		myTarget = target;
-		int dirX = myCaster.tileX - target.tileX;
-		int dirY = myCaster.tileY - target.tileY;
+		myTarget = target.myUnit;
+		int dirX = myCaster.tileX - target.x;
+		int dirY = myCaster.tileY - target.y;
 
 		//create effect facing target
 		if (dirX < 0 || dirY > 0) {
-			myProjectiles.Add (effectLib.CreateProjectile ("Axe", myCaster.transform.position, target.transform.position, 10).GetComponent<ProjectileController> ());
+			myProjectiles.Add (effectLib.CreateProjectile ("Axe", myCaster.transform.position, target.myUnit.transform.position, 10).GetComponent<ProjectileController> ());
 		} else {
-			myProjectiles.Add (effectLib.CreateProjectile ("Axe", myCaster.transform.position, target.transform.position, 10, true).GetComponent<ProjectileController> ());
+			myProjectiles.Add (effectLib.CreateProjectile ("Axe", myCaster.transform.position, target.myUnit.transform.position, 10, true).GetComponent<ProjectileController> ());
 		}
 	}
 

@@ -102,6 +102,7 @@ public class PrefabLibrary : MonoBehaviour {
 		projectiles.Add ("Fireball", 2);
 		projectiles.Add ("Axe", 3);
 		projectiles.Add ("Crackling Arrow", 4);
+		projectiles.Add ("Totem Fireball", 5);
 	}
 
 
