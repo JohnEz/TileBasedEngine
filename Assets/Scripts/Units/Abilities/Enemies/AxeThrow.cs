@@ -3,9 +3,10 @@ using System;
 
 public class AxeThrow : Ability
 {
+	int bleedDmg = 5;
 	public AxeThrow (Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
-		damage = 30;
+		damage = 25;
 		range = 5;
 		area = AreaType.Single;
 		targets = TargetType.Enemy;
@@ -40,7 +41,7 @@ public class AxeThrow : Ability
 		
 		// deal damage, if not dodged apply cripple
 		if (myTarget.TakeDamage (dmg, effectLib.getSoundEffect ("Blunt1"), true, myCaster) != -1) {
-			myTarget.ApplyEffect (new Dot("Axe Bleed", 2, 5, 3));
+			myTarget.ApplyEffect (new Dot("Axe Bleed", 2, bleedDmg, 3));
 			myTarget.ShowCombatText ("Bleeding", myTarget.statusCombatText);
 		}
 		

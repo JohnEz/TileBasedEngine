@@ -60,7 +60,7 @@ public class CracklingArrow : Ability
 				pos = map.TileCoordToWorldCoord (n.x, n.y);
 				myVisualEffects.Add (effectLib.CreateVisualEffect ("Crackle", pos).GetComponent<EffectController> ());
 				if (n.myUnit != null && n.myUnit.team != myCaster.team) {
-					n.myUnit.AddTrigger(new CracklingArrowTrigger("Crackle", myCaster, duration, effectLib, popDamage));
+					n.myUnit.AddTrigger(new CracklingArrowTrigger("Crackle", myCaster, duration, effectLib, popDamage, effectLib.getIcon("Crackling Arrow").sprite));
 				}
 			}
 		}

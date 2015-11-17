@@ -3,7 +3,8 @@ using System;
 
 public class ManaTrapTrigger : Trigger
 {
-	public ManaTrapTrigger (string name, Unit caster, PrefabLibrary el, int dur) : base(name, TriggerType.Floor, caster, el, dur)
+	public ManaTrapTrigger (string name, Unit caster, PrefabLibrary el, int dur, Sprite icon = null)
+		: base(name, TriggerType.Floor, caster, el, dur, icon)
 	{
 		maxTriggers = 1;
 	}

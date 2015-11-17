@@ -4,6 +4,9 @@ using UnityEngine.UI;
 
 public class PrefabLibrary : MonoBehaviour {
 
+	//button prefab
+	public GameObject abilityButtonPrefab;
+
 	//visual effects
 	public GameObject[] spritePrefabs;
 	public Dictionary<string, int> visualEffects = new Dictionary<string, int>();
@@ -16,9 +19,13 @@ public class PrefabLibrary : MonoBehaviour {
 	public GameObject[] projPrefabs;
 	public Dictionary<string, int> projectiles = new Dictionary<string, int>();
 
-	//projectiles
-	public GameObject[] iconPrefabs;
+	//BasicIcons
+	public SpriteRenderer[] iconPrefabs;
 	public Dictionary<string, int> icons = new Dictionary<string, int>();
+
+	//PressedIcons
+	public SpriteRenderer[] iconPressedPrefabs;
+	//public Dictionary<string, int> iconsPressed = new Dictionary<string, int>();
 
 	//particle Effects
 	public GameObject[] particleSystems;
@@ -57,6 +64,8 @@ public class PrefabLibrary : MonoBehaviour {
 		visualEffects.Add ("Counter Attack", 18);
 		visualEffects.Add ("Crackle Debuff", 19);
 		visualEffects.Add ("Drum1", 20);
+		visualEffects.Add ("Slash2", 21);
+		visualEffects.Add ("Whirlwind", 22);
 	}
 
 	void AttachAudioEffects() {
@@ -107,9 +116,9 @@ public class PrefabLibrary : MonoBehaviour {
 
 
 	void AttachIcons() {
-		icons.Add ("Crippling Strike", 0);
+		icons.Add ("Guardian Strike", 0);
 		icons.Add ("Shield Slam", 1);
-		icons.Add ("Charge", 2);
+		icons.Add ("Barge", 2);
 
 		icons.Add ("Triple Shot", 3);
 		icons.Add ("Crippling Shot", 4);
@@ -118,13 +127,18 @@ public class PrefabLibrary : MonoBehaviour {
 		icons.Add ("Word Of Healing", 6);
 		icons.Add ("Righteous Shield", 7);
 		icons.Add ("Divine Sacrifice", 8);
+		icons.Add ("Smite", 8);
+		icons.Add ("Amplify", 9);
 
+		icons.Add ("Arcane Spark", 9);
 		icons.Add ("Arcane Pulse", 9);
 		icons.Add ("Fireball", 10);
 		icons.Add ("Flash Freeze", 11);
 
 		icons.Add ("Lacerate", 12);
+		icons.Add ("Flurry", 12);
 		icons.Add ("Lunge", 13);
+		icons.Add ("Shadow Step", 13);
 		icons.Add ("Point Blank", 14);
 
 		icons.Add ("Deep Slumber", 15);
@@ -156,8 +170,30 @@ public class PrefabLibrary : MonoBehaviour {
 		return ac;
 	}
 
-	public GameObject getIcon(string s) {
-		GameObject icon = iconPrefabs [icons [s]];
+	public SpriteRenderer getIcon(string s) {
+		SpriteRenderer go = iconPrefabs[icons[s]];
+		
+		return go;
+	}
+
+	public SpriteRenderer getPressedIcon(string s) {
+		SpriteRenderer go = iconPressedPrefabs[icons[s]];
+		
+		return go;
+	}
+
+
+	public GameObject CreateButton(string s, Vector3 pos, Quaternion rot) {
+		GameObject icon = (GameObject)Instantiate (abilityButtonPrefab, pos, rot);
+
+		icon.GetComponent<Button> ().image.sprite = getIcon (s).sprite;
+
+		SpriteState st = new SpriteState ();
+
+		st.disabledSprite = getIcon(s).sprite;
+		st.pressedSprite = getPressedIcon(s).sprite;
+
+		icon.GetComponent<Button> ().spriteState = st;
 
 		return icon;
 	}

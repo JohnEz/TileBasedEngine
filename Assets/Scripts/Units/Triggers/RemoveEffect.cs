@@ -7,7 +7,8 @@ public class RemoveEffect : Trigger
 
 	Effect effectToRemove = null;
 	
-	public RemoveEffect (string name, Unit caster, TriggerType trig, Effect eff, PrefabLibrary el, int dur) : base(name, trig, caster, el, dur)
+	public RemoveEffect (string name, Unit caster, TriggerType trig, Effect eff, PrefabLibrary el, int dur, Sprite icon = null)
+		: base(name, trig, caster, el, dur, icon)
 	{
 		maxTriggers = 1;
 		effectToRemove = eff;

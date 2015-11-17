@@ -15,11 +15,17 @@ public class UIManager : MonoBehaviour {
 	public Image descriptionBox;
 	public Text abilityNameText;
 	public Text abilityDescText;
+	public Image tooltipBox;
 
 	public Image turnOrderFrame;
 	public Image currentTurnFrame;
 	public GameObject portaitPrefab;
 	public GameObject effectIconPrefab;
+
+	public GameObject damageCombatText;
+	public GameObject healingCombatText;
+	public GameObject statusCombatText;
+	public GameObject manaCombatText;
 
 	public GameObject[] UnitFrames = new GameObject[6];
 
@@ -28,9 +34,11 @@ public class UIManager : MonoBehaviour {
 	// Use this for initialization
 	public void Initialise () {
 		//set the position of the description box and text
+		tooltipBox = transform.FindChild ("TooltipBox").GetComponent<Image> ();;
 		descriptionBox = transform.FindChild ("AbilityDescriptionBox").GetComponent<Image> ();
 		abilityNameText = descriptionBox.transform.FindChild ("AbilityName").GetComponent<Text> ();
 		abilityDescText = descriptionBox.transform.FindChild ("AbilityDescription").GetComponent<Text> ();
+		descriptionBox = transform.FindChild ("AbilityDescriptionBox").GetComponent<Image> ();
 
 		float y = GetComponent<RectTransform> ().rect.height / 2 - 130;
 		Vector3 pos = new Vector3 (0, -y, 0);
@@ -42,19 +50,11 @@ public class UIManager : MonoBehaviour {
 		//set the position of the turn order frame
 		turnOrderFrame = transform.FindChild ("TurnOrderFrame").GetComponent<Image> ();
 		currentTurnFrame = transform.FindChild ("CurrentTurnFrame").GetComponent<Image> ();
-
-		y = GetComponent<RectTransform> ().rect.height / 2 - 32;
-		pos = new Vector3 (0, y, 0);
-
-		turnOrderFrame.transform.localPosition = pos;
-		currentTurnFrame.transform.localPosition = pos;
-
 		UnitFrames[0] = transform.FindChild ("UnitFrame1").gameObject;
 		UnitFrames[1] = transform.FindChild ("UnitFrame2").gameObject;
 		UnitFrames[2] = transform.FindChild ("UnitFrame3").gameObject;
 		UnitFrames[3] = transform.FindChild ("UnitFrame4").gameObject;
 		UnitFrames[4] = transform.FindChild ("UnitFrame5").gameObject;
-
 		UnitFrames[5] = transform.FindChild ("UnitFrameSelected").gameObject;
 		UnitFrames[5].SetActive (false);
 	}
@@ -117,14 +117,14 @@ public class UIManager : MonoBehaviour {
 	void CreateIcon(Ability abil, Vector3 pos, int slot) {
 		Vector3 position = pos + new Vector3 (0, 32, 0);
 
-		GameObject go = (GameObject)Instantiate (prefabs.getIcon(abil.Name), position, transform.rotation);
+		GameObject go = prefabs.CreateButton(abil.Name, position, transform.rotation);
 
 		go.transform.SetParent(transform);
 		go.transform.localPosition = position;
 		go.transform.localScale = new Vector3(1, 1, 1);
 
 		// if the unit doesnt have enough mana, darken icon
-		if (abil.myCaster.mana < abil.manaCost || (abil.usesCombo && abil.myCaster.comboPoints < 1)) {
+		if (abil.myCaster.mana < abil.manaCost || (abil.usesGuard && abil.myCaster.guardPoints < 1)) {
 			go.GetComponent<Image>().color = new Color(0.5f, 0.5f, 0.5f);
 		} else {
 			go.GetComponent<Image>().color = new Color(0.75f, 0.75f, 0.75f);
@@ -192,6 +192,24 @@ public class UIManager : MonoBehaviour {
 		abilityDescText.text = desc;
 
 	}
+
+	public void ShowTooltip(EffectIconController eff) {
+		tooltipBox.GetComponent<TooltipController> ().ShowTooltip (true);
+		tooltipBox.GetComponent<TooltipController> ().SetTitle (eff.GetEffectName());
+		tooltipBox.GetComponent<TooltipController> ().SetDescription (eff.GetEffectDesc());
+		tooltipBox.GetComponent<TooltipController> ().ResizeBox ();
+	}
+
+	public void ShowTooltip(string title, string description) {
+		tooltipBox.GetComponent<TooltipController> ().ShowTooltip (true);
+		tooltipBox.GetComponent<TooltipController> ().SetTitle (title);
+		tooltipBox.GetComponent<TooltipController> ().SetDescription (description);
+		tooltipBox.GetComponent<TooltipController> ().ResizeBox ();
+	}
+
+	public void HideTooltip() {
+		tooltipBox.GetComponent<TooltipController> ().ShowTooltip (false);
+	}
 	
 	public void ChangeRound(List<GameObject> currentTurnOrder) {
 		//delete old portaits
@@ -201,29 +219,34 @@ public class UIManager : MonoBehaviour {
 		}
 
 		currentPortaits = new List<GameObject> ();
-
+		int count = 0;
 		//create new portraits
 		for (int i = 0; i < currentTurnOrder.Count; ++i) {
 
-			// find the position
-			Vector3 pos = new Vector3(i * 48, 1, 0);
+			if (!currentTurnOrder[i].GetComponent<Unit>().isDead) {
 
-			//create the object
-			GameObject go = (GameObject)Instantiate(portaitPrefab, new Vector3(0, 0, 0), Quaternion.identity);
+				// find the position
+				Vector3 pos = new Vector3(count * 48, 1, 0);
 
-			//set the image and position
-			go.transform.SetParent(turnOrderFrame.transform);
-			go.transform.localPosition = pos;
-			go.GetComponent<Image>().sprite = currentTurnOrder[i].GetComponent<Unit>().portait;
+				//create the object
+				GameObject go = (GameObject)Instantiate(portaitPrefab, new Vector3(0, 0, 0), Quaternion.identity);
 
-			//find alpha depending distance from the current turn
-			float alpha = Mathf.Max(0, 1-(i*0.25f));
+				//set the image and position
+				go.transform.SetParent(turnOrderFrame.transform);
+				go.transform.localPosition = pos;
+				go.GetComponent<Image>().sprite = currentTurnOrder[i].GetComponent<Unit>().portait;
 
-			go.GetComponent<Image>().color = new Color(1, 1, 1 , 0);
-			go.GetComponent<TurnPortraitController>().targetAlpha = alpha;
-			go.GetComponent<TurnPortraitController>().targetPos = pos;
+				//find alpha depending distance from the current turn
+				float alpha = Mathf.Max(0, 1-(i*0.25f));
 
-			currentPortaits.Add(go);
+				go.GetComponent<Image>().color = new Color(1, 1, 1 , 0);
+				go.GetComponent<TurnPortraitController>().targetAlpha = alpha;
+				go.GetComponent<TurnPortraitController>().targetPos = pos;
+
+				currentPortaits.Add(go);
+
+				count++;
+			}
 
 		}
 
@@ -231,8 +254,10 @@ public class UIManager : MonoBehaviour {
 
 	public void ChangeTurn(int turn) {
 
+		int realTurn = turn;
+
 		for (int i = 0; i < currentPortaits.Count; ++i) {
-			int diff = i - turn;
+			int diff = i - realTurn;
 
 			// find the position
 			Vector3 pos = new Vector3(diff * 48, 1, 0);
@@ -269,41 +294,72 @@ public class UIManager : MonoBehaviour {
 	public void UpdateUnitFrame(int index, Unit u) {
 		if (index >= 0 && index < 6) {
 			GameObject go = UnitFrames [index];
-			if (u.healthBar) {
-				//set the hp
-				/////////////
-				go.transform.FindChild ("HPBar").GetComponent<Image> ().fillAmount = u.healthBar.fillAmount;
-
-				string hpText = (u.hp + u.shield).ToString () + "/" + (u.maxHP + u.shield).ToString ();
-				go.transform.FindChild ("HPBar").FindChild ("Text").GetComponent<Text> ().text = hpText;
-
-				//set the shield
-				////////////////
-				Image shieldBar = go.transform.FindChild ("ShieldBar").GetComponent<Image> ();
-				shieldBar.fillAmount = u.shieldBar.fillAmount;
-
-				//find the position of the shield
-				float hpWidth = go.transform.FindChild ("HPBar").GetComponent<Image> ().rectTransform.rect.width;
-
-				//how far the bar is past its mid point
-				float pastMid = ((u.healthBar.fillAmount) - 0.5f) * hpWidth;
-			
-				//calculate the position for the shield bar
-				Vector3 sPos = new Vector3 ((74 + pastMid + (hpWidth * 0.5f)) * (shieldBar.fillOrigin *-1), shieldBar.transform.localPosition.y, shieldBar.transform.localPosition.z);
-				shieldBar.transform.localPosition = sPos;
-			}
-
-			//if the unit uses mana
-			///////////////////////
-			if (u.manaBar) {
-				go.transform.FindChild ("ManaBar").GetComponent<Image> ().fillAmount = u.manaBar.fillAmount;
-
-				string manaText = u.mana.ToString () + "/" + u.maxMana.ToString ();
-				go.transform.FindChild ("ManaBar").FindChild ("Text").GetComponent<Text> ().text = manaText;
-			}
+			go.GetComponent<PortraitController>().SetUnit(u);
+			go.GetComponent<PortraitController>().UpdateFrame();
 		}
 
 	}
 
+	public void UpdateAllUnitFrames() {
+		for (int i = 0; i < 6; ++i) {
+			GameObject go = UnitFrames [i];
+			go.GetComponent<PortraitController> ().UpdateFrame ();
+		}
+	}
+
+	public GameObject CreateEffectIcon(int x, int y, Effect eff, Transform parent) {
+		GameObject go = (GameObject)Instantiate(effectIconPrefab, new Vector3(0, 0, 0), Quaternion.identity);
+		go.transform.SetParent(parent);
+		go.transform.localPosition = new Vector3(x, y, 0);
+		go.GetComponent<EffectIconController> ().myEffect = eff;
+		if (eff.stack > 1) {
+			go.GetComponentInChildren<Text> ().text = eff.stack.ToString ();
+		}
+		if (eff.myIcon) {
+			go.GetComponentInChildren<Image>().sprite = eff.myIcon;
+		}
+
+		return go;
+	}
+
+	public GameObject CreateEffectIcon(int x, int y, Trigger trig, Transform parent) {
+		Effect eff = new Effect(trig.triggerName, trig.duration, 0);
+		eff.description = trig.description;
+		eff.myIcon = trig.myIcon;
+		return CreateEffectIcon(x, y, eff, parent);
+	}
+
+	public void CreateCombatText(Vector3 pos, string txt, GameObject go) {
+
+		GameObject temp = Instantiate (go) as GameObject;
+
+		Vector2 viewportPoint = GetComponentInParent<GameManager>().cam.WorldToViewportPoint(pos);
+
+		//RectTransform CanvasRect = GetComponent<RectTransform>();
+		//Vector2 ViewportPosition = GetComponentInParent<GameManager>().cam.WorldToViewportPoint(pos);
+
+		//Vector2 WorldObject_ScreenPosition = new Vector2(
+		//	(((ViewportPosition.x*CanvasRect.sizeDelta.x)-(CanvasRect.sizeDelta.x*0.5f))*5),
+		//	(((ViewportPosition.y*CanvasRect.sizeDelta.y)-(CanvasRect.sizeDelta.y*0.5f))*5));
+
+		RectTransform tempRect = temp.GetComponent<RectTransform> ();
+		temp.GetComponent<Animator> ().SetTrigger ("Hit");
+		temp.transform.SetParent (transform);
+		
+		//tempRect.transform.localPosition = go.transform.localPosition;
+		//now you can set the position of the ui element
+		//tempRect.anchoredPosition = WorldObject_ScreenPosition;
+		tempRect.transform.localScale = new Vector3(1.5f, 1.5f, 1.5f);
+		tempRect.transform.rotation = go.transform.localRotation;
+		//tempRect.transform.localPosition = go.transform.localPosition;
+		tempRect.anchorMin = viewportPoint;  
+		tempRect.anchorMax = viewportPoint; 
+		
+		temp.GetComponent<Text> ().text = txt;
+
+
+
+		Destroy(temp.gameObject, 2);
+	}
 
 }

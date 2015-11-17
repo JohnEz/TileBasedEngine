@@ -3,8 +3,8 @@ using System.Collections.Generic;
 
 public class SmokeBomb : Ability
 {
-	int losMod = 4;
-	float damageMod = 0.25f;
+	int losMod = 1;
+	int dodgeMod = 25;
 	public SmokeBomb(Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
 		Name = "Smoke Bomb";
@@ -15,10 +15,8 @@ public class SmokeBomb : Ability
 		targets = TargetType.Ally;
 		maxCooldown = 10;
 
-		int percentageMod = (int)(damageMod * 100);
-
 		description = "Cooldown: " + maxCooldown.ToString () +
-			"\nDrops a smoke bomb that reduces vision in the area and reduces the damage allies take by " + percentageMod.ToString () + "% lasting " + duration.ToString() + " turns.";
+			"\nDrops a smoke bomb that slightly reduces vision in the area and increase the dodge chance of allies in it by " + dodgeMod.ToString () + "% lasting " + duration.ToString() + " turns.";
 	}
 	
 	public override void UseAbility(Node target)
@@ -46,13 +44,17 @@ public class SmokeBomb : Ability
 		foreach (Node n in targetNodes) {
 			n.LOSMod += losMod;
 
-			Effect eff = new DamageRecievedEffect("Smokey", 0, -damageMod);
+			Effect eff = new DodgeEffect("Smokey", 0, dodgeMod, 1, effectLib.getIcon("Smoke Bomb").sprite);
 			eff.targets = myCaster.team;
 
 			n.myEffects.Add(eff); 
+
+			if (n.myUnit && n.myUnit.team == myCaster.team) {
+				n.myUnit.ApplyEffect(eff);
+			}
 		}
 
-		myCaster.ApplyEffect (new SmokeBombTileEffect ("Smoke Bomb", duration, targetNodes, losMod));
+		myCaster.ApplyEffect (new SmokeBombTileEffect ("Smoke Bomb", duration, targetNodes, losMod, 1));
 
 		myCaster.GetComponent<AudioSource> ().PlayOneShot (effectLib.getSoundEffect ("Smoke Bomb"));
 

@@ -41,7 +41,7 @@ public class Fireball : Ability
 
 		//deal damage, if not dodged, apply effect
 		if (myTarget.TakeDamage (dmg, effectLib.getSoundEffect ("Fireball Hit"), true, myCaster) != -1) {
-			myTarget.ApplyEffect (new Dot ("Burning", duration, dotDamage, stacks));
+			myTarget.ApplyEffect (new Dot ("Burning", duration, dotDamage, stacks, effectLib.getIcon("Fireball").sprite));
 			myTarget.ShowCombatText ("Burning", myTarget.statusCombatText);
 		}
 

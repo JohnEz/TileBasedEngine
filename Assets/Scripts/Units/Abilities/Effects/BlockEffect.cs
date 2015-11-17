@@ -7,11 +7,12 @@ public class BlockEffect : Effect
 	int baseBlockMod = 0;
 	int blockMod = 0;
 
-	public BlockEffect(string n, int dur, int mod, int stacks = 1)
-		: base(n, dur, stacks)
+	public BlockEffect(string n, int dur, int mod, int stacks = 1, Sprite icon = null)
+		: base(n, dur, stacks, icon)
 	{
 		baseBlockMod = mod;
 		blockMod = 1 + mod;
+		description = "Block chance effect " + blockMod.ToString() + "%";
 	}
 	
 	public override void RunEffect(Unit u, bool reapply = false)
@@ -27,6 +28,7 @@ public class BlockEffect : Effect
 			++stack;
 			blockMod += baseBlockMod;
 		}
+		description = "Block chance effect " + blockMod.ToString() + "%";
 	}
 	
 }

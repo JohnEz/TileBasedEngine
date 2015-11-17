@@ -11,7 +11,7 @@ public class TotemFlameShield : Ability
 		area = AreaType.Self;
 		targets = TargetType.Ally;
 		maxCooldown = 4;
-		damage = 10;
+		damage = 7;
 		
 		AIPriority = 100;
 		AIRanged = true;

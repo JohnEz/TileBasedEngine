@@ -1,0 +1,45 @@
+Initialize engine version: 5.2.2f1 (3757309da7e7)
+GfxDevice: creating device client; threaded=1
+Direct3D:
+    Version:  Direct3D 11.0 [level 11.0]
+    Renderer: AMD Radeon R9 200 Series (ID=0x6798)
+    Vendor:   ATI
+    VRAM:     3051 MB
+Begin MonoManager ReloadAssembly
+Platform assembly: C:\Users\Andy\Documents\GitHub\TileBasedEngine\TEST\TestDemo_Data\Managed\UnityEngine.dll (this message is harmless)
+Loading C:\Users\Andy\Documents\GitHub\TileBasedEngine\TEST\TestDemo_Data\Managed\UnityEngine.dll into Unity Child Domain
+Platform assembly: C:\Users\Andy\Documents\GitHub\TileBasedEngine\TEST\TestDemo_Data\Managed\Assembly-CSharp.dll (this message is harmless)
+Loading C:\Users\Andy\Documents\GitHub\TileBasedEngine\TEST\TestDemo_Data\Managed\Assembly-CSharp.dll into Unity Child Domain
+Platform assembly: C:\Users\Andy\Documents\GitHub\TileBasedEngine\TEST\TestDemo_Data\Managed\UnityEngine.UI.dll (this message is harmless)
+Loading C:\Users\Andy\Documents\GitHub\TileBasedEngine\TEST\TestDemo_Data\Managed\UnityEngine.UI.dll into Unity Child Domain
+Platform assembly: C:\Users\Andy\Documents\GitHub\TileBasedEngine\TEST\TestDemo_Data\Managed\UnityEngine.Networking.dll (this message is harmless)
+Loading C:\Users\Andy\Documents\GitHub\TileBasedEngine\TEST\TestDemo_Data\Managed\UnityEngine.Networking.dll into Unity Child Domain
+Platform assembly: C:\Users\Andy\Documents\GitHub\TileBasedEngine\TEST\TestDemo_Data\Managed\System.Core.dll (this message is harmless)
+- Completed reload, in  0.093 seconds
+desktop: 1920x1080 144Hz; virtual: 3600x1080 at 0,0
+<RI> Initializing input.
+<RI> Input initialized.
+<RI> Initialized touch support.
+Platform assembly: C:\Users\Andy\Documents\GitHub\TileBasedEngine\TEST\TestDemo_Data\Managed\System.dll (this message is harmless)
+Setting up 2 worker threads for Enlighten.
+  Thread -> id: 1488 -> priority: 1 
+  Thread -> id: 2198 -> priority: 1 
+Unloading 3 Unused Serialized files (Serialized files now loaded: 0)
+UnloadTime: 5.236437 ms
+
+Unloading 2 unused Assets to reduce memory usage. Loaded Objects now: 1724.
+Total: 1.353086 ms (FindLiveObjects: 0.070188 ms CreateObjectMapping: 0.097273 ms MarkObjects: 1.168442 ms  DeleteObjects: 0.016309 ms)
+
+Platform assembly: C:\Users\Andy\Documents\GitHub\TileBasedEngine\TEST\TestDemo_Data\Managed\System.Xml.dll (this message is harmless)
+Unloading 2 Unused Serialized files (Serialized files now loaded: 0)
+UnloadTime: 5.312159 ms
+
+Unloading 1612 unused Assets to reduce memory usage. Loaded Objects now: 279.
+Total: 3.069344 ms (FindLiveObjects: 0.174450 ms CreateObjectMapping: 0.136881 ms MarkObjects: 0.234445 ms  DeleteObjects: 2.521819 ms)
+
+Unloading 3 Unused Serialized files (Serialized files now loaded: 0)
+UnloadTime: 0.502383 ms
+
+Unloading 1 unused Assets to reduce memory usage. Loaded Objects now: 1724.
+Total: 0.922346 ms (FindLiveObjects: 0.059121 ms CreateObjectMapping: 0.074265 ms MarkObjects: 0.781388 ms  DeleteObjects: 0.006407 ms)
+

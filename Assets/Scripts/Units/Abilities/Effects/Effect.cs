@@ -12,13 +12,16 @@ public class Effect
     public string name = "NAME THIS EFFECT SILLY";
 	public string description = "description";
 	public int targets = -1;
+	public bool visible = true;
+	public Sprite myIcon;
 
-    public Effect(string n, int dur, int mStack)
+    public Effect(string n, int dur, int mStack, Sprite icon = null)
     {
         name = n;
         maxDuration = dur;
         duration = dur;
 		maxStack = mStack;
+		myIcon = icon;
     }
 
 	public virtual void RunEffect(Unit u, bool reapply = false) {

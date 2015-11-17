@@ -25,8 +25,8 @@ public class RighteousShield : Ability
 	{
 		base.UseAbility (target);
 
-		target.ApplyEffect (new MovespeedMod ("Righteous Speed", duration, 1));
-		target.ApplyEffect (new ShieldEffect ("Righteous Shield", shieldDuration, shield));
+		target.ApplyEffect (new MovespeedMod ("Righteous Speed", duration, 1, 1, effectLib.getIcon("Righteous Shield").sprite));
+		target.ApplyEffect (new ShieldEffect ("Righteous Shield", shieldDuration, shield, effectLib.getIcon("Righteous Shield").sprite));
 
 		target.ShowCombatText (shield.ToString (), target.statusCombatText);
 		target.UpdateHealthBar ();

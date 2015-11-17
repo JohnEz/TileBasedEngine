@@ -9,7 +9,7 @@ public class TotemFireball : Ability
 	public TotemFireball (Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
 		Name = "Fireball";
-		damage = 15;
+		damage = 10;
 		manaCost = 0;
 		duration = 3;
 		maxCooldown = 1;

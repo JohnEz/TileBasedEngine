@@ -6,10 +6,10 @@ using System.Collections.Generic;
 public class Stun : Effect
 {
 
-    public Stun(string n, int dur)
-        : base(n, dur, 1)
+	public Stun(string n, int dur, Sprite icon = null)
+        : base(n, dur, 1, icon)
     {
-		description = "Stun";
+		description = "Stunned";
     }
 
 	public override void RunEffect(Unit u, bool reapply = false)

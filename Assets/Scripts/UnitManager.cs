@@ -58,6 +58,7 @@ public class UnitManager : MonoBehaviour {
 	List<GameObject> activeUnits;
 	List<GameObject> everyUnit;
 	public int turn = 0;
+	public int deadCount = 0;
 
 	//different enemy types
 	public GameObject[] enemyTypes;
@@ -329,12 +330,7 @@ public class UnitManager : MonoBehaviour {
 				
 				if (ind == turn) {
 					EndTurn ();
-					//--turn;
-				} else if (ind < turn) {
-					//--turn;
 				}
-				//currentQueue.Remove(go);
-
 
 			}
 		}
@@ -377,6 +373,7 @@ public class UnitManager : MonoBehaviour {
 
 			waitingForCamera = true;
 		} else {
+			deadCount++;
 			EndTurn();
 		}
 
@@ -400,10 +397,12 @@ public class UnitManager : MonoBehaviour {
 
 		++turn;
 
-		GetComponentInChildren<UIManager> ().ChangeTurn (turn);
+		GetComponentInChildren<UIManager> ().ChangeTurn (turn - deadCount);
+		GetComponentInChildren<UIManager> ().UpdateAllUnitFrames ();
 
 		if (turn >= currentQueue.Count) {
 			turn = 0;
+			deadCount = 0;
 
 			currentQueue = new List<GameObject>();
 			activeUnits.Sort(CompareListByInitiative);
@@ -413,6 +412,7 @@ public class UnitManager : MonoBehaviour {
 			}
 
 			GetComponentInChildren<UIManager> ().ChangeRound (currentQueue);
+			GetComponentInChildren<UIManager> ().ChangeTurn (turn - deadCount);
 		}
 
 		NextUnitsTurn ();
@@ -448,8 +448,8 @@ public class UnitManager : MonoBehaviour {
 					if (sUnit.mana >= sUnit.myAbilities [a].manaCost) {
 						// if the ability isnt on cooldown
 						if (sUnit.myAbilities [a].cooldown < 1) {
-							// check if the user has any combo if it needs it
-							if ((sUnit.myAbilities [a].usesCombo && sUnit.comboPoints > 0) || !sUnit.myAbilities [a].usesCombo) {
+							// check if the user has any guard if it needs it
+							if ((sUnit.myAbilities [a].usesGuard && sUnit.guardPoints > 0) || !sUnit.myAbilities [a].usesGuard) {
 
 								//highlight icon
 								GetComponentInChildren<UIManager> ().HighlightIcon (a);
@@ -490,7 +490,7 @@ public class UnitManager : MonoBehaviour {
 									break;
 								}
 							} else {
-								GetComponentInChildren<UIManager> ().ShowErrorText ("Unit doesnt have any combo");
+								GetComponentInChildren<UIManager> ().ShowErrorText ("Unit doesnt have any guard");
 								sUnit.GetComponent<AudioSource> ().PlayOneShot (effectLibrary.getSoundEffect ("Error"));
 							}
 						} else {
@@ -586,7 +586,7 @@ public class UnitManager : MonoBehaviour {
 	public void TileEnter(int x, int y) {
 		switch(currentDisplaying) {
 		case Display.Movement: map.GetPath(x, y);
-			map.SwitchColours(currentQueue [turn].GetComponent<Unit> ().currentPath);
+			map.HighlightPath(currentQueue [turn].GetComponent<Unit> ().currentPath);
 			break;
 		case Display.Nothing: break;
 		default: AbilityTileEnter(x, y);
@@ -597,7 +597,7 @@ public class UnitManager : MonoBehaviour {
 
 	public void TileExit(int x, int y) {
 		switch(currentDisplaying) {
-		case Display.Movement: map.SwitchColours(currentQueue [turn].GetComponent<Unit> ().currentPath);
+		case Display.Movement: map.UnhighlightPath(currentQueue [turn].GetComponent<Unit> ().currentPath);
 			break;
 		case Display.Nothing: break;
 		default: AbilityTileExit(x, y);
@@ -683,7 +683,7 @@ public class UnitManager : MonoBehaviour {
 	public void ShowMovement() {
 		Unit sUnit = currentQueue [turn].GetComponent<Unit> ();
 		if (!sUnit.moving && sUnit.playable) {
-			map.UnhighlightTiles();
+			map.UnhighlightTiles ();
 			currentDisplaying = Display.Movement;
 			sUnit.DrawReachableTiles ();
 		}
@@ -732,25 +732,25 @@ public class UnitManager : MonoBehaviour {
     {
         switch (c)
         {
-		case CharacterClass.Warrior: u.myAbilities[0] = new CripplingStrike(u, map, effectLibrary);
-			u.myAbilities[1] = new ShieldSlam(u, map, effectLibrary);
-			u.myAbilities[2] = new Charge(u, map, effectLibrary);
+		case CharacterClass.Warrior: u.myAbilities[0] = new GuardianStrike(u, map, effectLibrary);
+			u.myAbilities[1] = new Barge(u, map, effectLibrary);
+			u.myAbilities[2] = new ShieldSlam(u, map, effectLibrary);
 			u.myAbilities[3] = new CounterAttack(u, map, effectLibrary);
             break;
 		case CharacterClass.Acolyte: u.myAbilities[0] = new WordOfHealing(u, map, effectLibrary);
-			u.myAbilities[1] = new RighteousShield(u, map, effectLibrary);
+			u.myAbilities[1] = new Smite(u, map, effectLibrary);
 			u.myAbilities[2] = new DivineSacrifice(u, map, effectLibrary);
-			u.myAbilities[3] = new TheLordsProtection(u, map, effectLibrary);
+			u.myAbilities[3] = new Amplify(u, map, effectLibrary);
 			break;
 		case CharacterClass.Highwayman: u.myAbilities[0] = new Lacerate(u, map, effectLibrary);
-			u.myAbilities[1] = new Lunge(u, map, effectLibrary);
-			u.myAbilities[2] = new PointBlank(u, map, effectLibrary);
+			u.myAbilities[1] = new Flurry(u, map, effectLibrary);
+			u.myAbilities[2] = new ShadowStep(u, map, effectLibrary);
 			u.myAbilities[3] = new SmokeBomb(u, map, effectLibrary);
 			break;
 		case CharacterClass.Elementalist: u.myAbilities[0] = new ArcanePulse(u, map, effectLibrary);
 			u.myAbilities[1] = new Fireball(u, map, effectLibrary);
 			u.myAbilities[2] = new FlashFreeze(u, map, effectLibrary);
-			u.myAbilities[3] = new DeepSlumber(u, map, effectLibrary);
+			u.myAbilities[3] = new ArcaneSpark(u, map, effectLibrary);
 			break;
 		case CharacterClass.Ranger: u.myAbilities[0] = new TripleShot(u, map, effectLibrary);
 			u.myAbilities[1] = new CripplingShot(u, map, effectLibrary);
@@ -782,7 +782,7 @@ public class UnitManager : MonoBehaviour {
 			u.myAbilities[1] = new TotemFlameShield(u, map, effectLibrary);
 			break;
 		case EnemyClass.WaterTotem: u.myAbilities[0] = new TotemHeal(u, map, effectLibrary);
-			u.myAbilities[1] = new TotemMist(u, map, effectLibrary);
+			//u.myAbilities[1] = new TotemMist(u, map, effectLibrary);
 			break;
 		case EnemyClass.WindTotem: u.myAbilities[0] = new TotemCooldownReduction(u, map, effectLibrary);
 			u.myAbilities[1] = new TotemPushBack(u, map, effectLibrary);

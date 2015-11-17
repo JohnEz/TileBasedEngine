@@ -27,14 +27,14 @@ public class DeepSlumber : Ability
 	{
 		base.UseAbility (target);
 
-		Effect eff1 = new Sleep ("Deep Slumber (sleep)", duration);
-		Effect eff2 = new DamageRecievedEffect ("Deep Slumber (dmg)", duration, damageMod); 
+		Effect eff1 = new Sleep ("Deep Slumber (sleep)", duration, effectLib.getIcon("Deep Slumber").sprite);
+		Effect eff2 = new DamageRecievedEffect ("Deep Slumber (dmg)", duration, damageMod, 1, effectLib.getIcon("Deep Slumber").sprite); 
 
 		target.ApplyEffect(eff1);
 		target.ApplyEffect(eff2);
 
-		target.AddTrigger (new RemoveEffect ("Deep Slumber (sleep)", myCaster, TriggerType.Hit, eff1, effectLib, duration));
-		target.AddTrigger (new RemoveEffect ("Deep Slumber (dmg)", myCaster, TriggerType.Hit, eff2, effectLib, duration));
+		target.AddTrigger (new RemoveEffect ("Deep Slumber (sleep)", myCaster, TriggerType.Hit, eff1, effectLib, duration, effectLib.getIcon("Deep Slumber").sprite));
+		target.AddTrigger (new RemoveEffect ("Deep Slumber (dmg)", myCaster, TriggerType.Hit, eff2, effectLib, duration, effectLib.getIcon("Deep Slumber").sprite));
 
 		myCaster.GetComponent<AudioSource> ().PlayOneShot (effectLib.getSoundEffect ("Deep Slumber"));
 	}

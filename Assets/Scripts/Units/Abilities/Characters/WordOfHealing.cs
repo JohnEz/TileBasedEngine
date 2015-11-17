@@ -26,8 +26,8 @@ public class WordOfHealing : Ability
 	{
 		base.UseAbility (target);
 
-		target.TakeHealing (healing);
-		target.ApplyEffect (new DamageRecievedEffect ("Word of Healing", duration, -damageMod, stacks));
+		target.TakeHealing ((int)(healing * myCaster.healingDealtMod), myCaster);
+		target.ApplyEffect (new DamageRecievedEffect ("Word of Healing", duration, -damageMod, stacks, effectLib.getIcon("Word of Healing").sprite));
 
 		Vector3 pos = map.TileCoordToWorldCoord (target.tileX, target.tileY);
 		myVisualEffects.Add (effectLib.CreateVisualEffect ("Word of Healing", pos).GetComponent<EffectController> ());

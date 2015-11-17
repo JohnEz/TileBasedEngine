@@ -29,7 +29,7 @@ public class FlashFreeze : Ability
 
 		//deal damage, if not dodged, apply effect
 		if (target.TakeDamage (dmg, null, true, myCaster) != -1) {
-			if (target.ApplyEffect (new Stun ("Frozen", duration))) {
+			if (target.ApplyEffect (new Stun ("Frozen", duration, effectLib.getIcon("Flash Freeze").sprite))) {
 				target.ShowCombatText ("Stunned", target.statusCombatText);
 			}
 		}

@@ -159,9 +159,8 @@ public class AIBehaviours : MonoBehaviour {
 
 
 		// for each character, find path
-		//for (int i = 0; i < myManager.characterCount; ++i) {
 		for (int i = 0; i < targets.Count(); ++i) {
-			//Unit targetUnit = myManager.playerUnitObjects[i].GetComponent<Unit>();
+			//get the target
 			Unit targetUnit = targets[i].GetComponent<Unit>();
 			if (targetUnit != null) {
 				//if the target is alive
@@ -175,17 +174,18 @@ public class AIBehaviours : MonoBehaviour {
 						myUnit.currentPath.Remove(myMap.GetNode (targetUnit.tileX, targetUnit.tileY));
 						//remove all unreachable tiles
 						FindFurthestTileInPath();
-						//cull the path to reduce size
-						//myMap.CullPath();
 
 						// if the target is next to the unit
 						if (myUnit.currentPath.Count == 0) {
-							foundTarget = true;
-							// set shortest path
-							shortestPath = myUnit.currentPath;
-							currentPathCost = 0;
-							tx = targetUnit.tileX;
-							ty = targetUnit.tileY;
+							// if the current closest isnt already next to
+							if (currentPathCost != 0) {
+								foundTarget = true;
+								// set shortest path
+								shortestPath = myUnit.currentPath;
+								currentPathCost = 0;
+								tx = targetUnit.tileX;
+								ty = targetUnit.tileY;
+							}
 						} //else if the target is closer than the previous
 						else if (myUnit.currentPath.Last().cost < currentPathCost) {
 							// set shortest path

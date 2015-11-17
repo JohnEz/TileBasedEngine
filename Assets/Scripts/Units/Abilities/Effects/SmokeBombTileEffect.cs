@@ -6,11 +6,12 @@ public class SmokeBombTileEffect : Effect
 	List<Node> tiles;
 	int LOSMod = 0;
 
-	public SmokeBombTileEffect(string n, int dur, List<Node> targets, int mod, int stacks = 1)
-		: base(n, dur, 1)
+	public SmokeBombTileEffect(string n, int dur, List<Node> targets, int mod, int stacks = 1, Sprite icon = null)
+		: base(n, dur, 1, icon)
 	{
 		tiles = targets;
 		LOSMod = mod;
+		visible = false;
 	}
 	
 	public override void OnExpire ()

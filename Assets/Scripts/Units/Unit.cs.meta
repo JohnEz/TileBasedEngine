@@ -1,17 +1,23 @@
 fileFormatVersion: 2
 guid: 4cf2669911aeb5d4e9ed3aa3d6470e8c
-timeCreated: 1438700679
+timeCreated: 1443110726
 licenseType: Free
 MonoImporter:
   serializedVersion: 2
   defaultReferences:
   - map: {instanceID: 0}
   - uManager: {instanceID: 0}
+  - healthBar: {instanceID: 0}
+  - hpText: {instanceID: 0}
+  - manaBar: {instanceID: 0}
+  - manaText: {instanceID: 0}
+  - shieldBar: {instanceID: 0}
   - damageCombatText: {fileID: 186558, guid: ff5d18c7b9d5fe84995a98aecc14cca1, type: 2}
   - healingCombatText: {fileID: 114764, guid: b5a1e44240fb9d142a7a6b33b1149923, type: 2}
   - statusCombatText: {fileID: 104624, guid: f75e85fbd6373214abfdcfa8f0510ad5, type: 2}
   - manaCombatText: {fileID: 133868, guid: 963497d01d71c8745a1579df130e79aa, type: 2}
-  - comboPoint: {fileID: 137948, guid: 59659ed9f57d9e148b4022defc17a6e2, type: 2}
+  - guardPoint: {fileID: 137948, guid: 59659ed9f57d9e148b4022defc17a6e2, type: 2}
+  - portait: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

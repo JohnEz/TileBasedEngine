@@ -6,7 +6,7 @@ public class HammerSlam : Ability
 	public HammerSlam(Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
 		Name = "Hammer Slam";
-		damage = 50;
+		damage = 40;
 		duration = 2;
 		range = 1;
 		area = AreaType.Single;

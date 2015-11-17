@@ -27,7 +27,7 @@ public class TheLordsProtection : Ability
 
 		//loop through all the targetable nodes
 		foreach (Node t in n.reachableNodes) {
-			t.myUnit.ApplyEffect(new DamageRecievedEffect("The Lords Protection", duration, -damageMod, 1));
+			t.myUnit.ApplyEffect(new DamageRecievedEffect("The Lords Protection", duration, -damageMod, 1, effectLib.getIcon("The Lords Protection").sprite));
 			t.myUnit.TakeHealing(healing);
 
 			Vector3 pos = map.TileCoordToWorldCoord (t.x, t.y);

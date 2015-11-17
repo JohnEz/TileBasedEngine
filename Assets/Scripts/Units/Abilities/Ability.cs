@@ -36,7 +36,7 @@ public class Ability{
 	public TargetType targets = TargetType.Enemy;
 	public int range;
 	public int AOERange = 2;
-	public bool usesCombo = false;
+	public bool usesGuard = false;
 	public bool canTargetSelf = true;
 
     public Unit myCaster = null;
@@ -44,7 +44,8 @@ public class Ability{
 
 	public PrefabLibrary effectLib;
 	public TileMap map;
-
+	public Node targetNode;
+	
 	public bool AbilityFinished = true;
 
 	public int stacks = 1;
@@ -56,6 +57,7 @@ public class Ability{
 	public int AIPriority = 5;
 	public bool AIRanged = false;
 	public bool AISupportsAlly = false;
+
 
 
 
@@ -72,6 +74,7 @@ public class Ability{
 		myTarget = target;
 
 		myCaster.AddRemoveMana (-manaCost);
+		myVisualEffects = new List<EffectController> ();
 	}
 
 	public virtual void AbilityOnHit() {
@@ -81,6 +84,8 @@ public class Ability{
 	public virtual void UseAbility(Node n) {
 		cooldown = maxCooldown;
 		AbilityFinished = false;
+		targetNode = n;
+
 		myCaster.AddRemoveMana (-manaCost);
 		myVisualEffects = new List<EffectController> ();
 	}

@@ -6,9 +6,10 @@ public class DivineSacrificeTrigger : Trigger
 {
 
 	int manaGain = 0;
-	public DivineSacrificeTrigger (string name, Unit caster, int dur, PrefabLibrary el, int mGain) : base(name, TriggerType.Death, caster, el, dur)
+	public DivineSacrificeTrigger (string name, Unit caster, int dur, PrefabLibrary el, int mGain, Sprite icon = null)
+		: base(name, TriggerType.Hit, caster, el, dur, icon)
 	{
-		maxTriggers = 1;
+		maxTriggers = -1;
 		manaGain = mGain;
 	}
 

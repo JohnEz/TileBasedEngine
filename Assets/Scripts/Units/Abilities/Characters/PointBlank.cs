@@ -12,7 +12,7 @@ public class PointBlank : Ability
 		area = AreaType.Single;
 		targets = TargetType.Enemy;
 		maxCooldown = 1;
-		usesCombo = true;
+		usesGuard = true;
 
 		description = "Cooldown: " + maxCooldown.ToString () +
 			"\nUses all the combo points and deals " + damage.ToString () + 
@@ -23,7 +23,7 @@ public class PointBlank : Ability
 	{
 		base.UseAbility (target);
 		int dmg = (int)(damage * myCaster.damageDealtMod);
-		int combo = myCaster.UseComboPoints ();
+		int combo = myCaster.UseGuardPoints ();
 
 		int dirX = myCaster.tileX - target.tileX;
 		int dirY = myCaster.tileY - target.tileY;

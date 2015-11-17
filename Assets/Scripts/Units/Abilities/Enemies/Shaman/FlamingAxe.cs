@@ -8,7 +8,7 @@ public class FlamingAxe : Ability
 	public FlamingAxe(Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
 		Name = "Flaming Axe";
-		damage = 78;
+		damage = 50;
 		duration = 1;
 		range = 4;
 		area = AreaType.Single;

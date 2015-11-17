@@ -6,8 +6,8 @@ using System.Collections.Generic;
 public class Sleep : Effect
 {
 	
-	public Sleep(string n, int dur)
-		: base(n, dur, 1)
+	public Sleep(string n, int dur, Sprite icon = null)
+		: base(n, dur, 1, icon)
 	{
 		description = "Sleep";
 	}

@@ -5,7 +5,7 @@ public class SonicWave : Ability
 {
 	public SonicWave (Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
-		damage = 25;
+		damage = 20;
 		manaGain = 15;
 		range = 6;
 		duration = 2;

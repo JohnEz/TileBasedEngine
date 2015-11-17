@@ -77,6 +77,7 @@ public class Unit : MonoBehaviour {
     public float damageDealtMod = 1;
     public float damageRecievedMod = 1;
     public float healingRecievedMod = 1;
+	public float healingDealtMod = 1;
 	public int cooldownSpeed = 1;
 
 	//logic bools
@@ -91,7 +92,7 @@ public class Unit : MonoBehaviour {
 	public List<Effect> expiredEffects = new List<Effect> ();
 	public List<Trigger> myTriggers = new List<Trigger> ();
 	public List<Trigger> finishedTriggers = new List<Trigger> ();
-	public int comboPoints = 0;
+	public int guardPoints = 0;
 	public int team = 1;
 
 
@@ -103,13 +104,13 @@ public class Unit : MonoBehaviour {
 	public Image manaBar;
 	public Text manaText;
 	public Image shieldBar;
-	public List<GameObject> comboPointGameObjects = new List<GameObject> ();
+	public List<GameObject> guardPointGameObjects = new List<GameObject> ();
 
 	public GameObject damageCombatText;
 	public GameObject healingCombatText;
 	public GameObject statusCombatText;
 	public GameObject manaCombatText;
-	public GameObject comboPoint;
+	public GameObject guardPoint;
 
 	public Sprite portait;
 
@@ -216,6 +217,7 @@ public class Unit : MonoBehaviour {
 		damageDealtMod = 1;
 		damageRecievedMod = 1;
 		healingRecievedMod = 1;
+		healingDealtMod = 1;
 		cooldownSpeed = 1;
 		shield = 0;
 		dodgeChance = baseDodge;
@@ -250,6 +252,9 @@ public class Unit : MonoBehaviour {
 		if (damageRecievedMod < 0) {
 			damageRecievedMod = 0;
 		}
+
+		//guard points
+		blockChance += 4 * guardPoints;
 		
 		// reset move and action
 		remainingMove = movespeed;
@@ -558,14 +563,6 @@ public class Unit : MonoBehaviour {
 				hpText.text = "";
 			}
 		}
-
-		if (playable) {
-			uManager.GetComponent<GameManager> ().UI.GetComponent<UIManager> ().UpdateUnitFrame (ID, this);
-		}
-
-		if (selected) {
-			uManager.GetComponent<GameManager> ().UI.GetComponent<UIManager> ().UpdateUnitFrame (5, this);
-		}
 	}
 
 	// updates the visual of the unit's manabar
@@ -585,13 +582,6 @@ public class Unit : MonoBehaviour {
 				manaText.text = "";
 			}
 
-			if (playable) {
-				uManager.GetComponent<GameManager> ().UI.GetComponent<UIManager> ().UpdateUnitFrame (ID, this);
-			}
-
-			if (selected) {
-				uManager.GetComponent<GameManager> ().UI.GetComponent<UIManager> ().UpdateUnitFrame (5, this);
-			}
 		}
 	}
 
@@ -677,6 +667,11 @@ public class Unit : MonoBehaviour {
 
 		UpdateHealthBar ();
 
+		//tell the attacker that it dealt damage
+		if (attacker) {
+			attacker.CheckTriggers(TriggerType.DealDamage);
+		}
+
 		return outcome;
     }
 
@@ -719,7 +714,7 @@ public class Unit : MonoBehaviour {
 	}
 
 	// heals the target
-	public void TakeHealing(int heal)
+	public void TakeHealing(int heal, Unit healer = null)
 	{
 		int healing = (int)(heal * healingRecievedMod);
 		hp += healing;
@@ -730,6 +725,12 @@ public class Unit : MonoBehaviour {
 
 		CheckTriggers (TriggerType.Healed);
 		ShowCombatText(healing.ToString(), healingCombatText);
+
+		//tell the attacker that it dealt damage
+		if (healer) {
+			healer.CheckTriggers(TriggerType.Heal);
+		}
+
 		UpdateHealthBar ();
 	}
 
@@ -755,7 +756,7 @@ public class Unit : MonoBehaviour {
 
 	// created floating combat text with the specified value
 	public void ShowCombatText(string txt, GameObject go) {
-		GameObject temp = Instantiate (go) as GameObject;
+		/*GameObject temp = Instantiate (go) as GameObject;
 		RectTransform tempRect = temp.GetComponent<RectTransform> ();
 		temp.GetComponent<Animator> ().SetTrigger ("Hit");
 		temp.transform.SetParent (transform.FindChild("UnitCanvas"));
@@ -765,14 +766,16 @@ public class Unit : MonoBehaviour {
 		tempRect.transform.rotation = go.transform.localRotation;
 		
 		temp.GetComponent<Text> ().text = txt;
-		Destroy(temp.gameObject, 2); 
+		Destroy(temp.gameObject, 2); */
+		uManager.GetComponent<GameManager> ().UI.GetComponent<UIManager>().CreateCombatText (transform.localPosition, txt, go);
+
 	}
 
 	// applies the specified effect, or stacks and refreshes it if it is already on
     public bool ApplyEffect(Effect eff)
     {
 		//first check if the unit is immune
-		if (eff.description.Contains ("Stun") && immune.Stun) {
+		if (eff.description.Contains ("Stunned") && immune.Stun) {
 			ShowCombatText("Immune", statusCombatText);
 			return false;
 		} else if (eff.description.Contains ("Snare") && immune.Snare) {
@@ -796,6 +799,7 @@ public class Unit : MonoBehaviour {
 		damageDealtMod = 1;
 		damageRecievedMod = 1;
 		healingRecievedMod = 1;
+		healingDealtMod = 1;
 		cooldownSpeed = 1;
 		bool alreadyHad = false;
 		shield = 0;
@@ -834,6 +838,9 @@ public class Unit : MonoBehaviour {
 			damageRecievedMod = 0;
 		}
 
+		//guard points
+		blockChance += 4 * guardPoints;
+
 		ShowDebuffs ();
 
 		return true;
@@ -855,6 +862,7 @@ public class Unit : MonoBehaviour {
 		damageDealtMod = 1;
 		damageRecievedMod = 1;
 		healingRecievedMod = 1;
+		healingDealtMod = 1;
 		shield = 0;
 		dodgeChance = baseDodge;
 		blockChance = baseBlock;
@@ -862,6 +870,9 @@ public class Unit : MonoBehaviour {
 		foreach (Effect currentEffect in myEffects) {
 			currentEffect.RunEffect(this, true);
 		}
+
+		//guard points
+		blockChance += 4 * guardPoints;
 
 		ShowDebuffs ();
 
@@ -874,12 +885,12 @@ public class Unit : MonoBehaviour {
 
 	// finds if the unit is stunned
 	public bool IsStunned() {
-		return HasDebuff("Stun");
+		return HasDebuff("Stunned");
 	}
 
 	// finds if the unit is snared
 	public bool IsSnared() {
-		return HasDebuff("Snare");
+		return HasDebuff("Snared");
 	}
 
 	public bool IsAsleep() {
@@ -904,47 +915,47 @@ public class Unit : MonoBehaviour {
 		return false;
 	}
 
-	// adds the parameter of combo points until up to 5
-	public void AddComboPoints(int i) {
-		comboPoints += i;
-		if (comboPoints > 5) {
-			comboPoints = 5;
+	// adds the parameter of guard points until up to 5
+	public void AddGuardPoints(int i) {
+		guardPoints += i;
+		if (guardPoints > 5) {
+			guardPoints = 5;
 		}
 
-		UpdateComboPoints ();
+		UpdateguardPoints ();
 	}
 
-	public void UpdateComboPoints() {
+	public void UpdateguardPoints() {
 		//check to see if there was a change
-		if (comboPointGameObjects.Count != comboPoints) {
+		if (guardPointGameObjects.Count != guardPoints) {
 
 			//find the difference
-			int change = comboPoints - comboPointGameObjects.Count;
+			int change = guardPoints - guardPointGameObjects.Count;
 
 			//position value
 			float width = healthBar.GetComponent<RectTransform>().rect.width;
 
-			// if we need to add more combo
+			// if we need to add more guard
 			if (change > 0) {
 
-				//add the amount of combo points
+				//add the amount of guard points
 				for(int i = 0; i < change; ++i) {
 
-					int ind = comboPointGameObjects.Count;
+					int ind = guardPointGameObjects.Count;
 
 					//calculate its position (index 3 should be at 0 X)
 					float x = (width/5) * (ind-2);
 
-					//add the new combo point
-					comboPointGameObjects.Add(CreateComboPoint(x));
+					//add the new guard point
+					guardPointGameObjects.Add(CreateGuardPoint(x));
 				}
 			}
 			else {
 				//loop for the change
 				for (int i = 0; i < change*-1; ++i) {
 
-					GameObject go = comboPointGameObjects[comboPointGameObjects.Count-1];
-					comboPointGameObjects.RemoveAt(comboPointGameObjects.Count-1);
+					GameObject go = guardPointGameObjects[guardPointGameObjects.Count-1];
+					guardPointGameObjects.RemoveAt(guardPointGameObjects.Count-1);
 					Destroy(go, 0);
 
 				}
@@ -954,23 +965,23 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
-	GameObject CreateComboPoint(float x) {
-		GameObject temp = Instantiate (comboPoint) as GameObject;
+	GameObject CreateGuardPoint(float x) {
+		GameObject temp = Instantiate (guardPoint) as GameObject;
 		RectTransform tempRect = temp.GetComponent<RectTransform> ();
 		temp.transform.SetParent (transform.FindChild("UnitCanvas"));
 		
-		tempRect.transform.localPosition = comboPoint.transform.localPosition + new Vector3(x, 0, 0);
-		tempRect.transform.localScale = comboPoint.transform.localScale;
-		tempRect.transform.rotation = comboPoint.transform.localRotation;
+		tempRect.transform.localPosition = guardPoint.transform.localPosition + new Vector3(x, 0, 0);
+		tempRect.transform.localScale = guardPoint.transform.localScale;
+		tempRect.transform.rotation = guardPoint.transform.localRotation;
 		
 		return temp;
 	}
 
-	//uses all the combo points the unit as got and returns the value
-	public int UseComboPoints() {
-		int cp = comboPoints;
-		comboPoints = 0;
-		UpdateComboPoints ();
+	//uses all the guard points the unit as got and returns the value
+	public int UseGuardPoints() {
+		int cp = guardPoints;
+		guardPoints = 0;
+		UpdateguardPoints ();
 		return cp;
 	}
 

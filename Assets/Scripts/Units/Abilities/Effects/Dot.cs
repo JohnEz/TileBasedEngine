@@ -6,11 +6,12 @@ public class Dot : Effect
 	int baseDamage = 0;
     int damage = 0;
 
-    public Dot(string n, int dur, int dmg, int stacks = 1)
-        : base(n, dur, stacks)
+	public Dot(string n, int dur, int dmg, int stacks = 1, Sprite icon = null)
+        : base(n, dur, stacks, icon)
     {
 		baseDamage = dmg;
         damage = dmg;
+		description = "Deals " + damage.ToString() + " damage each turn.";
     }
 
 	public override void RunEffect(Unit u, bool reapply = false)
@@ -30,6 +31,7 @@ public class Dot : Effect
 			++stack;
 			damage += baseDamage;
 		}
+		description = "Deals " + damage.ToString() + " damage each turn.";
 	}
 }
 

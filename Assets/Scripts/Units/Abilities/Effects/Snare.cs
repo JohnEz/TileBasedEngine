@@ -4,10 +4,10 @@ using System.Collections.Generic;
 public class Snare : Effect
 {
 
-    public Snare(string n, int dur)
-        : base(n, dur, 1)
+	public Snare(string n, int dur, Sprite icon = null)
+        : base(n, dur, 1, icon)
     {
-		description = "Snare";
+		description = "Snared";
     }
 
 	public override void RunEffect(Unit u, bool reapply = false)

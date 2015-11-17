@@ -7,6 +7,8 @@ public enum Tile {
 	FLOOR,
 	CARPET,
 	WALL,
+	PIT,
+	BLANK,
 	MAXTILETYPE
 }
 
@@ -134,9 +136,9 @@ public class TileMap : MonoBehaviour {
 
 				int z = 0;
 
-				if (currentLevel.tiles[y * currentLevel.maxSizeX + x] == Tile.WALL) {
-					z = -3;
-				}
+				//if (currentLevel.tiles[y * currentLevel.maxSizeX + x] == Tile.WALL) {
+					//z = -3;
+				//}
 
 				Vector3 pos = new Vector3(x, y, z) + transform.position;
 				Quaternion rot = transform.rotation;
@@ -481,6 +483,7 @@ public class TileMap : MonoBehaviour {
 	public void UnhighlightTiles(List<Node> HTiles)  {
 		foreach (Node n in HTiles) {
 			tileObjects[n.y * currentLevel.maxSizeX + n.x].GetComponent<ClickableTile>().UnhighlightTile();
+			n.previous = null;
 		}
 	}
 
@@ -800,6 +803,20 @@ public class TileMap : MonoBehaviour {
 		if (nodes != null) {
 			foreach (Node n in nodes) {
 				GetClickableTile (n.x, n.y).SwitchColours ();
+			}
+		}
+	}
+
+	public void HighlightPath(List<Node> nodes) {
+		SwitchColours (nodes);
+	}
+
+	public void UnhighlightPath(List<Node> nodes) {
+		if (nodes != null) {
+			foreach (Node n in nodes) {
+				if (GetClickableTile (n.x, n.y).flipped) {
+					GetClickableTile (n.x, n.y).SwitchColours ();
+				}
 			}
 		}
 	}

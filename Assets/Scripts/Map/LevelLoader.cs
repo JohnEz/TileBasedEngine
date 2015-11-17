@@ -3,12 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using System.IO;
+using System;
 
 public struct Level {
 	public string name;
 	public int maxSizeX;
 	public int maxSizeY;
-	public Tile[] tiles;
+	public int[] tiles;
 }
 
 public class LevelLoader {
@@ -49,7 +50,7 @@ public class LevelLoader {
 
 	}
 
-	Tile[] CreateTilesFromText(string data, int maxX = 10, int maxY = 10) {
+	Tile[] CreateTilesFromText2(string data, int maxX = 10, int maxY = 10) {
 		Tile[] tiles = new Tile[maxX * maxY];
 		char[] chars = data.ToCharArray ();
 
@@ -58,13 +59,13 @@ public class LevelLoader {
 		for (int i = 0; i < chars.Length; ++i)
 		{
 			switch(chars[i]) {
-			case '0' : tiles[counter] = Tile.FLOOR;
+			case '0' : tiles[counter] = Tile.BLANK;
 				++counter;
 				break;
 			case '1' : tiles[counter] = Tile.WALL;
 				++counter;
 				break;
-			case '2' : tiles[counter] = Tile.CARPET;
+			case '2' : tiles[counter] = Tile.FLOOR;
 				++counter;
 				break;
 			default: break;
@@ -72,5 +73,19 @@ public class LevelLoader {
 		}
 		return tiles;
 	}
+
+    int[] CreateTilesFromText(string data, int maxX = 10, int maxY = 10)
+    {
+        int[] tiles = new int[maxX * maxY];
+        string[] words = data.Split(',');
+
+        int counter = 0;
+
+        for (int i = 0; i < words.Length; ++i)
+        {
+            tiles[i] = Int32.Parse(words[i]);
+        }
+        return tiles;
+    }
 
 }

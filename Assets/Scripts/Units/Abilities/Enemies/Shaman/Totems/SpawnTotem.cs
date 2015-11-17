@@ -7,12 +7,11 @@ public class SpawnTotem : Ability
 	public SpawnTotem(Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
 		Name = "Spawn Totem";
-		damage = 40;
 		duration = 2;
 		range = 4;
 		area = AreaType.Single;
 		targets = TargetType.Enemy;
-		maxCooldown = 3;
+		maxCooldown = 4;
 	
 
 		AIPriority = 0;

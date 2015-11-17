@@ -19,6 +19,7 @@ public class ClickableTile : MonoBehaviour, IPointerClickHandler {
 	//highlighting
 	public bool highlighted = false;
 	public bool targetable = false;
+	public bool flipped = false;
 	public Color storedColour = Color.white;
 	public Color mOverColour;
 
@@ -73,6 +74,7 @@ public class ClickableTile : MonoBehaviour, IPointerClickHandler {
 		case -1: targetable = SwitchBool(targetable);
 			break;
 		}
+		flipped = false;
 	}
 
 	bool SwitchBool (bool b) {
@@ -88,12 +90,15 @@ public class ClickableTile : MonoBehaviour, IPointerClickHandler {
 			highlighted = false;
 			SetColour(new Color(0.5f, 0.5f, 0.5f));
 			storedColour = Color.white;
+			mOverColour = Color.white;
 			targetable = false;
+			flipped = false;
 		}
 	}
 
 	public void SwitchColours() {
 		SetColour(mOverColour);
+		flipped = SwitchBool (flipped);
 		Color store = mOverColour;
 		mOverColour = storedColour;
 		storedColour = store;

@@ -38,7 +38,7 @@ public class CripplingShot : Ability
 
 		// deal damage, if not dodged apply cripple
 		if (myTarget.TakeDamage (dmg, effectLib.getSoundEffect ("Crippling Shot Hit"), true, myCaster) != -1) {
-			myTarget.ApplyEffect (new Snare ("Crippled", duration));
+			myTarget.ApplyEffect (new Snare ("Crippled", duration, effectLib.getIcon("Crippling Shot").sprite));
 			myTarget.ShowCombatText ("Snared", myTarget.statusCombatText);
 		}
 

@@ -70,7 +70,7 @@ public class Lunge : Ability
 		if (map.UnitCanEnterTile (x, y)) {
 			//unit can move to final tile
 			myCaster.SlideToTile (x, y);
-			myCaster.AddComboPoints(count);
+			myCaster.AddGuardPoints(count);
 
 			myCaster.ApplyEffect(new DamageDealtEffect("Lunge", 1, 0.5f)); 
 		} else {

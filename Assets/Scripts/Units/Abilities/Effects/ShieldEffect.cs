@@ -6,11 +6,12 @@ public class ShieldEffect : Effect
 	int maxShield;
 	int shieldAmount;
 
-	public ShieldEffect (string n, int dur, int shield) : base(n, dur, 1)
+	public ShieldEffect (string n, int dur, int shield, Sprite icon = null)
+		: base(n, dur, 1, icon)
 	{
 		maxShield = shield;
 		shieldAmount = maxShield;
-		description = "Damage Shield";
+		description = "Damage Shield " + shieldAmount.ToString();
 	}
 
 	public override void RunEffect(Unit u, bool reapply = false)
@@ -25,6 +26,8 @@ public class ShieldEffect : Effect
 		int dmg = d - shieldAmount;
 		shieldAmount -= d;
 
+		description = "Damage Shield " + shieldAmount.ToString();
+
 		return dmg;
 	}
 
@@ -32,6 +35,7 @@ public class ShieldEffect : Effect
 	{
 		base.AddStack ();
 		shieldAmount = maxShield;
+		description = "Damage Shield " + shieldAmount.ToString();
 	}
 
 	public bool ShieldIsDestroyed() {

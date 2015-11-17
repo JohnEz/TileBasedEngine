@@ -5,7 +5,8 @@ using System;
 public class CracklingArrowTrigger : Trigger
 {
 	int damage = 0;
-	public CracklingArrowTrigger (string name, Unit caster, int dur, PrefabLibrary el, int dmg) : base(name, TriggerType.Hit, caster, el, dur)
+	public CracklingArrowTrigger (string name, Unit caster, int dur, PrefabLibrary el, int dmg, Sprite icon = null)
+		: base(name, TriggerType.Hit, caster, el, dur, icon)
 	{
 		maxTriggers = 1;
 		damage = dmg;

@@ -5,7 +5,7 @@ public class Clobber : Ability
 {
 	public Clobber (Unit u, TileMap m, PrefabLibrary el) : base(u, m , el)
 	{
-		damage = 35;
+		damage = 30;
 		range = 1;
 		area = AreaType.Single;
 		targets = TargetType.Enemy;

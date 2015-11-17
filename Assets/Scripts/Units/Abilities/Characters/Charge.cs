@@ -44,7 +44,7 @@ public class Charge : Ability
 			if (targetSquares.Last ().myUnit.team != myCaster.team) {
 				//make the unit take damage, if not dodged apply snare
 				if (targetSquares.Last ().myUnit.TakeDamage(dmg * targetSquares.Count+1, null, true, myCaster) != -1) {
-					targetSquares.Last ().myUnit.ApplyEffect(new Snare("Charged", duration));
+					targetSquares.Last ().myUnit.ApplyEffect(new Snare("Charged", duration, effectLib.getIcon("Charge").sprite));
 				}
 			}
 

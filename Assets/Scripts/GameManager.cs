@@ -4,10 +4,11 @@ using System.Collections;
 public class GameManager : MonoBehaviour {
 
 	public GameObject UI;
-	public Camera cam;
+    public GameObject PauseMenu;
+    public Camera cam;
 
-	// Use this for initialization
-	void Start () {
+    // Use this for initialization
+    void Start () {
 		transform.position = new Vector3 (0, GetComponentInChildren<UIManager> ().GetComponent<RectTransform>().rect.height / 2, 0);
 		UI.GetComponent<UIManager>().Initialise ();
 		GetComponent<PrefabLibrary> ().Initialise ();
@@ -19,30 +20,46 @@ public class GameManager : MonoBehaviour {
 
 	void Update() {
 
-		if (Input.GetKeyDown(KeyCode.Alpha1)) {
-			GetComponent<UnitManager> ().ShowAbility(0);
-		}
-		if (Input.GetKeyDown(KeyCode.Alpha2)) {
-			GetComponent<UnitManager> ().ShowAbility(1);
-		}
-		if (Input.GetKeyDown(KeyCode.Alpha3)) {
-			GetComponent<UnitManager> ().ShowAbility(2);
-		}
-		if (Input.GetKeyDown(KeyCode.Alpha4)) {
-			GetComponent<UnitManager> ().ShowAbility(3);
-		}
-		if (Input.GetKeyDown(KeyCode.Alpha5)) {
-			GetComponent<UnitManager> ().ShowAbility(4);
-		}
-		if (Input.GetKeyDown(KeyCode.Alpha6)) {
-			GetComponent<UnitManager> ().ShowAbility(5);
-		}
-		if (Input.GetKeyDown(KeyCode.Mouse1) || Input.GetKeyDown(KeyCode.Escape)) {
-			//Show movement
-			GetComponent<UnitManager> ().ShowMovement();
-			//unhighlight icons
-			GetComponentInChildren<UIManager>().HighlightIcon(-1);
-		}
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            PauseMenu.GetComponent<PauseMenu>().TogglePause();
+        }
 
-	}
+        if (!PauseMenu.GetComponent<PauseMenu>().pausedGame)
+        {
+            if (Input.GetKeyDown(KeyCode.Alpha1))
+            {
+                GetComponent<UnitManager>().ShowAbility(0);
+            }
+            if (Input.GetKeyDown(KeyCode.Alpha2))
+            {
+                GetComponent<UnitManager>().ShowAbility(1);
+            }
+            if (Input.GetKeyDown(KeyCode.Alpha3))
+            {
+                GetComponent<UnitManager>().ShowAbility(2);
+            }
+            if (Input.GetKeyDown(KeyCode.Alpha4))
+            {
+                GetComponent<UnitManager>().ShowAbility(3);
+            }
+            if (Input.GetKeyDown(KeyCode.Alpha5))
+            {
+                GetComponent<UnitManager>().ShowAbility(4);
+            }
+            if (Input.GetKeyDown(KeyCode.Alpha6))
+            {
+                GetComponent<UnitManager>().ShowAbility(5);
+            }
+            if (Input.GetKeyDown(KeyCode.Mouse1) || Input.GetKeyDown(KeyCode.Escape))
+            {
+                //Show movement
+                GetComponent<UnitManager>().ShowMovement();
+                //unhighlight icons
+                GetComponentInChildren<UIManager>().HighlightIcon(-1);
+            }
+        }
+
+
+    }
 }
