@@ -79,11 +79,14 @@ public class LevelLoader {
         int[] tiles = new int[maxX * maxY];
         string[] words = data.Split(',');
 
-        int counter = 0;
-
         for (int i = 0; i < words.Length; ++i)
         {
-            tiles[i] = Int32.Parse(words[i]);
+            tiles[i] = Int32.Parse(words[i]) - 1;
+
+            if (tiles[i] == -1)
+            {
+                tiles[i] = 5;
+            }
         }
         return tiles;
     }

@@ -20,6 +20,9 @@ public class CameraController : MonoBehaviour {
 	public float maxX = 10;
 	public float maxY = 10;
 
+    public float TestX = 0;
+    public float TestY = 0;
+
 	// Use this for initialization
 	void Start () {
 
@@ -27,11 +30,11 @@ public class CameraController : MonoBehaviour {
 
 	public void Initialise(TileMap map) {
 		minX = map.TileCoordToWorldCoord (0, 0).x;
-		minY = map.TileCoordToWorldCoord (0, 0).y;
+		minY = map.TileCoordToWorldCoord(0, map.currentLevel.maxSizeY).y;
 
-		maxX = map.TileCoordToWorldCoord (map.currentLevel.maxSizeX, 0).x;
-		maxY = map.TileCoordToWorldCoord (0, map.currentLevel.maxSizeY).y;
-	}
+        maxX = map.TileCoordToWorldCoord (map.currentLevel.maxSizeX, 0).x;
+		maxY = map.TileCoordToWorldCoord(0, 0).y;
+    }
 	
 	// Update is called once per frame
 	void Update () {
@@ -41,6 +44,12 @@ public class CameraController : MonoBehaviour {
 
 	//updates the position of the camera via keyboard input
 	void UpdateMovement() {
+
+        TestX = transform.position.x;
+        TestY = transform.position.y;
+
+
+
 		//if the camera is moving to a destination
 		if (movingToDestination) {
 

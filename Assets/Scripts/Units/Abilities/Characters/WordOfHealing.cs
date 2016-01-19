@@ -27,10 +27,10 @@ public class WordOfHealing : Ability
 		base.UseAbility (target);
 
 		target.TakeHealing ((int)(healing * myCaster.healingDealtMod), myCaster);
-		target.ApplyEffect (new DamageRecievedEffect ("Word of Healing", duration, -damageMod, stacks, effectLib.getIcon("Word of Healing").sprite));
+		target.ApplyEffect (new DamageRecievedEffect ("Word Of Healing", duration, -damageMod, stacks, effectLib.getIcon("Word Of Healing").sprite));
 
 		Vector3 pos = map.TileCoordToWorldCoord (target.tileX, target.tileY);
-		myVisualEffects.Add (effectLib.CreateVisualEffect ("Word of Healing", pos).GetComponent<EffectController> ());
+		myVisualEffects.Add (effectLib.CreateVisualEffect ("Word Of Healing", pos).GetComponent<EffectController> ());
 
 		myCaster.GetComponent<AudioSource> ().PlayOneShot (effectLib.getSoundEffect ("Word of Healing"));
 	}

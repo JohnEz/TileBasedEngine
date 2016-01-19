@@ -19,8 +19,10 @@ public class TileMap : MonoBehaviour {
 
 	public Level currentLevel;
 
+    public GameObject highlightTile;
 	public GameObject[] tileObjects;
 	public TileType[] tileTypes;
+    public GameObject[] tilePrefabs;
 	Node[] graph;
 
 	//Setup method
@@ -49,18 +51,20 @@ public class TileMap : MonoBehaviour {
 	}
 
 	public Vector3 TileCoordToWorldCoord(int x, int y) {
-		return new Vector3 (x, y, -2) + transform.position;
+		return new Vector3 (x, -y, -2) + transform.position;
 	}
 	
 	public bool UnitCanEnterTile(int x, int y)
 	{
-		return tileTypes [(int)currentLevel.tiles [y * currentLevel.maxSizeX + x]].isWalkable && GetNode(x, y).myUnit == null;
-	}
+		//return tileTypes [(int)currentLevel.tiles [y * currentLevel.maxSizeX + x]].isWalkable && GetNode(x, y).myUnit == null;
+        return tilePrefabs[(int)currentLevel.tiles[y * currentLevel.maxSizeX + x]].GetComponent<TileAttributes>().isWalkable && GetNode(x, y).myUnit == null;
+    }
 
 	public bool TileBlocksVision(int x, int y)
 	{
-		return tileTypes [(int)currentLevel.tiles [y * currentLevel.maxSizeX + x]].blocksVision;
-	}
+		//return tileTypes [(int)currentLevel.tiles [y * currentLevel.maxSizeX + x]].blocksVision;
+        return tilePrefabs[(int)currentLevel.tiles[y * currentLevel.maxSizeX + x]].GetComponent<TileAttributes>().blocksVision;
+    }
 
 	public Node GetNode(int x, int y) {
 		return graph [y * currentLevel.maxSizeX + x];
@@ -86,17 +90,17 @@ public class TileMap : MonoBehaviour {
 				graph [y * currentLevel.maxSizeX + x].x = x;
 				graph [y * currentLevel.maxSizeX + x].y = y;
 				
-				if (!tileTypes[(int)currentLevel.tiles[y * currentLevel.maxSizeX + x]].isWalkable) {
+				if (!tilePrefabs[(int)currentLevel.tiles[y * currentLevel.maxSizeX + x]].GetComponent<TileAttributes>().isWalkable) {
 					graph [y * currentLevel.maxSizeX + x].moveCost = Mathf.Infinity;
 				} else {
-					graph [y * currentLevel.maxSizeX + x].moveCost = tileTypes[(int)currentLevel.tiles[y * currentLevel.maxSizeX + x]].movementCost;
+					graph [y * currentLevel.maxSizeX + x].moveCost = tilePrefabs[(int)currentLevel.tiles[y * currentLevel.maxSizeX + x]].GetComponent<TileAttributes>().movementCost;
 				}
 
-				if (tileTypes [(int)currentLevel.tiles [y * currentLevel.maxSizeX + x]].blocksVision) {
-					graph [y * currentLevel.maxSizeX + x].LOSCost = Mathf.Infinity;
-				} else {
-					graph [y * currentLevel.maxSizeX + x].LOSCost = tileTypes[(int)currentLevel.tiles[y * currentLevel.maxSizeX + x]].LosCost;
-				}
+				//if (tilePrefabs[(int)currentLevel.tiles[y * currentLevel.maxSizeX + x]].GetComponent<TileAttributes>().blocksVision) {
+					//graph [y * currentLevel.maxSizeX + x].LOSCost = Mathf.Infinity;
+				//} else {
+					graph [y * currentLevel.maxSizeX + x].LOSCost = tilePrefabs[(int)currentLevel.tiles[y * currentLevel.maxSizeX + x]].GetComponent<TileAttributes>().LosCost;
+				//}
 
 			}
 		}
@@ -132,7 +136,7 @@ public class TileMap : MonoBehaviour {
 		//initialize map tiles
 		for (int x=0; x < currentLevel.maxSizeX; ++x) {
 			for (int y=0; y < currentLevel.maxSizeY; ++y) {
-				TileType tt = tileTypes[(int)currentLevel.tiles[y * currentLevel.maxSizeX + x]];
+                GameObject tile = tilePrefabs[(int)currentLevel.tiles[y * currentLevel.maxSizeX + x]];
 
 				int z = 0;
 
@@ -140,18 +144,22 @@ public class TileMap : MonoBehaviour {
 					//z = -3;
 				//}
 
-				Vector3 pos = new Vector3(x, y, z) + transform.position;
-				Quaternion rot = transform.rotation;
+				Vector3 pos = new Vector3(x, -y, z) + transform.position;
+				Quaternion rot = highlightTile.transform.rotation;
 
-				GameObject go = (GameObject)Instantiate(tt.tileVisualPrefab, pos, rot);
+                GameObject go = (GameObject)Instantiate(highlightTile, pos + new Vector3(0, 0, -2), rot);
+                tileObjects[y * currentLevel.maxSizeX + x] = go;
 
-				tileObjects[y * currentLevel.maxSizeX + x] = go;
+                rot = tile.transform.rotation;
+                GameObject visual = (GameObject)Instantiate(tile, pos, rot);
 
-				ClickableTile ct = go.GetComponent<ClickableTile>();
+
+                ClickableTile ct = go.GetComponent<ClickableTile>();
 				ct.tileX = x;
 				ct.tileY = y;
 				ct.map = this;
 				ct.uManager = GetComponent<UnitManager>();
+                ct.visual = visual;
 			}
 		}
 	}
@@ -706,6 +714,7 @@ public class TileMap : MonoBehaviour {
 		return targetableNodes;
 	}
 
+    //draws a line to the tile and sees if there are any tiles that block vision on the way
 	public bool HasLineOfSight(Node start, Node end, float sight) {
 		if (manhattanDistance (start.x, end.x, start.y, end.y) > sight) {
 			return false;
@@ -719,7 +728,7 @@ public class TileMap : MonoBehaviour {
 		int x = start.x;
 		int y = start.y;
 
-		//find out which way the x and y should be stepping
+		//find out which way the x and y should be stepping for the line
 		if (start.x < end.x) {
 			stepX = 1;
 		}
@@ -748,9 +757,9 @@ public class TileMap : MonoBehaviour {
 				++moves;
 			}
 
-			if (TileBlocksVision(x, y)) {
-				return false;
-			} else {
+			if (TileBlocksVision(x, y) && !(x == end.x && y == end.y)) {
+                return false;
+            } else {
 
 				//if it went diagonal increase cost
 				if (moves == 2) {
@@ -789,12 +798,17 @@ public class TileMap : MonoBehaviour {
 
 	//detects everytile in line of sight
 	public void DetectVisability(Unit u) {
-
+        //loop through each node in the graph
 		foreach (Node n in graph) {
-			GetClickableTile(n.x, n.y).visableTo.Remove(u);
-			if (HasLineOfSight(GetNode(u.tileX, u.tileY), n, u.sight)) {
+            //remove this unit from the list of units that can see the tile
+            GetClickableTile(n.x, n.y).visableTo.Remove(u);
+
+            // if there is still line of sight to the tile, re add the unit 
+            if (HasLineOfSight(GetNode(u.tileX, u.tileY), n, u.sight)) {
 				GetClickableTile(n.x, n.y).visableTo.Add(u);
 			}
+
+            //then update the vision of the tile
 			GetClickableTile(n.x, n.y).UpdateVision();
 		}
 	}

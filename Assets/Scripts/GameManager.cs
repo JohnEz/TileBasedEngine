@@ -9,7 +9,6 @@ public class GameManager : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-		transform.position = new Vector3 (0, GetComponentInChildren<UIManager> ().GetComponent<RectTransform>().rect.height / 2, 0);
 		UI.GetComponent<UIManager>().Initialise ();
 		GetComponent<PrefabLibrary> ().Initialise ();
 		UI.GetComponent<UIManager>().prefabs = GetComponent<PrefabLibrary> ();

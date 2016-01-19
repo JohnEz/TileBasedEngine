@@ -620,7 +620,7 @@ public class Unit : MonoBehaviour {
 		int damage = (int)((dmg * damageRecievedMod) * (1 - armourDamageReduction));
 
 		//if the damage can actually be avaded
-		if (canBeEvaded) {
+		if (canBeEvaded && !IsStunned()) {
 
 			//see if the unit dodges the attack
 			int dodge = Random.Range (1, 100);

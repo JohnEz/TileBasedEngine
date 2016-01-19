@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: e2631ce5010681945b5b4b7cbf12836d
-timeCreated: 1447462049
+timeCreated: 1447782268
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
@@ -21,7 +21,9 @@ TextureImporter:
     21300026: tilesetTemp_13
     21300028: tilesetTemp_14
     21300030: tilesetTemp_15
-    21300032: tilesetTemp_16
+    21300032: tilesetTemp_17
+    21300034: tilesetTemp_18
+    21300036: tilesetTemp_16
   serializedVersion: 2
   mipmaps:
     mipMapMode: 0
@@ -56,13 +58,13 @@ TextureImporter:
   rGBM: 0
   compressionQuality: 50
   allowsAlphaSplitting: 0
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: .5, y: .5}
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 32
   alphaIsTransparency: 1
   textureType: 8
   buildTargetSettings: []
@@ -106,7 +108,7 @@ TextureImporter:
         width: 32
         height: 32
       alignment: 0
-      pivot: {x: .5, y: .5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
     - name: tilesetTemp_4
       rect:
@@ -121,17 +123,17 @@ TextureImporter:
     - name: tilesetTemp_5
       rect:
         serializedVersion: 2
-        x: 0
-        y: 32
+        x: 160
+        y: 64
         width: 32
         height: 32
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: .5, y: .5}
       border: {x: 0, y: 0, z: 0, w: 0}
     - name: tilesetTemp_6
       rect:
         serializedVersion: 2
-        x: 32
+        x: 0
         y: 32
         width: 32
         height: 32
@@ -141,7 +143,7 @@ TextureImporter:
     - name: tilesetTemp_7
       rect:
         serializedVersion: 2
-        x: 64
+        x: 32
         y: 32
         width: 32
         height: 32
@@ -151,7 +153,7 @@ TextureImporter:
     - name: tilesetTemp_8
       rect:
         serializedVersion: 2
-        x: 96
+        x: 64
         y: 32
         width: 32
         height: 32
@@ -161,7 +163,7 @@ TextureImporter:
     - name: tilesetTemp_9
       rect:
         serializedVersion: 2
-        x: 128
+        x: 96
         y: 32
         width: 32
         height: 32
@@ -171,14 +173,24 @@ TextureImporter:
     - name: tilesetTemp_10
       rect:
         serializedVersion: 2
+        x: 128
+        y: 32
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: tilesetTemp_11
+      rect:
+        serializedVersion: 2
         x: 160
         y: 32
         width: 32
         height: 32
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: .5, y: .5}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: tilesetTemp_11
+    - name: tilesetTemp_12
       rect:
         serializedVersion: 2
         x: 0
@@ -188,7 +200,7 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: tilesetTemp_12
+    - name: tilesetTemp_13
       rect:
         serializedVersion: 2
         x: 32
@@ -198,7 +210,7 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: tilesetTemp_13
+    - name: tilesetTemp_14
       rect:
         serializedVersion: 2
         x: 64
@@ -208,7 +220,7 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: tilesetTemp_14
+    - name: tilesetTemp_15
       rect:
         serializedVersion: 2
         x: 96
@@ -218,7 +230,7 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: tilesetTemp_15
+    - name: tilesetTemp_16
       rect:
         serializedVersion: 2
         x: 128
@@ -228,7 +240,7 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: tilesetTemp_16
+    - name: tilesetTemp_17
       rect:
         serializedVersion: 2
         x: 160

@@ -45,7 +45,7 @@ public class PrefabLibrary : MonoBehaviour {
 		// attach strings to indexs of the effects
 		visualEffects.Add ("Flash Freeze", 0);
 		visualEffects.Add ("Slash1", 1);
-		visualEffects.Add ("Word of Healing", 2);
+		visualEffects.Add ("Word Of Healing", 2);
 		visualEffects.Add ("Righteous Shield", 3);
 		visualEffects.Add ("Divine Sacrifice", 4);
 		visualEffects.Add ("Hit1", 5);
